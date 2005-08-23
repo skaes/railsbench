@@ -1,0 +1,93 @@
+#!/usr/local/bin/ruby
+
+iter = 100
+files = []
+options = ""
+if ARGV.length==0
+  puts "usage: perf_times file1 file2 ..."
+  exit 1
+end
+ARGV.each do |arg|
+  if /^(\d+)$/===arg
+    iter = $1.to_i
+    next
+  end
+  fn = arg
+  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
+  begin
+    if File.stat(fn).readable?
+      files << File.open(fn)
+    else
+      print "file #{fn} is unreadable\n"
+      exit 1
+    end
+  rescue 
+    print "file #{fn} does not exist\n"
+    exit 1
+  end
+end
+
+files.each do |file|
+  timings = {}
+  keys = []
+  file.each_line do |l|
+    case l
+    when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
+      k = $1.strip
+      keys << k
+      if timings[k]
+        timings[k] << $5.to_f
+      else
+        timings[k] = [$5.to_f]
+      end
+    when /^.*perf_([a-z]+)\s+(\d+)\s+(.*)$/
+      iter = $2.to_i
+      options = $3
+    end
+  end
+
+  def time_avg(a)
+    (a.inject(0.0){|v,r| r += v })/a.length
+  end
+  
+  keys.uniq!
+  unless files.length==0
+    printf "\nperf data file: #{file.path}\n"
+    printf "    requests=#{iter}, options=#{options}\n\n"
+  end
+  k = 'loading environment'
+  printf "%-32s %9.5f\n\n", k, time_avg(timings[k])
+  printf "%-32s %9s   %5s   %5s\n", 'page request', 'total', 'r/s', 'ms/r'
+  
+  keys.each do |k|
+    t = time_avg(timings[k])
+    urls = 1
+    urls = $1.to_i if /\((\d+) urls\)$/===k
+    printf "%-32s %9.5f   %5.1f   %5.2f\n", k, t, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+  end
+
+  file.close unless ARGV.length==0
+  
+end
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA

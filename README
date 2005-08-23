@@ -1,0 +1,165 @@
+Railsbench is a small collection of ruby and shell scripts which make
+measuring raw performance of rails apps a snap. All tests are run from
+the command prompt making performance regression testing easy.
+
+In addition, a patch for the ruby garbage collector is provided, which
+can be used to reduce the amount of time spent doing garbage
+collection, trading memory for speed, as usual (see file GCPATCH for
+details).
+
+This software was written and conceived and by Stefan Kaes. The author
+can be reached via email: <skaes@gmx.net>. Please send comments, bug
+reports, patches or feature requests to this address.
+
+
+FILES
+
+  benchmark.rb  - replacement for the one that comes with the ruby
+                  distribution. Install it in site-ruby
+                 
+  railsbench.rb - defines classes RailsBenchmark and
+                  RailsBenchmarkWithActiveRecordStore
+
+  bechmarks.yml - specification of urls to benchmark
+                  install into $RAILS_ROOT/config
+
+  benchmarks.rb - defines constant RAILSBENCH which is used by script perf_bench
+                  modify this to add custom argument processing
+                  install to $RAILS_ROOT/config
+
+  perf_bench    - main ruby script to run a given benchmark
+                  builtin switches:
+                  -gcXXX    : perform gc after XXX requests
+                  -log      : turn on rails logging
+                  -nochache : turn off rails caching
+
+  run_urls      - run a given benchmark without benchmarking
+                  switches as for perf_bench
+
+  perf_run      - run a given benchmark, store performance data in a file
+                  in directory $RAILS_PERF_DATA and print results
+
+  perf_diff     - run a given benchmark with two different sets if arguments
+                  store data into directory $RAILS_PERF_DATA and print
+                  comparison data
+
+  perf_loop     - used by perf_run and perf_diff
+                  calls perf_bench $RAILS_PERF_RUNS times
+
+  perf_times    - analyse and print performance data
+
+  perf_comp     - compare two performance data sets and print results
+
+
+ENVIRONMENT
+
+  RAILS_ROOT        - must be set to point to your rails app
+
+  RAILS_PERF_DATA   - performance data sets will be stored into this directory
+                      if not set, $HOME will be used
+
+  RAILS_PERF_RUNS   - the number of times perf_loop will run perf_bench
+                      on a single invocation
+                      if not set, 3 runs will be performed
+
+  RAILS_BENCHMARK_FILE  - perf_bench send it's output to this file
+
+
+USAGE
+
+The two main scripts are named perf_run and perf_diff.
+
+    perf_run 100
+
+runs the list of urls named "default" specified in benchmkarks.yml
+(see below), requesting each url $RAILS_PERF_RUNS * 100 times.
+
+   perf_run 100 "-bm=list -aws"
+
+runs the benchmark named 'list' and passes the expanded second
+argument to the rails app. By processing arguments inside your
+environment.rb file, you can set performance affecting options. For
+example, you could load action web service only if -aws is passed and
+measure the performance effect of omitting it.
+
+Benchmark data is stored in directory $RAILS_PERF_DATA, which should
+be set in your environment. If not set, $HOME is used. By default,
+data is stored in file perf_run.txt.
+
+   perf_run 100 "-bm=index -mail" index
+
+will store benchmark data in file $RAILS_PERF_DATA/`current-date´.index.txt.
+
+You can get nicely formatted output of benchmark data by running
+
+  perf_times file
+
+Script perf_run will automatically print the obtained data after
+finishing the run using perf_times.
+
+Script perf_diff runs a list of urls with two different option lists. So
+
+  perf_diff 100 "-bm=blogs -mysql_session" "-mail=0" "-mail=1" cf1 cf2
+
+would run benchmark 'blogs' twice, first as
+
+  perf_run 100 "-bm=blogs -mysql_session -mail=0" cf1
+
+and then
+  
+  perf_run 100 "-bm=blogs -mysql_session -mail=1" cf2
+
+printing a comparison of the bechmark data obtained after finishing
+the second run. cf1 and cf2 can be omitted, in which case data is
+stored in perf_run1.txt and perf_run2.txt.
+
+Script perf_bench can also be invoked manually to run a given
+benchmark like so:
+
+  perf_bench 100 -bm=blogs -mysql_session -mail=1 >/dev/null
+
+Performance data is sent to $RAILS_BENCHMARK_FILE, HTML output ends up
+on stdout. If RAILS_BENCHMARK_FILE is not set, performance data is
+sent to stderr.
+
+
+CONFIGURATION
+
+Benchmarks are configured through file benchmarks.yml. Example:
+
+default:
+  index, other
+
+index:
+  uri: /test/index
+  new_session: true
+
+other:
+  -
+    uri: /test/list
+  -
+    uri: /test/alphabetic
+    query_params: page=7
+
+defines 3 benchmarks:
+  "other" consists of 2 urls (/test/list and /test/alphabetic)
+  "index" will run (/test/index)
+  "default" will run all urls in "index" and "other"
+
+uri: is mandatory, query_params: and new_session: are optional.
+
+Instead of
+
+    uri: /test/alphabetic
+    query_params: page=7
+
+one could have written
+
+    uri: /test/alphabetic?page=7
+    
+new_session: specifies whether a session cookie is sent with the
+request (default). The session_id to be used can be set on the
+RailsBenchmark instance defined in benchmarks.rb, along with other
+options. To make this work correctly, you also need to set
+session_data on the instance and redefine method
+establish_test_session. See railsbench.rb for details.

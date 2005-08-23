@@ -1,0 +1,24 @@
+#!/bin/bash
+# set -x
+
+BINDIR=`dirname $0`
+test -z $RAILS_PERF_RUNS && RAILS_PERF_RUNS=3
+
+if [ "$OSTYPE" == "cygwin" ]; then
+  FILE=$RAILS_BENCHMARK_FILE
+  RAILS_BENCHMARK_FILE=`cygpath -m $FILE`
+fi
+
+export RUBY_GC_STATS=0
+export RUBY_HEAP_MIN_SLOTS=600000
+export RUBY_GC_MALLOC_LIMIT=60000000
+export RUBY_HEAP_FREE_MIN=20000
+
+echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
+echo $BINDIR/perf_bench $@ >$FILE
+for (( i=$RAILS_PERF_RUNS+1 ; i=i-1 ; ))
+do
+    ruby $BINDIR/perf_bench $@ >/dev/null
+done
+echo >>$FILE
+echo "performance data written to file $RAILS_BENCHMARK_FILE"

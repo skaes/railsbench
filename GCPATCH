@@ -1,0 +1,33 @@
+The garbage collector distributed with ruby tries to adapt memory
+usage to the amount of memory used by the program, dynamically growing
+or shrinking the allocated heap as it sees fit.
+
+For long running server apps this doesn't really work very well. The
+performance very much depends on the ratio heap size/program size. It
+behaves somewhat erratic: adding code can actually make your program
+run faster.
+
+The supplied patch fixes this problem: it allows one to specify the
+initial heap size to start with. Heap size will never drop below the
+initial size. By carefully selecting the initial heap size one can
+increase startup time and throughput of server apps.
+
+Heap size and other options are controlled through environment
+variables:
+
+RUBY_HEAP_MIN_SLOTS   - the initial heap size in number of slots used
+RUBY_GC_MALLOC_LIMIT  - the amount of C data structures which can be allocated
+                        without triggering a GC (if this is to low, GC is started
+                        even if there still slots available)
+RUBY_HEAP_FREE_MIN    - number of free slots that should be available after GC
+                        if less slots are available, additional heap will
+                        be allocated
+                        
+I have found the following values to be ideal for my rails app:
+
+RUBY_HEAP_MIN_SLOTS=600000
+RUBY_GC_MALLOC_LIMIT=60000000
+RUBY_HEAP_FREE_MIN=20000
+
+You can observe memory usage of the ruby interepreter by setting
+RUBY_GC_STATS=0, before you invoke perf_bench.

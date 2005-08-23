@@ -1,0 +1,113 @@
+#!/usr/local/bin/ruby
+
+iter = Hash.new(100)
+options = Hash.new("")
+timings = {}
+keys = []
+configs = []
+
+if ARGV.length<2
+  print "not enough arguments"
+  print "usage: perf_comp file1 file2"
+  exit 1
+end
+
+ARGV.each do |arg|
+  if /^(\d+)$/===arg
+    iter = Hash.new($1.to_i)
+    next
+  end
+  fn = arg
+  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
+  file = nil
+  begin
+    if File.stat(fn).readable?
+      file = File.open(fn)
+    else
+      print "file #{fn} is unreadable\n"
+      exit 1
+    end
+  rescue 
+    print "file #{fn} does not exist\n"
+    exit 1
+  end
+
+  sysvers = fn.split('/').last.sub(/\.txt$/, '')
+  configs << sysvers
+  timings[sysvers] = {}
+  file.each_line do |l|
+    case l
+    when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
+      k = $1.strip
+      keys << k
+      if timings[sysvers][k]
+        timings[sysvers][k] << $5.to_f
+      else
+        timings[sysvers][k] = [$5.to_f]
+      end
+    when /^.*perf_([a-z]+)\s+(\d+)\s+(.*)$/
+      iter[sysvers] = $2.to_i
+      options[sysvers] = $3
+    end
+  end
+  file.close
+end
+
+def time_avg(a)
+  (a.inject(0.0){|v,r| r += v })/a.length
+end
+
+keys.uniq!
+
+printf "perf data file 1: #{configs[0]}\n"
+printf "  requests=#{iter[configs[0]]}, options=#{options[configs[0]]}\n\n"
+printf "perf data file 2: #{configs[1]}\n"
+printf "  requests=#{iter[configs[1]]}, options=#{options[configs[1]]}\n\n"
+printf "%-32s %9s %9s %6s %6s %6s %6s %6s\n",
+       'page', 'c1 real', 'c2 real', 'r/s', 'r/s', 'ms/r', 'ms/r', 'c1/c2'
+
+iter1 = iter[configs[0]]
+iter2 = iter[configs[1]]
+if iter1<iter2
+  c1 = iter2/iter1
+  c2 = 1
+else
+  c1 = 1
+  c2 = iter1/iter2
+end
+
+keys.each do |k|
+  ta1 = timings[configs[0]][k]
+  t1 = time_avg(ta1) * c1
+  ta2 = timings[configs[1]][k]
+  t2 = time_avg(ta2) * c2
+  urls = 1
+  urls = $1.to_i if /\((\d+) urls\)$/===k
+  printf "%-32s %9.5f %9.5f %6.1f %6.1f %6.2f %6.2f %6.2f\n",
+         k, t1, t2, iter1*urls*c1/t1, iter2*urls*c2/t2, t1*1000/iter1*urls*c1, t2*1000/iter2*urls*c2, t1/t2 unless /loading/===k
+end
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA

@@ -1,0 +1,37 @@
+#!/bin/bash
+# set -x
+
+if [ $# -lt 4 ]; then
+  echo "usage: perf_diff iterations common-options options1 options4 [conf-name1] [conf-name2]"
+  echo "example: perf_diff 100 \"c1 c2\"  \"o1_1 o1_2\" \"o2_1 o2_2\" c1 c2"
+  exit 1
+fi
+
+BINDIR=`dirname $0`
+test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
+
+ITER="$1"
+COMMON="$2"
+OPT1="$3"
+OPT2="$4"
+if [ $# -gt 4 ]; then
+  DATE=`date +%m-%d`
+  FILE1="$RAILS_PERF_DATA/$DATE.$5.txt"
+else
+  FILE1="$RAILS_PERF_DATA/perf_run1.txt"
+fi
+if [ $# -gt 5 ]; then
+  FILE2="$RAILS_PERF_DATA/$DATE.$6.txt"
+else
+  FILE2="$RAILS_PERF_DATA/perf_run2.txt"
+fi
+
+PERF_OPTIONS="$ITER $COMMON $OPT1"
+RAILS_BENCHMARK_FILE=$FILE1 $BINDIR/perf_loop $PERF_OPTIONS
+echo
+
+PERF_OPTIONS="$ITER $COMMON $OPT2"
+RAILS_BENCHMARK_FILE=$FILE2 $BINDIR/perf_loop $PERF_OPTIONS
+echo
+
+ruby $BINDIR/perf_comp $FILE1 $FILE2

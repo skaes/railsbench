@@ -1,0 +1,272 @@
+--- gc.c.orig	2005-06-30 09:53:27.000000000 +0200
++++ gc.c	2005-07-03 16:59:41.815484680 +0200
+@@ -21,6 +21,7 @@
+ #include <stdio.h>
+ #include <setjmp.h>
+ #include <sys/types.h>
++#include <strings.h>
+ 
+ #ifdef HAVE_SYS_TIME_H
+ #include <sys/time.h>
+@@ -118,6 +119,7 @@
+     if (malloc_increase > malloc_limit) {
+ 	garbage_collect();
+     }
++
+     RUBY_CRITICAL(mem = malloc(size));
+     if (!mem) {
+ 	garbage_collect();
+@@ -308,7 +310,7 @@
+ static RVALUE *freelist = 0;
+ static RVALUE *deferred_final_list = 0;
+ 
+-#define HEAPS_INCREMENT 10
++static int heaps_increment = 10;
+ static struct heaps_slot {
+     RVALUE *slot;
+     int limit;
+@@ -316,13 +318,57 @@
+ static int heaps_length = 0;
+ static int heaps_used   = 0;
+ 
+-#define HEAP_MIN_SLOTS 10000
+-static int heap_slots = HEAP_MIN_SLOTS;
++static int heap_min_slots = 10000;
++static int heap_slots = 10000;
++
++static int heap_free_min = 4096;
+ 
+-#define FREE_MIN  4096
++static long initial_malloc_limit = GC_MALLOC_LIMIT;
++
++static int gc_stats = 0;
+ 
+ static RVALUE *himem, *lomem;
+ 
++static void set_gc_parameters()
++{
++    char* min_slots_ptr = getenv("RUBY_HEAP_MIN_SLOTS");
++    if (min_slots_ptr != NULL) {
++	int min_slots_i = atoi(min_slots_ptr);
++	if (min_slots_i > 0) {
++	    heap_slots = min_slots_i;
++	    heap_min_slots = min_slots_i;
++	}
++    }
++    char* free_min_ptr = getenv("RUBY_HEAP_FREE_MIN");
++    if (free_min_ptr != NULL) {
++	int free_min_i = atoi(free_min_ptr);
++	if (free_min_i > 0) {
++	    heap_free_min = free_min_i;
++	}
++    }
++    char* heap_incr_ptr = getenv("RUBY_HEAP_INCREMENT");
++    if (heap_incr_ptr != NULL) {
++	int heap_incr_i = atoi(heap_incr_ptr);
++	if (heap_incr_i > 0) {
++	    heaps_increment = heap_incr_i;
++	}
++    }
++    char* gc_stats_ptr = getenv("RUBY_GC_STATS");
++    if (gc_stats_ptr != NULL) {
++	int gc_stats_i = atoi(gc_stats_ptr);
++	if (gc_stats_i > 0) {
++	    gc_stats = gc_stats_i;
++	}
++    }
++    char* malloc_limit_ptr = getenv("RUBY_GC_MALLOC_LIMIT");
++    if (malloc_limit_ptr != NULL) {
++	int malloc_limit_i = atol(malloc_limit_ptr);
++	if (malloc_limit_i > 0) {
++	    initial_malloc_limit = malloc_limit_i;
++	}
++    }
++}
++
+ static void
+ add_heap()
+ {
+@@ -333,7 +379,7 @@
+ 	struct heaps_slot *p;
+ 	int length;
+ 
+-	heaps_length += HEAPS_INCREMENT;
++	heaps_length += heaps_increment;
+ 	length = heaps_length*sizeof(struct heaps_slot);
+ 	RUBY_CRITICAL(
+ 	    if (heaps_used > 0) {
+@@ -350,10 +396,10 @@
+ 	RUBY_CRITICAL(p = heaps[heaps_used].slot = (RVALUE*)malloc(sizeof(RVALUE)*heap_slots));
+ 	heaps[heaps_used].limit = heap_slots;
+ 	if (p == 0) {
+-	    if (heap_slots == HEAP_MIN_SLOTS) {
++	    if (heap_slots == heap_min_slots) {
+ 		rb_memerror();
+ 	    }
+-	    heap_slots = HEAP_MIN_SLOTS;
++	    heap_slots = heap_min_slots;
+ 	    continue;
+ 	}
+ 	break;
+@@ -1031,6 +1077,39 @@
+     }
+ }
+ 
++static char* obj_type(int tp)
++{
++    switch (tp) {
++	case T_NIL    : return "NIL";   
++	case T_OBJECT : return "OBJECT";
++	case T_CLASS  : return "CLASS";
++	case T_ICLASS : return "ICLASS";
++	case T_MODULE : return "MODULE";
++	case T_FLOAT  : return "FLOAT";
++	case T_STRING : return "STRING";
++	case T_REGEXP : return "REGEXP";
++	case T_ARRAY  : return "ARRAY";
++	case T_FIXNUM : return "FIXNUM";
++	case T_HASH   : return "HASH";
++	case T_STRUCT : return "STRUCT";
++	case T_BIGNUM : return "BIGNUM";
++	case T_FILE   : return "FILE";
++	    
++	case T_TRUE   : return "TRUE";
++	case T_FALSE  : return "FALSE";
++	case T_DATA   : return "DATA";
++	case T_MATCH  : return "MATCH";
++	case T_SYMBOL : return "SYMBOL";
++	    
++	case T_BLKTAG : return "BLKTAG";
++	case T_UNDEF  : return "UNDEF";
++	case T_VARMAP : return "VARMAP";
++	case T_SCOPE  : return "SCOPE";
++	case T_NODE   : return "NODE";
++	default: return "____";
++    }
++}
++
+ static void
+ gc_sweep()
+ {
+@@ -1039,6 +1118,14 @@
+     int i;
+     unsigned long live = 0;
+ 
++    unsigned long really_freed = 0;
++    int free_counts[256];
++    int live_counts[256];
++
++    if (gc_stats) {
++	for (i = 0 ; i< 256; i++) { free_counts[i] = live_counts[i] = 0; }
++    }
++
+     if (ruby_in_compile && ruby_parser_stack_on_heap()) {
+ 	/* should not reclaim nodes during compilation
+            if yacc's semantic stack is not allocated on machine stack */
+@@ -1068,6 +1155,9 @@
+ 	    if (!(p->as.basic.flags & FL_MARK)) {
+ 		if (p->as.basic.flags) {
+ 		    obj_free((VALUE)p);
++		    if (gc_stats) {
++			really_freed++;
++		    }
+ 		}
+ 		if (need_call_final && FL_TEST(p, FL_FINALIZE)) {
+ 		    p->as.free.flags = FL_MARK; /* remain marked */
+@@ -1075,6 +1165,12 @@
+ 		    final_list = p;
+ 		}
+ 		else {
++		    if (gc_stats) {
++			int obt = p->as.basic.flags & T_MASK;
++			if (obt) {
++			    free_counts[obt]++;
++			}
++		    }
+ 		    p->as.free.flags = 0;
+ 		    p->as.free.next = freelist;
+ 		    freelist = p;
+@@ -1088,10 +1184,13 @@
+ 	    else {
+ 		RBASIC(p)->flags &= ~FL_MARK;
+ 		live++;
++		if (gc_stats) {
++		    live_counts[RANY((VALUE)p)->as.basic.flags & T_MASK]++;
++		}
+ 	    }
+ 	    p++;
+ 	}
+-	if (n == heaps[i].limit && freed > FREE_MIN) {
++	if (n == heaps[i].limit && freed > heap_free_min) {
+ 	    RVALUE *pp;
+ 
+ 	    heaps[i].limit = 0;
+@@ -1106,14 +1205,28 @@
+     }
+     if (malloc_increase > malloc_limit) {
+ 	malloc_limit += (malloc_increase - malloc_limit) * (double)live / (live + freed);
+-	if (malloc_limit < GC_MALLOC_LIMIT) malloc_limit = GC_MALLOC_LIMIT;
++	if (malloc_limit < initial_malloc_limit) malloc_limit = initial_malloc_limit;
+     }
+     malloc_increase = 0;
+-    if (freed < FREE_MIN) {
++    if (freed < heap_free_min) {
+ 	add_heap();
+     }
+     during_gc = 0;
+ 
++    if (gc_stats) {
++	fprintf(stderr, "objects processed: %.7d\n", live+freed);
++	fprintf(stderr, "live objects     : %.7d\n", live);
++	fprintf(stderr, "freelist objects : %.7d\n", freed - really_freed);
++	fprintf(stderr, "freed objects    : %.7d\n", really_freed);
++	for(i=0; i<256; i++) {
++	    if (free_counts[i]>0) {
++		fprintf(stderr,
++			"kept %.7d / freed %.7d objects of type %s\n",
++			live_counts[i], free_counts[i], obj_type(i));
++	    }
++	}
++    }
++
+     /* clear finalization list */
+     if (final_list) {
+ 	deferred_final_list = final_list;
+@@ -1327,6 +1440,12 @@
+     if (during_gc) return;
+     during_gc++;
+ 
++    struct timeval gctv1, gctv2;
++    if (gc_stats) {
++	gettimeofday(&gctv1, NULL);
++	fprintf(stderr, "Garbage collection started\n");
++    }
++
+     init_mark_stack();
+     
+     /* mark frame stack */
+@@ -1409,6 +1528,16 @@
+ 	}
+     }
+     gc_sweep();
++
++    if (gc_stats) {
++	gettimeofday(&gctv2, NULL);
++	fprintf(stderr, "Garbage collection completed\n");
++	gettimeofday(&gctv2, NULL);
++	fprintf(stderr, "GC time: %d msec\n",
++		((gctv2.tv_sec * 1000000 + gctv2.tv_usec)
++		-(gctv1.tv_sec * 1000000 + gctv1.tv_usec))/1000);
++    }
++
+ }
+ 
+ void
+@@ -1530,6 +1659,7 @@
+     if (!rb_gc_stack_start) {
+ 	Init_stack(0);
+     }
++    set_gc_parameters();
+     add_heap();
+ }
+ 

@@ -1,0 +1,41 @@
+default:
+  -
+    uri: /empty/index
+    new_session: true
+  -
+    uri: /welcome/index
+    new_session: true
+  -
+    uri: /rezept/index
+  -
+    uri: /rezept/myknzlpzl
+  -
+    uri: /rezept/show/713
+  -
+    uri: /rezept/cat/Hauptspeise
+  -
+    uri: /rezept/cat/Hauptspeise?page=5
+    query_string: page=5
+  -
+    uri: /rezept/letter/G
+new_sessions:
+  -
+    uri: /empty/index
+    new_session: true
+  -
+    uri: /welcome/index
+    new_session: true
+same_session:
+  -
+    uri: /rezept/index
+  -
+    uri: /rezept/myknzlpzl
+  -
+    uri: /rezept/show/713
+  -
+    uri: /rezept/cat/Hauptspeise
+  -
+    uri: /rezept/cat/Hauptspeise?page=5
+    query_string: page=5
+  -
+    uri: /rezept/letter/G
