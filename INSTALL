@@ -1,8 +1,8 @@
 INSTALLATION
 
-The file benchmark.rb is a drop in replacement for the benchmark.rb
-file that comes with the ruby distribution. Copy benchmark.rb over the
-old one or install it into your ruby site-ruby directory
+The file site-ruby/benchmark.rb is a drop in replacement for the
+benchmark.rb file that comes with the ruby distribution. Copy it over
+the old one or install it into your ruby site-ruby directory
 (e.g. /usr/lib/ruby/site_ruby, /usr/local/lib/ruby/site-ruby).
 
 Setup the enviroment variable RAILS_ROOT to point to your apps base
@@ -16,7 +16,7 @@ search path and change the #! lines in the scripts to point to the
 ruby interpeter and bash (default /usr/local/bin/ruby and /bin/bash).
 
 
-OPTIONAL
+OPTIONAL (but recommended)
 
 Patch the ruby garbage collector using rubygc.patch. Recompile ruby
 and copy the ruby binary to where it was previously installed.

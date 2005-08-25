@@ -4,8 +4,8 @@
 BINDIR=`dirname $0`
 test -z $RAILS_PERF_RUNS && RAILS_PERF_RUNS=3
 
+FILE=$RAILS_BENCHMARK_FILE
 if [ "$OSTYPE" == "cygwin" ]; then
-  FILE=$RAILS_BENCHMARK_FILE
   RAILS_BENCHMARK_FILE=`cygpath -m $FILE`
 fi
 

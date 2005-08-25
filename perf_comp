@@ -45,7 +45,7 @@ ARGV.each do |arg|
       else
         timings[sysvers][k] = [$5.to_f]
       end
-    when /^.*perf_([a-z]+)\s+(\d+)\s+(.*)$/
+    when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
       iter[sysvers] = $2.to_i
       options[sysvers] = $3
     end

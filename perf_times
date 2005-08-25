@@ -40,7 +40,7 @@ files.each do |file|
       else
         timings[k] = [$5.to_f]
       end
-    when /^.*perf_([a-z]+)\s+(\d+)\s+(.*)$/
+    when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
       iter = $2.to_i
       options = $3
     end

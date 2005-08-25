@@ -7,18 +7,25 @@ can be used to reduce the amount of time spent doing garbage
 collection, trading memory for speed, as usual (see file GCPATCH for
 details).
 
-This software was written and conceived and by Stefan Kaes. The author
-can be reached via email: <skaes@gmx.net>. Please send comments, bug
+This software was written and conceived by Stefan Kaes. The author can
+be reached via email: <skaes@gmx.net>. Please send comments, bug
 reports, patches or feature requests to this address.
 
 
 FILES
 
-  benchmark.rb  - replacement for the one that comes with the ruby
-                  distribution. Install it in site-ruby
+  site-ruby/benchmark.rb
+                - replacement for the one that comes with the ruby
+                  distribution. Install it in the distributions
+                  site-ruby directory
                  
   railsbench.rb - defines classes RailsBenchmark and
                   RailsBenchmarkWithActiveRecordStore
+                  switches:
+                  -gcXXX    : perform gc after XXX requests
+                  -log      : turn on rails logging
+                  -nochache : turn off rails caching
+                  -path     : print $: and exit
 
   bechmarks.yml - specification of urls to benchmark
                   install into $RAILS_ROOT/config
@@ -28,10 +35,8 @@ FILES
                   install to $RAILS_ROOT/config
 
   perf_bench    - main ruby script to run a given benchmark
-                  builtin switches:
-                  -gcXXX    : perform gc after XXX requests
-                  -log      : turn on rails logging
-                  -nochache : turn off rails caching
+                  switches (in addition to railsbench switches):
+                  -mix      : alternates urls in given benchmark
 
   run_urls      - run a given benchmark without benchmarking
                   switches as for perf_bench
@@ -39,7 +44,7 @@ FILES
   perf_run      - run a given benchmark, store performance data in a file
                   in directory $RAILS_PERF_DATA and print results
 
-  perf_diff     - run a given benchmark with two different sets if arguments
+  perf_diff     - run a given benchmark with two different sets of arguments
                   store data into directory $RAILS_PERF_DATA and print
                   comparison data
 
