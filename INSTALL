@@ -9,7 +9,8 @@ Setup the enviroment variable RAILS_ROOT to point to your apps base
 directory (which should have config as subdirectory).
 
 Copy benchmarks.rb and benchmarks.yml into $RAILS_ROOT/config and edit
-them to suit your needs.
+them to suit your needs. The provided default benchmark runs the root
+URL of your app.
 
 Add the directory to where you have extracted railsbench to your
 search path and change the #! lines in the scripts to point to the
