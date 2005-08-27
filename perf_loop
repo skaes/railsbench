@@ -18,7 +18,7 @@ echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
 echo $BINDIR/perf_bench $@ >$FILE
 for (( i=$RAILS_PERF_RUNS+1 ; i=i-1 ; ))
 do
-    ruby $BINDIR/perf_bench $@ >/dev/null
+    ruby $BINDIR/perf_bench $@ >/dev/null || exit 1
 done
 echo >>$FILE
 echo "performance data written to file $RAILS_BENCHMARK_FILE"

@@ -26,7 +26,7 @@ class RailsBenchmark
 
     @url_spec = options[:url_spec]
     
-    ENV['RAILS_ENV'] = 'performance'
+    ENV['RAILS_ENV'] = 'benchmarking'
     
     require ENV['RAILS_ROOT'] + "/config/environment"
     
@@ -73,6 +73,7 @@ class RailsBenchmark
   end
 
   def setup_test_urls(name)
+    raise "There is no benchmark named '#{name}'" unless @url_spec[name]
     @urls = self.class.parse_url_spec(@url_spec, name)
   end
 

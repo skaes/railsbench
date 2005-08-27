@@ -15,59 +15,70 @@ reports, patches or feature requests to this address.
 FILES
 
   site-ruby/benchmark.rb
-                - replacement for the one that comes with the ruby
-                  distribution. Install it in the distributions
-                  site-ruby directory
+                - replacement for the one that comes with the ruby distribution
+                  install into the distributions site-ruby directory
                  
-  railsbench.rb - defines classes RailsBenchmark and
-                  RailsBenchmarkWithActiveRecordStore
+  railsbench.rb
+                - defines classes RailsBenchmark and RailsBenchmarkWithActiveRecordStore
                   switches:
                   -gcXXX    : perform gc after XXX requests
                   -log      : turn on rails logging
                   -nochache : turn off rails caching
-                  -path     : print $: and exit
+                  -path     : print $: after loading rails and exit
 
-  bechmarks.yml - specification of urls to benchmark
+  config/bechmarks.yml
+                - specification of urls to benchmark
                   install into $RAILS_ROOT/config
 
-  benchmarks.rb - defines constant RAILSBENCH which is used by script perf_bench
+  config/benchmarks.rb
+                - defines constant RAILSBENCH which is used by script perf_bench
                   modify this to add custom argument processing
                   install to $RAILS_ROOT/config
 
-  perf_bench    - main ruby script to run a given benchmark
+  perf_bench n options
+                - main ruby script to run a given benchmark
                   switches (in addition to railsbench switches):
                   -mix      : alternates urls in given benchmark
 
-  run_urls      - run a given benchmark without benchmarking
+  run_urls n options
+                - run a given benchmark without benchmarking
                   switches as for perf_bench
 
-  perf_run      - run a given benchmark, store performance data in a file
+  perf_run n [ option-string [ config-name ] ]
+                - run a given benchmark, store performance data in a file
                   in directory $RAILS_PERF_DATA and print results
 
-  perf_diff     - run a given benchmark with two different sets of arguments
+  perf_diff n common-options option-string1  option-string2 [ config-name1 [ config-name2 ] ]
+                - run a given benchmark with two different sets of arguments
                   store data into directory $RAILS_PERF_DATA and print
                   comparison data
 
-  perf_loop     - used by perf_run and perf_diff
+  perf_loop n options
+                - used by perf_run and perf_diff
                   calls perf_bench $RAILS_PERF_RUNS times
 
-  perf_times    - analyse and print performance data
+  perf_times file
+                - analyse and print performance data
 
-  perf_comp     - compare two performance data sets and print results
+  perf_comp file
+                - compare two performance data sets and print results
 
 
 ENVIRONMENT
 
-  RAILS_ROOT        - must be set to point to your rails app
+  RAILS_ROOT
+                - must be set to point to your rails app
 
-  RAILS_PERF_DATA   - performance data sets will be stored into this directory
-                      if not set, $HOME will be used
+  RAILS_PERF_DATA
+                - performance data sets will be stored into this directory
+                  if not set, $HOME will be used
 
-  RAILS_PERF_RUNS   - the number of times perf_loop will run perf_bench
-                      on a single invocation
-                      if not set, 3 runs will be performed
+  RAILS_PERF_RUNS
+                - the number of times perf_loop will run perf_bench on a single invocation
+                  if not set, 3 runs will be performed
 
-  RAILS_BENCHMARK_FILE  - perf_bench send it's output to this file
+  RAILS_BENCHMARK_FILE
+                - perf_bench send it's output to this file
 
 
 USAGE
@@ -89,11 +100,13 @@ measure the performance effect of omitting it.
 
 Benchmark data is stored in directory $RAILS_PERF_DATA, which should
 be set in your environment. If not set, $HOME is used. By default,
-data is stored in file perf_run.txt.
+data is stored in file $RAILS_PERF_DATA/perf_run.$BENCHMARK.txt, where
+BENCHMARK will be set according to the -bm option.
 
-   perf_run 100 "-bm=index -mail" index
+   perf_run 100 "-bm=index -mail" mail
 
-will store benchmark data in file $RAILS_PERF_DATA/`current-date´.index.txt.
+will store benchmark data in file
+$RAILS_PERF_DATA/`current-date´.index.mail.txt.
 
 You can get nicely formatted output of benchmark data by running
 
@@ -116,7 +129,8 @@ and then
 
 printing a comparison of the bechmark data obtained after finishing
 the second run. cf1 and cf2 can be omitted, in which case data is
-stored in perf_run1.txt and perf_run2.txt.
+stored in $RAILS_PERF_DATA/perf_run1.$BENCHMARK.txt and
+$RAILS_PERF_DATA/perf_run2.$BENCHMARK.txt.
 
 Script perf_bench can also be invoked manually to run a given
 benchmark like so:
@@ -163,8 +177,5 @@ one could have written
     uri: /test/alphabetic?page=7
     
 new_session: specifies whether a session cookie is sent with the
-request (default). The session_id to be used can be set on the
-RailsBenchmark instance defined in benchmarks.rb, along with other
-options. To make this work correctly, you also need to set
-session_data on the instance and redefine method
-establish_test_session. See railsbench.rb for details.
+request (default). To make this work correctly, you need to set
+session_data on the instance. See benchmarks.rb for details.

@@ -13,15 +13,17 @@ test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
 
 ITER="$1"
 OPT="$2"
+BENCHMARK="default"
+for opt in $OPT; do
+  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK="${BASH_REMATCH[1]}"
+done
+DATE=`date +%m-%d`
 if [ $# == 3 ]; then
-  DATE=`date +%m-%d`
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/$DATE.$3.txt"
+  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/$DATE.$BENCHMARK.$3.txt"
 else
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.txt"
+  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.$BENCHMARK.txt"
 fi
 export RAILS_BENCHMARK_FILE
 
 PERF_OPTIONS="$ITER $OPT"
-$BINDIR/perf_loop $PERF_OPTIONS
-
-ruby $BINDIR/perf_times $RAILS_BENCHMARK_FILE
+$BINDIR/perf_loop $PERF_OPTIONS && ruby $BINDIR/perf_times $RAILS_BENCHMARK_FILE

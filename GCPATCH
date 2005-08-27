@@ -16,12 +16,15 @@ Heap size and other options are controlled through environment
 variables:
 
 RUBY_HEAP_MIN_SLOTS   - the initial heap size in number of slots used
+                        unpatched ruby 1.8.2: 10000
 RUBY_GC_MALLOC_LIMIT  - the amount of C data structures which can be allocated
                         without triggering a GC (if this is to low, GC is started
                         even if there still slots available)
+                        unpatched ruby 1.8.2: 8000000
 RUBY_HEAP_FREE_MIN    - number of free slots that should be available after GC
                         if less slots are available, additional heap will
                         be allocated
+                        unpatched ruby 1.8.2: 4096
                         
 I have found the following values to be ideal for my rails app:
 
@@ -29,5 +32,5 @@ RUBY_HEAP_MIN_SLOTS=600000
 RUBY_GC_MALLOC_LIMIT=60000000
 RUBY_HEAP_FREE_MIN=20000
 
-You can observe memory usage of the ruby interepreter by setting
+You can watch memory usage of the ruby interpreter by setting
 RUBY_GC_STATS=0, before you invoke perf_bench.

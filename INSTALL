@@ -1,5 +1,7 @@
 INSTALLATION
 
+STEP 1:
+
 The file site-ruby/benchmark.rb is a drop in replacement for the
 benchmark.rb file that comes with the ruby distribution. Copy it over
 the old one or install it into your ruby site-ruby directory
@@ -8,13 +10,25 @@ the old one or install it into your ruby site-ruby directory
 Setup the enviroment variable RAILS_ROOT to point to your apps base
 directory (which should have config as subdirectory).
 
-Copy benchmarks.rb and benchmarks.yml into $RAILS_ROOT/config and edit
-them to suit your needs. The provided default benchmark runs the root
-URL of your app.
-
 Add the directory to where you have extracted railsbench to your
 search path and change the #! lines in the scripts to point to the
 ruby interpeter and bash (default /usr/local/bin/ruby and /bin/bash).
+
+STEP 2:
+
+Manual installation:
+  Copy benchmarks.rb and benchmarks.yml into $RAILS_ROOT/config and
+  edit them to suit your needs. The provided default benchmark.yml
+  will run the root URL of your app.
+
+  Copy benchmarking.rb to $RAILS_ROOT/config/environments and add a
+  corresponding section to database.yml.
+
+Automatic installation:
+  Run install.rb. This will perform all of the above steps and create
+  a section in database.yml pointing to your development database. In
+  case you are worrying about possible results, you can call
+  install.rb --dry-run first.
 
 
 OPTIONAL (but recommended)
