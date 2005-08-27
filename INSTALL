@@ -10,8 +10,7 @@ the old one or install it into your ruby site-ruby directory
 Setup the enviroment variable RAILS_ROOT to point to your apps base
 directory (which should have config as subdirectory).
 
-Add RAILSBENCH/script to your search path (where RAILSBENCH is the
-directory to where you have extracted railsbench) and change the #!
+Add the script subdirectory to your search path and change the #!
 lines in the scripts to point to the ruby interpeter and bash (default
 /usr/local/bin/ruby and /bin/bash).
 
