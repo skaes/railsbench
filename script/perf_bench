@@ -13,7 +13,7 @@ include Benchmark
 
 bm(32) do |test|
   test.report("loading environment") do
-    require File.dirname(__FILE__) + '/railsbench'
+    require File.dirname(__FILE__) + '/../lib/railsbench'
     require ENV['RAILS_ROOT'] + '/config/benchmarks'
   end
 

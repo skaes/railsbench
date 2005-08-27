@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 
-require File.dirname(__FILE__) + '/railsbench'
+require File.dirname(__FILE__) + '/../lib/railsbench'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'
 
 benchmarks = YAML::load(File.open(ENV['RAILS_ROOT'] + "/config/benchmarks.yml"))

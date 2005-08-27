@@ -3,7 +3,7 @@
 
 if [ $# -lt 4 ]; then
   echo "usage: perf_diff iterations common-options options1 options4 [conf-name1] [conf-name2]"
-  echo "example: perf_diff 100 \"c1 c2\"  \"o1_1 o1_2\" \"o2_1 o2_2\" c1 c2"
+  echo "example: perf_diff 100 \"-bm=all\"  \"-log\" \"-nocache\" c1 c2"
   exit 1
 fi
 
@@ -15,19 +15,19 @@ COMMON="$2"
 OPT1="$3"
 OPT2="$4"
 DATE=`date +%m-%d`
-BENCHMARK="default"
+BENCHMARK=""
 for opt in $COMMON; do
-  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK="${BASH_REMATCH[1]}"
+  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
 done
 if [ $# -gt 4 ]; then
-  FILE1="$RAILS_PERF_DATA/$DATE.$BENCHMARK.$5.txt"
+  FILE1="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$5.txt"
 else
-  FILE1="$RAILS_PERF_DATA/perf_run1.$BENCHMARK.txt"
+  FILE1="$RAILS_PERF_DATA/perf_run1${BENCHMARK}.txt"
 fi
 if [ $# -gt 5 ]; then
-  FILE2="$RAILS_PERF_DATA/$DATE.$BENCHMARK.$6.txt"
+  FILE2="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$6.txt"
 else
-  FILE2="$RAILS_PERF_DATA/perf_run2.$BENCHMARK.txt"
+  FILE2="$RAILS_PERF_DATA/perf_run2${BENCHMARK}.txt"
 fi
 
 PERF_OPTIONS="$ITER $COMMON $OPT1"

@@ -3,7 +3,7 @@
 
 if [ $# -lt 2 ]; then
   echo "usage: perf_run iterations options [conf-name]"
-  echo "example: perf_run 100 \"o1 o2 o3\" pdata"
+  echo "example: perf_run 100 \"-bm=default -log\" pdata"
   exit 1
 fi
 
@@ -13,15 +13,15 @@ test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
 
 ITER="$1"
 OPT="$2"
-BENCHMARK="default"
+BENCHMARK=""
 for opt in $OPT; do
-  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK="${BASH_REMATCH[1]}"
+  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
 done
 DATE=`date +%m-%d`
 if [ $# == 3 ]; then
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/$DATE.$BENCHMARK.$3.txt"
+  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$3.txt"
 else
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.$BENCHMARK.txt"
+  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run${BENCHMARK}.txt"
 fi
 export RAILS_BENCHMARK_FILE
 
