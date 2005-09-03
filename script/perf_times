@@ -63,11 +63,12 @@ files.each do |file|
     t = time_avg(timings[k])
     urls = 1
     urls = $1.to_i if /\((\d+) urls\)$/===k
-    printf "%-32s %9.5f   %5.1f   %5.2f\n", k, t, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+    printf "%-32s %9.5f   %5.1f   %5.2f\n",
+           k, t, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
   end
 
-  file.close unless ARGV.length==0
-  
+  file.close
+
 end
 
 __END__

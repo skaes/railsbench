@@ -83,8 +83,12 @@ keys.each do |k|
   t2 = time_avg(ta2) * c2
   urls = 1
   urls = $1.to_i if /\((\d+) urls\)$/===k
+  rps1 = iter1*urls*c1/t1
+  rps2 = iter2*urls*c2/t2
+  mspr1 = t1*1000/(iter1*urls*c1)
+  mspr2 = t2*1000/(iter2*urls*c2)
   printf "%-32s %9.5f %9.5f %6.1f %6.1f %6.2f %6.2f %6.2f\n",
-         k, t1, t2, iter1*urls*c1/t1, iter2*urls*c2/t2, t1*1000/iter1*urls*c1, t2*1000/iter2*urls*c2, t1/t2 unless /loading/===k
+         k, t1, t2, rps1, rps2, mspr1, mspr2, t1/t2 unless /loading/===k
 end
 
 __END__
