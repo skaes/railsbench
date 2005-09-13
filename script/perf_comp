@@ -54,7 +54,7 @@ ARGV.each do |arg|
 end
 
 def time_avg(a)
-  (a.inject(0.0){|v,r| r += v })/a.length
+  (a.inject(0.0){|r,v| r += v })/a.length
 end
 
 keys.uniq!

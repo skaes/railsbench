@@ -47,24 +47,28 @@ files.each do |file|
   end
 
   def time_avg(a)
-    (a.inject(0.0){|v,r| r += v })/a.length
+    (a.inject(0.0){|r,v| r += v })/a.length
+  end
+  
+  def time_dev(a, mean)
+    r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
+    Math.sqrt(r/(a.length-1))
   end
   
   keys.uniq!
-  unless files.length==0
-    printf "\nperf data file: #{file.path}\n"
-    printf "    requests=#{iter}, options=#{options}\n\n"
-  end
+  printf "\nperf data file: #{file.path}\n"
+  printf "    requests=#{iter}, options=#{options}\n\n"
   k = 'loading environment'
   printf "%-32s %9.5f\n\n", k, time_avg(timings[k])
-  printf "%-32s %9s   %5s   %5s\n", 'page request', 'total', 'r/s', 'ms/r'
+  printf "%-32s  %9s  %7s  %6s  %6s\n", 'page request', 'total', 'stddev%', 'r/s', 'ms/r'
   
   keys.each do |k|
     t = time_avg(timings[k])
+    d = time_dev(timings[k], t)
     urls = 1
     urls = $1.to_i if /\((\d+) urls\)$/===k
-    printf "%-32s %9.5f   %5.1f   %5.2f\n",
-           k, t, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+    printf "%-32s  %9.5f  %7.4f   %5.1f   %5.2f\n",
+           k, t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
   end
 
   file.close

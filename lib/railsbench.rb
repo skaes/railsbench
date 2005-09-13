@@ -2,6 +2,7 @@ class RailsBenchmark
 
   attr_accessor :gc_frequency, :iterations, :url_spec
   attr_accessor :http_host, :remote_addr, :server_port
+  attr_accessor :relative_url_root
   attr_accessor :perform_caching, :cache_template_loading
   attr_accessor :session_data
 
@@ -21,6 +22,7 @@ class RailsBenchmark
     @remote_addr = options[:remote_addr] || '127.0.0.1'
     @http_host =  options[:http_host] || '127.0.0.1'
     @server_port = options[:server_port] || '80'
+    @relative_url_root = options[:relative_url_root] || ''
 
     @session_data = options[:session_data] || {}
 
@@ -51,6 +53,10 @@ class RailsBenchmark
       ActionView::Base.cache_template_loading = options[:cache_template_loading]
     else
       ActionView::Base.cache_template_loading = true
+    end
+
+    if options.has_key?(:relative_url_root)
+      ActionController::AbstractRequest.relative_url_root = options[:relative_url_root]
     end
   end
 
@@ -85,7 +91,7 @@ class RailsBenchmark
   end
 
   def setup_request_env(uri, query_string, new_session)
-    ENV['REQUEST_URI'] = uri
+    ENV['REQUEST_URI'] = @relative_url_root + uri
     ENV['QUERY_STRING'] = query_string || ''
     ENV['CONTENT_LENGTH'] = (query_string || '').length.to_s
     ENV['HTTP_COOKIE'] = new_session ? '' : "_session_id=#{@session_id}"

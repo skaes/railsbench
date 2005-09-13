@@ -1,16 +1,20 @@
 # create benchmarker instance
 RAILS_BENCHMARKER = RailsBenchmark.new
 
-# if your session storage is ActiveRecordStore, and if you want
+# If your session storage is ActiveRecordStore, and if you want
 # sessions to be automatically deleted after benchmarking, use
 # RAILS_BENCHMARKER = RailsBenchmarkWithActiveRecordStore.new
 
 # WARNING: don't use RailsBenchmarkWithActiveRecordStore running on
 # your production database!
 
+# If your application runs from a url wich is not your servers root,
+# you should to set relative_url_root on the benchmarker instance,
+# especially if you use page caching.
+# RAILS_BENCHMARKER.relative_url_root = '/blog'
 
-# create session data required to run the benchmark
-# customize this code if your benchmark needs session data
+# Create session data required to run the benchmark.
+# Customize the code below if your benchmark needs session data.
 
 # require 'user'
 # RAILS_BENCHMARKER.session_data = {'account' => User.find_first("name='stefan'")}
