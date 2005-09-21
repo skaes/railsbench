@@ -8,8 +8,8 @@ RAILS_BENCHMARKER = RailsBenchmark.new
 # WARNING: don't use RailsBenchmarkWithActiveRecordStore running on
 # your production database!
 
-# If your application runs from a url wich is not your servers root,
-# you should to set relative_url_root on the benchmarker instance,
+# If your application runs from a url which is not your servers root,
+# you should set relative_url_root on the benchmarker instance,
 # especially if you use page caching.
 # RAILS_BENCHMARKER.relative_url_root = '/blog'
 
