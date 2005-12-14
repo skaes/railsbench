@@ -1,0 +1,59 @@
+#!/usr/local/bin/ruby
+
+puts <<'END'
+<style type="text/css">
+<!--
+.perf_header, .perf_data, .perf_name { font-size:70%; padding-left:5px; padding-right:5px; }
+.perf_header { text-align:center; vertical-align:top; font-weight:bold;}
+.c1 { background:#fff3df; }
+.c2 { background:#dfedff; }
+.factor { background:#efe0ef; }
+.name { background:#dfdfdf; }
+.perf_name   { text-align:left;   }
+.perf_data   { text-align:right;  }
+-->
+</style>
+END
+
+puts "<table cellspacing=1px>"
+puts "<tr>"
+puts "<th class='perf_header name' style='text-align:left;'>page</th>"
+puts "<th class='perf_header c1'>c1 total</th><th class='perf_header c2'>c2 total</th>"
+puts "<th class='perf_header c1'>c1 r/s</th><th class='perf_header c2'>c2 r/s</th>"
+puts "<th class='perf_header c1'>c1 ms/r</th><th class='perf_header c2'>c2 ms/r</th>"
+puts "<th class='perf_header factor'>c1/c2</th>"
+puts "</tr>"
+$stdin.each_line do |l|
+  if l =~ %r{^([A-Za-z0-9/.?]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
+    puts "<tr>"
+    puts "<td class='perf_name name'>#{$1}</td>"
+    puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
+    puts "<td class='perf_data c1'>#{$4}</td><td class='perf_data c2'>#{$5}</td>"
+    puts "<td class='perf_data c1'>#{$6}</td><td class='perf_data c2'>#{$7}</td>"
+    puts "<td class='perf_data factor'>#{$8}</td>"
+    puts "</tr>"
+  end
+end
+puts "</table>"
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
