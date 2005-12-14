@@ -5,6 +5,7 @@ options = Hash.new("")
 timings = {}
 keys = []
 configs = []
+narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
 
 if ARGV.length<2
   print "not enough arguments"
@@ -57,14 +58,27 @@ def time_avg(a)
   (a.inject(0.0){|r,v| r += v })/a.length
 end
 
+def truncate(text, length = 32, truncate_string = "...")
+  return "" if text.nil?
+  return text if text.length <= length
+  n = length - truncate_string.length
+  text[0..(n-1)] + truncate_string
+end
+
 keys.uniq!
 
 printf "perf data file 1: #{configs[0]}\n"
 printf "  requests=#{iter[configs[0]]}, options=#{options[configs[0]]}\n\n"
 printf "perf data file 2: #{configs[1]}\n"
 printf "  requests=#{iter[configs[1]]}, options=#{options[configs[1]]}\n\n"
-printf "%-32s %9s %9s %6s %6s %6s %6s %6s\n",
-       'page', 'c1 real', 'c2 real', 'r/s', 'r/s', 'ms/r', 'ms/r', 'c1/c2'
+
+if narrow
+  printf "%-3s %9s %9s %7s %7s %8s %8s %6s\n",
+         'page', 'c1 real', 'c2 real', 'c1 r/s', 'c2 r/s', 'c1 ms/r', 'c2 ms/r', 'c1/c2'
+else
+  printf "%-32s %9s %9s %7s %7s %8s %8s %6s\n",
+         'page', 'c1 real', 'c2 real', 'c1 r/s', 'c2 r/s', 'c1 ms/r', 'c2 ms/r', 'c1/c2'
+end
 
 iter1 = iter[configs[0]]
 iter2 = iter[configs[1]]
@@ -76,6 +90,7 @@ else
   c2 = iter1/iter2
 end
 
+index = 0
 keys.each do |k|
   ta1 = timings[configs[0]][k]
   t1 = time_avg(ta1) * c1
@@ -87,15 +102,27 @@ keys.each do |k|
   rps2 = iter2*urls*c2/t2
   mspr1 = t1*1000/(iter1*urls*c1)
   mspr2 = t2*1000/(iter2*urls*c2)
-  printf "%-32s %9.5f %9.5f %6.1f %6.1f %6.2f %6.2f %6.2f\n",
-         k, t1, t2, rps1, rps2, mspr1, mspr2, t1/t2 unless /loading/===k
+  unless /loading/===k
+    unless narrow
+      printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+             truncate(k), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
+    else
+      printf "%2d:  %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+             (index+=1), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
+    end
+  end
+end
+
+if narrow
+  puts "\nurls:"
+  index = 0
+  keys.each do |k|
+    printf "%2d: %s\n", (index+=1) , k unless /loading/===k
+  end
 end
 
 __END__
 
-### Local Variables: ***
-### mode:ruby ***
-### End: ***
 ### Local Variables: ***
 ### mode:ruby ***
 ### End: ***

@@ -27,6 +27,18 @@ ARGV.each do |arg|
   end
 end
 
+def truncate(text, length = 32, truncate_string = "...")
+  if text.nil? then return "" end
+  l = truncate_string.length + 1
+
+  if $KCODE == "NONE"
+    text.length > length ? text[0..(length - l)] + truncate_string : text
+  else
+    chars = text.split(//)
+    chars.length > length ? chars[0..(length - l)].join + truncate_string : text
+  end
+end
+
 files.each do |file|
   timings = {}
   keys = []
@@ -67,8 +79,8 @@ files.each do |file|
     d = time_dev(timings[k], t)
     urls = 1
     urls = $1.to_i if /\((\d+) urls\)$/===k
-    printf "%-32s  %9.5f  %7.4f   %5.1f   %5.2f\n",
-           k, t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+    printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
+           truncate(k), t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
   end
 
   file.close

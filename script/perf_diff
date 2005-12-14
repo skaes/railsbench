@@ -32,10 +32,12 @@ fi
 
 PERF_OPTIONS="$ITER $COMMON $OPT1"
 RAILS_BENCHMARK_FILE=$FILE1 $BINDIR/perf_loop $PERF_OPTIONS || exit 1
-echo
+ruby $BINDIR/perf_times $FILE1
+echo;echo
 
 PERF_OPTIONS="$ITER $COMMON $OPT2"
 RAILS_BENCHMARK_FILE=$FILE2 $BINDIR/perf_loop $PERF_OPTIONS || exit 1
-echo
+ruby $BINDIR/perf_times $FILE2
+echo;echo
 
 ruby $BINDIR/perf_comp $FILE1 $FILE2
