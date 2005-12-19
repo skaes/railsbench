@@ -1,5 +1,6 @@
 #!/usr/local/bin/ruby
 
+unless ARGV.include?('-nocss')
 puts <<'END'
 <style type="text/css">
 <!--
@@ -14,7 +15,9 @@ puts <<'END'
 -->
 </style>
 END
+end
 
+unless ARGV.include?('-notable')
 puts "<table cellspacing=1px>"
 puts "<tr>"
 puts "<th class='perf_header name' style='text-align:left;'>page</th>"
@@ -24,7 +27,7 @@ puts "<th class='perf_header c1'>c1 ms/r</th><th class='perf_header c2'>c2 ms/r<
 puts "<th class='perf_header factor'>c1/c2</th>"
 puts "</tr>"
 $stdin.each_line do |l|
-  if l =~ %r{^([A-Za-z0-9/.?]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
+  if l =~ %r{^([A-Za-z0-9./?=]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
     puts "<tr>"
     puts "<td class='perf_name name'>#{$1}</td>"
     puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
@@ -35,6 +38,7 @@ $stdin.each_line do |l|
   end
 end
 puts "</table>"
+end
 
 __END__
 
