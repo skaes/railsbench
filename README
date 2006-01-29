@@ -16,7 +16,8 @@ FILES
 
   site-ruby/benchmark.rb
                 - replacement for the one that comes with the ruby distribution
-                  install into the distributions site-ruby directory
+                  prints benchmark data to stderr instead of stdout
+                  install into the distribution's site-ruby directory
                  
   railsbench.rb
                 - defines classes RailsBenchmark and RailsBenchmarkWithActiveRecordStore
@@ -25,6 +26,7 @@ FILES
                   -log      : turn on rails logging
                   -nochache : turn off rails caching
                   -path     : print $: after loading rails and exit
+	          -svl      : use SVL Ruby Performance Validator
 
   config/bechmarks.yml
                 - specification of urls to benchmark
@@ -42,7 +44,8 @@ FILES
 
   run_urls n options
                 - run a given benchmark without benchmarking
-                  switches as for perf_bench
+                  switches as for perf_bench plus
+                  -warmup   : run all uris once before measuring
 
   perf_run n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file
@@ -60,8 +63,13 @@ FILES
   perf_times file
                 - analyse and print performance data
 
-  perf_comp file
+  perf_comp [-narrow] file
                 - compare two performance data sets and print results
+
+  perf_html [-nocss] [file]
+                - format output taken from perf_comp and produce a HTML table
+                  for inclusion in HTML pages. Reads from standard input if no
+                  file argument is given.
 
 
 ENVIRONMENT
@@ -146,24 +154,25 @@ CONFIGURATION
 
 Benchmarks are configured through file benchmarks.yml. Example:
 
-default:
-  index, other
+  default:
+    index, other
 
-index:
-  uri: /test/index
-  new_session: true
+  index:
+    uri: /test/index
+    new_session: true
 
-other:
-  -
-    uri: /test/list
-  -
-    uri: /test/alphabetic
-    query_params: page=7
+  other:
+    -
+      uri: /test/list
+    -
+      uri: /test/alphabetic
+      query_params: page=7
 
 defines 3 benchmarks:
-  "other" consists of 2 urls (/test/list and /test/alphabetic)
-  "index" will run (/test/index)
-  "default" will run all urls in "index" and "other"
+
+  "other"    consists of 2 urls (/test/list and /test/alphabetic)
+  "index"    will run (/test/index)
+  "default"  will run all urls in "index" and "other"
 
 uri: is mandatory, query_params: and new_session: are optional.
 
