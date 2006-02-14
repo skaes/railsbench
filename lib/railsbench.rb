@@ -108,17 +108,22 @@ class RailsBenchmark
 
   def run_urls_without_benchmark
     # support for running Ruby Performance Validator
+    # or Ruby Memory Validator
     svl = nil
-    if ARGV.include?('-svl')
-      begin
+    begin
+      if ARGV.include?('-svlPV')
         require 'svlRubyPV'
         svl = SvlRubyPV.new
         svl.startDataCollection
-      rescue LoadError
-        # svlRubyPV not available, do nothing
+      elsif ARGV.include?('-svlMV')
+        require 'svlRubyMV'
+        svl = SvlRubyMV.new
+        svl.startProfiler
       end
+    rescue LoadError
+      # SVL dll not available, do nothing
     end
-
+    
     setup_initial_env
     if gc_frequency==0
       run_urls_without_benchmark_and_without_gc_control(@urls, iterations)
@@ -127,7 +132,7 @@ class RailsBenchmark
     end
 
     svl.stopDataCollection if svl
-
+    
     delete_test_session
     delete_new_test_sessions
   end
