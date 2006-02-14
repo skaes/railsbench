@@ -114,14 +114,18 @@ class RailsBenchmark
       if ARGV.include?('-svlPV')
         require 'svlRubyPV'
         svl = SvlRubyPV.new
-        svl.startDataCollection
       elsif ARGV.include?('-svlMV')
         require 'svlRubyMV'
         svl = SvlRubyMV.new
-        svl.startProfiler
       end
     rescue LoadError
       # SVL dll not available, do nothing
+    end
+
+    # start profiler and trigger data collection if required
+    if svl
+      svl.startProfiler
+      svl.startDataCollection
     end
     
     setup_initial_env
@@ -131,6 +135,7 @@ class RailsBenchmark
       run_urls_without_benchmark_but_with_gc_control(@urls, iterations, gc_frequency)
     end
 
+    # stop data collection if necessary
     svl.stopDataCollection if svl
     
     delete_test_session
