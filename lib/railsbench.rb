@@ -189,12 +189,13 @@ class RailsBenchmark
     end
   end
 
-  def run_urls_with_gc_control(test, urls, n, gc_freq)  
+  def run_urls_with_gc_control(test, urls, n, gc_freq)
+    GC.clear_stats
     urls.each do |entry|
       request_count = 0
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
       test.report(entry['uri']) do
-        GC.enable; GC.start; GC.disable
+        GC.disable_stats; GC.enable; GC.start; GC.disable; GC.enable_stats
         n.times do
           Dispatcher.dispatch
           if (request_count += 1) == gc_freq
@@ -204,21 +205,30 @@ class RailsBenchmark
         end
       end
     end
+    GC.disable_stats
+    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+    GC.clear_stats
   end
 
-  def run_urls_without_gc_control(test, urls, n)  
+  def run_urls_without_gc_control(test, urls, n)
+    GC.clear_stats
     urls.each do |entry|
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
-      GC.start
+      GC.disable_stats; GC.start; GC.enable_stats
       test.report(entry['uri']) do
         n.times do
           Dispatcher.dispatch
         end
       end
     end
+    GC.disable_stats
+    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+    GC.clear_stats
   end
   
   def run_url_mix_without_gc_control(test, urls, n)
+    GC.start
+    GC.clear_stats; GC.enable_stats
     test.report("url_mix (#{urls.length} urls)") do
       n.times do
         urls.each do |entry|
@@ -227,11 +237,15 @@ class RailsBenchmark
         end
       end
     end
+    GC.disable_stats
+    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+    GC.clear_stats
   end
   
   def run_url_mix_with_gc_control(test, urls, n, gc_frequency)
+    GC.enable; GC.start; GC.disable
+    GC.clear_stats; GC.enable_stats
     test.report("url_mix (#{urls.length} urls)") do
-      GC.enable; GC.start; GC.disable
       request_count = 0
       n.times do
         urls.each do |entry|
@@ -244,6 +258,9 @@ class RailsBenchmark
         end
       end
     end
+    GC.disable_stats
+    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+    GC.clear_stats
   end
 
   def self.parse_url_spec(url_spec, name)
@@ -263,7 +280,7 @@ class RailsBenchmarkWithActiveRecordStore < RailsBenchmark
 
   def initialize(options={})
     super(options)
-    @session_class = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager].session_class
+    @session_class = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager].session_class rescue CGI::Session::ActiveRecordStore
   end
 
   def delete_new_test_sessions

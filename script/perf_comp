@@ -3,6 +3,7 @@
 iter = Hash.new(100)
 options = Hash.new("")
 timings = {}
+gc_stats = {}
 keys = []
 configs = []
 narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
@@ -36,6 +37,7 @@ ARGV.each do |arg|
   sysvers = fn.split('/').last.sub(/\.txt$/, '')
   configs << sysvers
   timings[sysvers] = {}
+  gc_stats[sysvers] = []
   file.each_line do |l|
     case l
     when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
@@ -49,6 +51,8 @@ ARGV.each do |arg|
     when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
       iter[sysvers] = $2.to_i
       options[sysvers] = $3
+    when /^GC.collections=(\d+), GC.time=([\d\.]+)$/
+      gc_stats[sysvers] << [$1.to_i,$2.to_f]
     end
   end
   file.close
@@ -91,6 +95,8 @@ else
 end
 
 index = 0
+total_time_1 = 0
+total_time_2 = 0
 keys.each do |k|
   ta1 = timings[configs[0]][k]
   t1 = time_avg(ta1) * c1
@@ -103,6 +109,8 @@ keys.each do |k|
   mspr1 = t1*1000/(iter1*urls*c1)
   mspr2 = t2*1000/(iter2*urls*c2)
   unless /loading/===k
+    total_time_1 += t1
+    total_time_2 += t2
     unless narrow
       printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
              truncate(k), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
@@ -112,6 +120,37 @@ keys.each do |k|
     end
   end
 end
+
+if narrow
+  printf "\n%-4s %9.5f %9.5f %33s %6.2f\n",
+         "all:", total_time_1, total_time_2, "", total_time_1/total_time_2
+else
+  printf "\n%-32s %9.5f %9.5f %33s %6.2f\n",
+         "total_time", total_time_1, total_time_2, "", total_time_1/total_time_2
+end
+
+if gc_stats.length>0
+  collection_counts_1 = gc_stats[configs[0]].map{|p| p[0]}
+  collection_times_1 = gc_stats[configs[0]].map{|p| p[1]}
+  c1 = time_avg(collection_counts_1)
+  t1 = time_avg(collection_times_1)
+  collection_counts_2 = gc_stats[configs[1]].map{|p| p[0]}
+  collection_times_2 = gc_stats[configs[1]].map{|p| p[1]}
+  c2 = time_avg(collection_counts_2)
+  t2 = time_avg(collection_times_2)
+  if narrow 
+    printf "\n%-4s %9s %9s %7s %7s %8s %8s %6s\n",
+           "GC:", "c1 real", "c2 real", "c1 #gc", "c2 #gc", "c1 gc%", "c2 gc%", "c1/c2"
+    printf "%-4s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           "", t1, t2, c1, c2, (t1/total_time_1)*100, (t2/total_time_2)*100, c1/c2
+  else
+    printf "\n%-32s %9s %9s %7s %7s %8s %8s %6s\n",
+           "garbage collection stats", "c1 real", "c2 real", "c1 #gc", "c2 #gc", "c1 gc%", "c2 gc%", "c1/c2"
+    printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           "", t1, t2, c1, c2, (t1/total_time_1)*100, (t2/total_time_2)*100, c1/c2
+  end
+end
+
 
 if narrow
   puts "\nurls:"

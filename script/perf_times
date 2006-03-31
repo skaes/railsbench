@@ -42,6 +42,7 @@ end
 files.each do |file|
   timings = {}
   keys = []
+  gc_stats = []
   file.each_line do |l|
     case l
     when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
@@ -55,6 +56,8 @@ files.each do |file|
     when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
       iter = $2.to_i
       options = $3
+    when /^GC.collections=(\d+), GC.time=([\d\.]+)$/
+      gc_stats << [$1.to_i,$2.to_f]
     end
   end
 
@@ -71,16 +74,33 @@ files.each do |file|
   printf "\nperf data file: #{file.path}\n"
   printf "    requests=#{iter}, options=#{options}\n\n"
   k = 'loading environment'
-  printf "%-32s %9.5f\n\n", k, time_avg(timings[k])
+  printf "%-32s  %9.5f\n\n", k, time_avg(timings[k])
   printf "%-32s  %9s  %7s  %6s  %6s\n", 'page request', 'total', 'stddev%', 'r/s', 'ms/r'
-  
+
+  total_time = 0  
+
   keys.each do |k|
     t = time_avg(timings[k])
     d = time_dev(timings[k], t)
+    total_time += t unless /loading/===k
     urls = 1
     urls = $1.to_i if /\((\d+) urls\)$/===k
     printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
            truncate(k), t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+  end
+
+  printf "\n%-32s  %9.5f\n", "total time", total_time
+
+  if gc_stats.length>0
+    collection_counts = gc_stats.map{|p| p[0]}
+    collection_times = gc_stats.map{|p| p[1]}
+    c = time_avg(collection_counts)
+    t = time_avg(collection_times)
+    d = time_dev(collection_times, t)
+    printf "\n%-32s  %9s  %7s  %6s  %6s\n",
+           "garbage collection statistics", "time", "stddev%", "count", "total%"
+    printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
+           "", t, (d/t)*100, c, (t/total_time)*100
   end
 
   file.close
