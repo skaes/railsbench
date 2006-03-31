@@ -129,7 +129,7 @@ else
          "total_time", total_time_1, total_time_2, "", total_time_1/total_time_2
 end
 
-if gc_stats.length>0
+if gc_stats[configs[0]].length>0
   collection_counts_1 = gc_stats[configs[0]].map{|p| p[0]}
   collection_times_1 = gc_stats[configs[0]].map{|p| p[1]}
   c1 = time_avg(collection_counts_1)

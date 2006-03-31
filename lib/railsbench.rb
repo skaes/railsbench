@@ -11,6 +11,10 @@ class RailsBenchmark
     raise msg
   end
   
+  def patched_gc?
+    @patched_gc
+  end
+  
   def initialize(options={})
     unless @gc_frequency = options[:gc_frequency]
       @gc_frequency = 0
@@ -58,6 +62,8 @@ class RailsBenchmark
     if options.has_key?(:relative_url_root)
       ActionController::AbstractRequest.relative_url_root = options[:relative_url_root]
     end
+
+    @patched_gc = GC.collections.is_a?(Numeric) rescue false
   end
 
   def establish_test_session
@@ -190,12 +196,15 @@ class RailsBenchmark
   end
 
   def run_urls_with_gc_control(test, urls, n, gc_freq)
-    GC.clear_stats
+    gc_stats = patched_gc?
+    GC.clear_stats if gc_stats
     urls.each do |entry|
       request_count = 0
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
       test.report(entry['uri']) do
-        GC.disable_stats; GC.enable; GC.start; GC.disable; GC.enable_stats
+        GC.disable_stats if gc_stats
+        GC.enable; GC.start; GC.disable
+        GC.enable_stats  if gc_stats
         n.times do
           Dispatcher.dispatch
           if (request_count += 1) == gc_freq
@@ -205,30 +214,40 @@ class RailsBenchmark
         end
       end
     end
-    GC.disable_stats
-    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
-    GC.clear_stats
+    if gc_stats
+      GC.disable_stats
+      Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+      GC.clear_stats
+    end
   end
 
   def run_urls_without_gc_control(test, urls, n)
-    GC.clear_stats
+    gc_stats = patched_gc?
+    GC.clear_stats if gc_stats
     urls.each do |entry|
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
-      GC.disable_stats; GC.start; GC.enable_stats
+      GC.disable_stats if gc_stats
+      GC.start
+      GC.enable_stats  if gc_stats
       test.report(entry['uri']) do
         n.times do
           Dispatcher.dispatch
         end
       end
     end
-    GC.disable_stats
-    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
-    GC.clear_stats
+    if gc_stats
+      GC.disable_stats
+      Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+      GC.clear_stats
+    end
   end
   
   def run_url_mix_without_gc_control(test, urls, n)
+    gc_stats = patched_gc?
     GC.start
-    GC.clear_stats; GC.enable_stats
+    if gc_stats
+      GC.clear_stats; GC.enable_stats
+    end
     test.report("url_mix (#{urls.length} urls)") do
       n.times do
         urls.each do |entry|
@@ -237,14 +256,19 @@ class RailsBenchmark
         end
       end
     end
-    GC.disable_stats
-    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
-    GC.clear_stats
+    if gc_stats
+      GC.disable_stats
+      Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+      GC.clear_stats
+    end
   end
   
   def run_url_mix_with_gc_control(test, urls, n, gc_frequency)
+    gc_stats = patched_gc?
     GC.enable; GC.start; GC.disable
-    GC.clear_stats; GC.enable_stats
+    if gc_stats
+      GC.clear_stats; GC.enable_stats
+    end
     test.report("url_mix (#{urls.length} urls)") do
       request_count = 0
       n.times do
@@ -258,9 +282,11 @@ class RailsBenchmark
         end
       end
     end
-    GC.disable_stats
-    Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
-    GC.clear_stats
+    if gc_stats
+      GC.disable_stats
+      Benchmark::OUTPUT.puts "GC.collections=#{GC.collections}, GC.time=#{GC.time/1E6}"
+      GC.clear_stats
+    end
   end
 
   def self.parse_url_spec(url_spec, name)

@@ -34,3 +34,14 @@ RUBY_HEAP_FREE_MIN=20000
 
 You can watch memory usage of the ruby interpreter by setting
 RUBY_GC_STATS=1, before you invoke perf_bench.
+
+Additionally, GC gets some new methods:
+
+GC.enable_stats   - enable GC statistics collection
+GC.enable_stats   - disable GC statistics collection
+GC.clear_stats    - reset GC statistics
+GC.collections    - number of collections since stats have been enabled
+GC.time           - GC time used since stats have been enabled (miro seconds)
+
+railsbench detects whether the patch has been applied and provides
+GC statistics if available.
