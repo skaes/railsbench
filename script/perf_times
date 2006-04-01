@@ -109,10 +109,11 @@ files.each do |file|
     c = time_avg(collection_counts)
     t = time_avg(collection_times)
     d = time_dev(collection_times, t)
+    stddevp = t==0 ? 0 : (d/t)*100
     printf "\n%-32s  %9s  %7s  %6s  %6s\n",
            "garbage collection statistics", "time", "stddev%", "count", "total%"
     printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
-           "", t, (d/t)*100, c, (t/total_time)*100
+           "", t, stddevp, c, (t/total_time)*100
   end
 
   file.close

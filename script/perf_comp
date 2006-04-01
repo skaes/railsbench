@@ -10,8 +10,8 @@ narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
 skip_urls = ARGV.delete('-skip_urls') || ARGV.delete('-s')
 
 if ARGV.length<2
-  print "not enough arguments"
-  print "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2"
+  print "perfcomp: not enough arguments!\n"
+  print "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2\n"
   exit 1
 end
 
@@ -160,16 +160,17 @@ if gc_stats[configs[0]].length>0
   collection_times_2 = gc_stats[configs[1]].map{|p| p[1]}
   c2 = time_avg(collection_counts_2)
   t2 = time_avg(collection_times_2)
+  factor = (c1-c2==0) ? 1 : c1/c2
   if narrow 
     printf "\n%-4s %9s %9s %7s %7s %8s %8s %6s\n",
            "GC:", "c1 real", "c2 real", "c1 #gc", "c2 #gc", "c1 gc%", "c2 gc%", "c1/c2"
     printf "%-4s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
-           "", t1, t2, c1, c2, (t1/total_time_1)*100, (t2/total_time_2)*100, c1/c2
+           "", t1, t2, c1, c2, (t1/total_time1)*100, (t2/total_time2)*100, factor
   else
     printf "\n%-32s %9s %9s %7s %7s %8s %8s %6s\n",
            "garbage collection stats", "c1 real", "c2 real", "c1 #gc", "c2 #gc", "c1 gc%", "c2 gc%", "c1/c2"
     printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
-           "", t1, t2, c1, c2, (t1/total_time_1)*100, (t2/total_time_2)*100, c1/c2
+           "", t1, t2, c1, c2, (t1/total_time1)*100, (t2/total_time2)*100, factor
   end
 end
 
