@@ -25,5 +25,7 @@ else
 fi
 export RAILS_BENCHMARK_FILE
 
+unset RUBY_GC_STATS
+
 PERF_OPTIONS="$ITER $OPT"
 $BINDIR/perf_loop $PERF_OPTIONS && ruby $BINDIR/perf_times $RAILS_BENCHMARK_FILE

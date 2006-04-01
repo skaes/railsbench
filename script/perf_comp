@@ -7,10 +7,11 @@ gc_stats = {}
 keys = []
 configs = []
 narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
+skip_urls = ARGV.delete('-skip_urls') || ARGV.delete('-s')
 
 if ARGV.length<2
   print "not enough arguments"
-  print "usage: perf_comp file1 file2"
+  print "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2"
   exit 1
 end
 
@@ -58,8 +59,12 @@ ARGV.each do |arg|
   file.close
 end
 
+def sum_a(a)
+  a.inject(0.0){|r,v| r += v }
+end
+  
 def time_avg(a)
-  (a.inject(0.0){|r,v| r += v })/a.length
+  sum_a(a)/a.length
 end
 
 def truncate(text, length = 32, truncate_string = "...")
@@ -94,9 +99,15 @@ else
   c2 = iter1/iter2
 end
 
+k = 'loading environment'
+perf_runs1 = timings[configs[0]].delete(k).length
+perf_runs2 = timings[configs[1]].delete(k).length
+keys.delete(k)
+
 index = 0
-total_time_1 = 0
-total_time_2 = 0
+total_requests_run1 = 0
+total_requests_run2 = 0
+
 keys.each do |k|
   ta1 = timings[configs[0]][k]
   t1 = time_avg(ta1) * c1
@@ -104,29 +115,40 @@ keys.each do |k|
   t2 = time_avg(ta2) * c2
   urls = 1
   urls = $1.to_i if /\((\d+) urls\)$/===k
+  total_requests_run1 += iter1*urls
+  total_requests_run2 += iter2*urls
   rps1 = iter1*urls*c1/t1
   rps2 = iter2*urls*c2/t2
   mspr1 = t1*1000/(iter1*urls*c1)
   mspr2 = t2*1000/(iter2*urls*c2)
-  unless /loading/===k
-    total_time_1 += t1
-    total_time_2 += t2
-    unless narrow
-      printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
-             truncate(k), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
-    else
-      printf "%2d:  %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
-             (index+=1), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
-    end
+  if narrow
+    printf "%2d:  %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           (index+=1), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
+  else
+    printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           truncate(k), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
   end
 end
 
+totals_per_run1 = (0...perf_runs1).map{|i| sum_a(timings[configs[0]].values.map{|a| a[i]})}
+totals_per_run2 = (0...perf_runs2).map{|i| sum_a(timings[configs[1]].values.map{|a| a[i]})}
+total_time1 = time_avg(totals_per_run1) * c1
+total_time2 = time_avg(totals_per_run2) * c2
+total_rps1 = total_requests_run1 * c1 / total_time1
+total_rps2 = total_requests_run2 * c2 / total_time2
+total_mspr1 = total_time1 * 1000 / (total_requests_run1 * c1)
+total_mspr2 = total_time2 * 1000 / (total_requests_run2 * c2)
+
 if narrow
-  printf "\n%-4s %9.5f %9.5f %33s %6.2f\n",
-         "all:", total_time_1, total_time_2, "", total_time_1/total_time_2
+  printf "\n%4s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           "all:", total_time1, total_time2,
+                total_rps1, total_rps2, total_mspr1, total_mspr2,
+                     total_time1/total_time2
 else
-  printf "\n%-32s %9.5f %9.5f %33s %6.2f\n",
-         "total_time", total_time_1, total_time_2, "", total_time_1/total_time_2
+  printf "\n%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
+           "all requests", total_time1, total_time2,
+                total_rps1, total_rps2, total_mspr1, total_mspr2,
+                     total_time1/total_time2
 end
 
 if gc_stats[configs[0]].length>0
@@ -151,12 +173,10 @@ if gc_stats[configs[0]].length>0
   end
 end
 
-
-if narrow
+if narrow and !skip_urls
   puts "\nurls:"
-  index = 0
-  keys.each do |k|
-    printf "%2d: %s\n", (index+=1) , k unless /loading/===k
+  keys.each_with_index do |k, index|
+    printf "%2d: %s\n", (index+1) , k
   end
 end
 

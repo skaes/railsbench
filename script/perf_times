@@ -39,6 +39,19 @@ def truncate(text, length = 32, truncate_string = "...")
   end
 end
 
+def sum_a(a)
+  a.inject(0.0){|r,v| r += v }
+end
+  
+def time_avg(a)
+  sum_a(a)/a.length
+end
+  
+def time_dev(a, mean)
+  r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
+  Math.sqrt(r/(a.length-1))
+end
+
 files.each do |file|
   timings = {}
   keys = []
@@ -61,15 +74,6 @@ files.each do |file|
     end
   end
 
-  def time_avg(a)
-    (a.inject(0.0){|r,v| r += v })/a.length
-  end
-  
-  def time_dev(a, mean)
-    r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
-    Math.sqrt(r/(a.length-1))
-  end
-  
   keys.uniq!
   printf "\nperf data file: #{file.path}\n"
   printf "    requests=#{iter}, options=#{options}\n\n"
@@ -77,19 +81,27 @@ files.each do |file|
   printf "%-32s  %9.5f\n\n", k, time_avg(timings[k])
   printf "%-32s  %9s  %7s  %6s  %6s\n", 'page request', 'total', 'stddev%', 'r/s', 'ms/r'
 
-  total_time = 0  
-
+  perf_runs = timings.delete(k).length
+  keys.delete(k)
+  
+  total_requests_run = 0
   keys.each do |k|
     t = time_avg(timings[k])
     d = time_dev(timings[k], t)
-    total_time += t unless /loading/===k
     urls = 1
     urls = $1.to_i if /\((\d+) urls\)$/===k
+    total_requests_run += iter*urls
     printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
-           truncate(k), t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls) unless /loading/===k
+           truncate(k), t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls)
   end
 
-  printf "\n%-32s  %9.5f\n", "total time", total_time
+  totals_per_run = (0...perf_runs).map{|i| sum_a(timings.values.map{|a| a[i]})}
+  total_time = time_avg(totals_per_run)
+  total_stddev = time_dev(totals_per_run, total_time)
+  
+  printf "\n%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
+           "all requests", total_time, (total_stddev/total_time)*100,
+                        total_requests_run/total_time, total_time*1000/total_requests_run
 
   if gc_stats.length>0
     collection_counts = gc_stats.map{|p| p[0]}
