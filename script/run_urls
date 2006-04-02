@@ -12,7 +12,7 @@ RAILS_BENCHMARKER.url_spec = benchmarks
 RAILS_BENCHMARKER.setup_test_urls(benchmark_name)
 RAILS_BENCHMARKER.establish_test_session
 RAILS_BENCHMARKER.warmup if ARGV.include?('-warmup')
-RAILS_BENCHMARKER.run_urls_without_benchmark
+RAILS_BENCHMARKER.run_urls_without_benchmark(ENV['RUBY_GC_STATS'].to_i == 1)
 
 __END__
 

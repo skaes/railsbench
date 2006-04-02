@@ -1,5 +1,5 @@
 --- gc.c.orig	2005-12-16 05:58:51.000000000 +0100
-+++ gc.c	2006-03-29 17:12:03.837545600 +0200
++++ gc.c	2006-04-02 17:36:50.414232000 +0200
 @@ -22,8 +22,16 @@
  #include <setjmp.h>
  #include <sys/types.h>
@@ -115,7 +115,7 @@
 +static long initial_malloc_limit = GC_MALLOC_LIMIT;
  
 -#define FREE_MIN  4096
-+static int verbose_gc_stats = 0;
++static int verbose_gc_stats = Qfalse;
  
  static RVALUE *himem, *lomem;
  
@@ -127,7 +127,7 @@
 +    if (gc_stats_ptr != NULL) {
 +	int gc_stats_i = atoi(gc_stats_ptr);
 +	if (gc_stats_i > 0) {
-+	    verbose_gc_stats = gc_stats_i;
++	    verbose_gc_stats = Qtrue;
 +	}
 +    }
 +
@@ -242,36 +242,37 @@
  static void
  gc_sweep()
  {
-@@ -1039,6 +1194,14 @@
+@@ -1039,6 +1194,15 @@
      int i;
      unsigned long live = 0;
  
 +    unsigned long really_freed = 0;
 +    int free_counts[256];
 +    int live_counts[256];
++    int do_gc_stats = gc_statistics & verbose_gc_stats;
 +
-+    if (verbose_gc_stats) {
++    if (do_gc_stats) {
 +	for (i = 0 ; i< 256; i++) { free_counts[i] = live_counts[i] = 0; }
 +    }
 +
      if (ruby_in_compile && ruby_parser_stack_on_heap()) {
  	/* should not reclaim nodes during compilation
             if yacc's semantic stack is not allocated on machine stack */
-@@ -1070,6 +1233,9 @@
+@@ -1070,6 +1234,9 @@
  	    if (!(p->as.basic.flags & FL_MARK)) {
  		if (p->as.basic.flags) {
  		    obj_free((VALUE)p);
-+		    if (verbose_gc_stats) {
++		    if (do_gc_stats) {
 +			really_freed++;
 +		    }
  		}
  		if (need_call_final && FL_TEST(p, FL_FINALIZE)) {
  		    p->as.free.flags = FL_MARK; /* remain marked */
-@@ -1077,6 +1243,12 @@
+@@ -1077,6 +1244,12 @@
  		    final_list = p;
  		}
  		else {
-+		    if (verbose_gc_stats) {
++		    if (do_gc_stats) {
 +			int obt = p->as.basic.flags & T_MASK;
 +			if (obt) {
 +			    free_counts[obt]++;
@@ -280,11 +281,11 @@
  		    p->as.free.flags = 0;
  		    p->as.free.next = freelist;
  		    freelist = p;
-@@ -1090,10 +1262,13 @@
+@@ -1090,10 +1263,13 @@
  	    else {
  		RBASIC(p)->flags &= ~FL_MARK;
  		live++;
-+		if (verbose_gc_stats) {
++		if (do_gc_stats) {
 +		    live_counts[RANY((VALUE)p)->as.basic.flags & T_MASK]++;
 +		}
  	    }
@@ -295,7 +296,7 @@
  	    RVALUE *pp;
  
  	    heaps[i].limit = 0;
-@@ -1108,14 +1283,28 @@
+@@ -1108,14 +1284,28 @@
      }
      if (malloc_increase > malloc_limit) {
  	malloc_limit += (malloc_increase - malloc_limit) * (double)live / (live + freed);
@@ -309,7 +310,7 @@
      }
      during_gc = 0;
  
-+    if (verbose_gc_stats) {
++    if (do_gc_stats) {
 +	fprintf(stderr, "objects processed: %.7d\n", live+freed);
 +	fprintf(stderr, "live objects     : %.7d\n", live);
 +	fprintf(stderr, "freelist objects : %.7d\n", freed - really_freed);
@@ -326,7 +327,7 @@
      /* clear finalization list */
      if (final_list) {
  	deferred_final_list = final_list;
-@@ -1311,6 +1500,7 @@
+@@ -1311,6 +1501,7 @@
      struct gc_list *list;
      struct FRAME * volatile frame; /* gcc 2.7.2.3 -O2 bug??  */
      jmp_buf save_regs_gc_mark;
@@ -334,7 +335,7 @@
      SET_STACK_END;
  
  #ifdef HAVE_NATIVETHREAD
-@@ -1327,6 +1517,14 @@
+@@ -1327,6 +1518,14 @@
      if (during_gc) return;
      during_gc++;
  
@@ -349,7 +350,7 @@
      init_mark_stack();
  
      /* mark frame stack */
-@@ -1409,6 +1607,18 @@
+@@ -1409,6 +1608,18 @@
  	}
      }
      gc_sweep();
@@ -361,14 +362,14 @@
 +	gc_time += musecs_used;
 +
 +	if (verbose_gc_stats) {
-+	    fprintf(stderr, "Garbage collection completed\n");
++	    fprintf(stderr, "GARBAGE collection completed\n");
 +	    fprintf(stderr, "GC time: %d msec\n", musecs_used / 1000);
 +	}
 +    }
  }
  
  void
-@@ -1522,6 +1732,7 @@
+@@ -1522,6 +1733,7 @@
      if (!rb_gc_stack_start) {
  	Init_stack(0);
      }
@@ -376,7 +377,7 @@
      add_heap();
  }
  
-@@ -1920,6 +2131,12 @@
+@@ -1920,6 +2132,12 @@
      rb_define_singleton_method(rb_mGC, "disable", rb_gc_disable, 0);
      rb_define_method(rb_mGC, "garbage_collect", rb_gc_start, 0);
  

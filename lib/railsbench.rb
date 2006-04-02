@@ -112,7 +112,7 @@ class RailsBenchmark
     end
   end
 
-  def run_urls_without_benchmark
+  def run_urls_without_benchmark(gc_stats)
     # support for running Ruby Performance Validator
     # or Ruby Memory Validator
     svl = nil
@@ -135,6 +135,7 @@ class RailsBenchmark
     end
     
     setup_initial_env
+    GC.enable_stats if gc_stats
     if gc_frequency==0
       run_urls_without_benchmark_and_without_gc_control(@urls, iterations)
     else
