@@ -141,6 +141,12 @@ class RailsBenchmark
     else
       run_urls_without_benchmark_but_with_gc_control(@urls, iterations, gc_frequency)
     end
+    if gc_stats
+      GC.enable if gc_frequency
+      GC.start
+      GC.disable_stats
+      $stderr.puts "number of requests processed: #{@urls.size * iterations}"
+    end
 
     # stop data collection if necessary
     svl.stopDataCollection if svl

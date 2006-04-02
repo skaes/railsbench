@@ -1,0 +1,160 @@
+#!/usr/local/bin/ruby
+
+options = ""
+if ARGV.length==0
+  puts "usage: perf_gc_times file1 file2 ..."
+  exit 1
+end
+files=[]
+ARGV.each do |arg|
+  fn = arg
+  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
+  begin
+    if File.stat(fn).readable?
+      files << File.open(fn)
+    else
+      print "file #{fn} is unreadable\n"
+      exit 1
+    end
+  rescue 
+    print "file #{fn} does not exist\n"
+    exit 1
+  end
+end
+
+def sum_a(a)
+  a.inject(0.0){|r,v| r += v }
+end
+  
+def time_avg(a)
+  sum_a(a)/a.length
+end
+  
+def time_dev(a, mean)
+  r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
+  Math.sqrt(r/(a.length-1))
+end
+
+# Garbage collection started
+# objects processed: 0223696
+# live objects     : 0192126
+# freelist objects : 0000000
+# freed objects    : 0031570
+# kept 0000370 / freed 0000609 objects of type OBJECT
+# kept 0001071 / freed 0000062 objects of type CLASS
+# kept 0000243 / freed 0000061 objects of type ICLASS
+# kept 0000041 / freed 0000061 objects of type FLOAT
+# kept 0013974 / freed 0015432 objects of type STRING
+# kept 0000651 / freed 0000002 objects of type REGEXP
+# kept 0000617 / freed 0009948 objects of type ARRAY
+# kept 0000646 / freed 0001398 objects of type HASH
+# kept 0000004 / freed 0000121 objects of type BIGNUM
+# kept 0000006 / freed 0000005 objects of type FILE
+# kept 0000400 / freed 0000253 objects of type DATA
+# kept 0000001 / freed 0000093 objects of type MATCH
+# kept 0000067 / freed 0000136 objects of type VARMAP
+# kept 0000167 / freed 0000939 objects of type SCOPE
+# kept 0173634 / freed 0002389 objects of type NODE
+# GARBAGE collection completed
+# GC time: 47 msec
+
+GCInfo = Struct.new(:processed, :live, :freelist, :freed, :time)
+
+files.each_with_index do |file, idx|
+  puts "" if idx>0
+  gc_info = []
+  num_requests = 0
+
+  file.each_line do |l|
+    case l
+    when /^Garbage collection started$/
+      gc_info << GCInfo.new
+    when /^objects processed\s*:\s*(\d+)$/
+      gc_info.last.processed = $1.to_i
+    when /^live objects\s*:\s*(\d+)$/
+      gc_info.last.live = $1.to_i
+    when /^freelist objects\s*:\s*(\d+)$/
+      gc_info.last.freelist = $1.to_i
+    when /^freed objects\s*:\s*(\d+)$/
+      gc_info.last.freed = $1.to_i
+    when /^GC time\s*:\s*(\d+)\s*msec$/
+      gc_info.last.time = $1.to_i
+    when /^number of requests processed: (\d+)$/
+      num_requests = $1.to_i
+    end
+  end
+
+  printf "collections: %7d\n", gc_info.length
+  printf "time used: %9.0f ms\n", sum_a(gc_info.map{|c| c.time})
+
+  printf "\n             %10s %8s\n", "mean", "stddev%"
+  
+  time = gc_info.map{|c| c.time}
+  time.pop
+  time_mean = time_avg(time)
+  time_stddev = time_dev(time, time_mean)
+  std_devp = (time_stddev/time_mean)*100
+  
+  printf "gc time    : %10.2f %8.1f\n", time_mean, std_devp
+    
+  processed = gc_info.map{|c| c.processed}
+  processed.pop
+  processed_mean = time_avg(processed)
+  processed_stddev = time_dev(processed, processed_mean)
+  std_devp = (processed_stddev/processed_mean)*100
+  
+  printf "heap slots : %10.2f %8.1f\n", processed_mean, std_devp
+
+  live = gc_info.map{|c| c.live}
+  live.pop
+  live_mean = time_avg(live)
+  live_stddev = time_dev(live, live_mean)
+  std_devp = (live_stddev/live_mean)*100
+  
+  printf "live       : %10.2f %8.1f\n", live_mean, std_devp
+  
+  freed = gc_info.map{|c| c.freed}
+  freed.pop
+  freed_mean = time_avg(freed)
+  freed_stddev = time_dev(freed, freed_mean)
+  std_devp = (freed_stddev/freed_mean)*100
+  
+  printf "freed      : %10.2f %8.1f\n", freed_mean, std_devp
+  
+  freelist = gc_info.map{|c| c.freelist}
+  freelist.pop
+  freelist_mean = time_avg(freelist)
+  freelist_stddev = time_dev(freelist, freelist_mean)
+  std_devp = (freelist_stddev/freelist_mean)*100
+  
+  printf "freelist   : %10.2f %8.1f\n", freelist_mean, std_devp
+  
+  garbage_produced = sum_a(gc_info.map{|c| c.freed})
+  printf "\ngarbage per request    : %7.1f\n", garbage_produced/num_requests
+  printf "requests per collection: %7.1f\n", num_requests/gc_info.length
+  
+  file.close
+
+end
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005, 2006  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
