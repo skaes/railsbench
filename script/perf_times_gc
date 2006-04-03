@@ -37,6 +37,10 @@ class Array
     Math.sqrt(r/(length-1))
   end
 end
+
+def stddev_percentage(stddev, mean)
+  stddev.zero? ? 0.0 : (stddev/mean)*100
+end
   
 # Entry Format:
 #
@@ -65,7 +69,7 @@ end
 GCInfo = Struct.new(:processed, :live, :freelist, :freed, :time)
 
 files.each_with_index do |file, idx|
-  puts "" if idx>0
+  puts "="*32 if idx>0
   gc_info = []
   num_requests = 0
 
@@ -88,8 +92,9 @@ files.each_with_index do |file, idx|
     end
   end
 
+  printf "garbage collection data file: #{File.expand_path(file.path)}\n\n"
   printf "collections: %7d\n", gc_info.length
-  printf "time used: %9.0f ms\n", sum_a(gc_info.map{|c| c.time})
+  printf "time used: %9.0f ms\n", gc_info.map{|c| c.time}.sum
 
   printf "\n             %10s %8s\n", "mean", "stddev%"
   
@@ -97,7 +102,7 @@ files.each_with_index do |file, idx|
   time.pop
   time_mean = time.mean
   time_stddev = time.stddev(time_mean)
-  std_devp = (time_stddev/time_mean)*100
+  std_devp = stddev_percentage(time_stddev, time_mean)
   
   printf "gc time    : %10.2f %8.1f\n", time_mean, std_devp
     
@@ -105,7 +110,7 @@ files.each_with_index do |file, idx|
   processed.pop
   processed_mean = processed.mean
   processed_stddev = processed.stddev(processed_mean)
-  std_devp = (processed_stddev/processed_mean)*100
+  std_devp = stddev_percentage(processed_stddev,processed_mean)
   
   printf "heap slots : %10.2f %8.1f\n", processed_mean, std_devp
 
@@ -113,7 +118,7 @@ files.each_with_index do |file, idx|
   live.pop
   live_mean = live.mean
   live_stddev = live.stddev(live_mean)
-  std_devp = (live_stddev/live_mean)*100
+  std_devp = stddev_percentage(live_stddev,live_mean)
   
   printf "live       : %10.2f %8.1f\n", live_mean, std_devp
   
@@ -121,7 +126,7 @@ files.each_with_index do |file, idx|
   freed.pop
   freed_mean = freed.mean
   freed_stddev = freed.stddev(freed_mean)
-  std_devp = (freed_stddev/freed_mean)*100
+  std_devp = stddev_percentage(freed_stddev,freed_mean)
   
   printf "freed      : %10.2f %8.1f\n", freed_mean, std_devp
   
@@ -129,7 +134,7 @@ files.each_with_index do |file, idx|
   freelist.pop
   freelist_mean = freelist.mean
   freelist_stddev = freelist.stddev(freelist_mean)
-  std_devp = (freelist_stddev/freelist_mean)*100
+  std_devp = stddev_percentage(freelist_stddev,freelist_mean)
   
   printf "freelist   : %10.2f %8.1f\n", freelist_mean, std_devp
   
