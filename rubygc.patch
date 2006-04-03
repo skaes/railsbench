@@ -1,5 +1,5 @@
 --- gc.c.orig	2005-12-16 05:58:51.000000000 +0100
-+++ gc.c	2006-04-02 17:36:50.414232000 +0200
++++ gc.c	2006-04-03 11:52:50.389302400 +0200
 @@ -22,8 +22,16 @@
  #include <setjmp.h>
  #include <sys/types.h>
@@ -43,10 +43,21 @@
  static int during_gc;
  static int need_call_final = 0;
  static st_table *finalizer_table = 0;
-@@ -225,6 +243,48 @@
+@@ -225,6 +243,104 @@
      return old;
  }
  
++/*
++ *  call-seq:
++ *     GC.enable_stats    => true or false
++ *
++ *  Enables garbage collection statistics, returning <code>true</code> if garbage
++ *  collection statistics was already enabled.
++ *
++ *     GC.enable_stats   #=> false or true
++ *     GC.enable_stats   #=> true
++ *
++ */
 +
 +VALUE
 +rb_gc_enable_stats()
@@ -56,6 +67,18 @@
 +    return old;
 +}
 +
++/*
++ *  call-seq:
++ *     GC.disable_stats    => true or false
++ *
++ *  Disables garbage collection statistics, returning <code>true</code> if garbage
++ *  collection statistics was already disabled.
++ *
++ *     GC.disable_stats   #=> false or true
++ *     GC.disable_stats   #=> true
++ *
++ */
++
 +VALUE
 +rb_gc_disable_stats()
 +{
@@ -63,6 +86,17 @@
 +    gc_statistics = Qfalse;
 +    return old;
 +}
++
++/*
++ *  call-seq:
++ *     GC.enable_stats    => nil
++ *
++ *  Clears garbage collection statistics, returning nil. This resets the number
++ *  of collections (GC.collections) and the time used (GC.time) to 0.
++ *
++ *     GC.clear_stats    #=> nil
++ *
++ */
 +
 +VALUE
 +rb_gc_clear_stats()
@@ -72,11 +106,33 @@
 +    return Qnil; 
 +}
 +
++/*
++ *  call-seq:
++ *     GC.collections    => Integer
++ *
++ *  Returns the number of garbage collections performed while GC statistics collection
++ *  was enabled.
++ *
++ *     GC.clear_stats    #=> 35
++ *
++ */
++
 +VALUE
 +rb_gc_collections()
 +{
 +    return INT2NUM(gc_collections);
 +}
++
++/*
++ *  call-seq:
++ *     GC.time    => Integer
++ *
++ *  Returns the time spent during garbage collection while GC statistics collection
++ *  was enabled (in micro seconds).
++ *
++ *     GC.time    #=> 20000
++ *
++ */
 +
 +VALUE
 +rb_gc_time()
@@ -92,7 +148,7 @@
  VALUE rb_mGC;
  
  static struct gc_list {
-@@ -308,7 +368,7 @@
+@@ -308,7 +424,7 @@
  static RVALUE *freelist = 0;
  static RVALUE *deferred_final_list = 0;
  
@@ -101,7 +157,7 @@
  static struct heaps_slot {
      RVALUE *slot;
      int limit;
-@@ -316,13 +376,75 @@
+@@ -316,13 +432,75 @@
  static int heaps_length = 0;
  static int heaps_used   = 0;
  
@@ -109,12 +165,12 @@
 -static int heap_slots = HEAP_MIN_SLOTS;
 +static int heap_min_slots = 10000;
 +static int heap_slots = 10000;
-+
+ 
+-#define FREE_MIN  4096
 +static int heap_free_min = 4096;
 +
 +static long initial_malloc_limit = GC_MALLOC_LIMIT;
- 
--#define FREE_MIN  4096
++
 +static int verbose_gc_stats = Qfalse;
  
  static RVALUE *himem, *lomem;
@@ -180,7 +236,7 @@
  static void
  add_heap()
  {
-@@ -333,7 +455,7 @@
+@@ -333,7 +511,7 @@
  	struct heaps_slot *p;
  	int length;
  
@@ -189,7 +245,7 @@
  	length = heaps_length*sizeof(struct heaps_slot);
  	RUBY_CRITICAL(
  	    if (heaps_used > 0) {
-@@ -350,10 +472,10 @@
+@@ -350,10 +528,10 @@
  	RUBY_CRITICAL(p = heaps[heaps_used].slot = (RVALUE*)malloc(sizeof(RVALUE)*heap_slots));
  	heaps[heaps_used].limit = heap_slots;
  	if (p == 0) {
@@ -202,7 +258,7 @@
  	    continue;
  	}
  	break;
-@@ -1031,6 +1153,39 @@
+@@ -1031,6 +1209,39 @@
      }
  }
  
@@ -242,7 +298,7 @@
  static void
  gc_sweep()
  {
-@@ -1039,6 +1194,15 @@
+@@ -1039,6 +1250,15 @@
      int i;
      unsigned long live = 0;
  
@@ -258,7 +314,7 @@
      if (ruby_in_compile && ruby_parser_stack_on_heap()) {
  	/* should not reclaim nodes during compilation
             if yacc's semantic stack is not allocated on machine stack */
-@@ -1070,6 +1234,9 @@
+@@ -1070,6 +1290,9 @@
  	    if (!(p->as.basic.flags & FL_MARK)) {
  		if (p->as.basic.flags) {
  		    obj_free((VALUE)p);
@@ -268,7 +324,7 @@
  		}
  		if (need_call_final && FL_TEST(p, FL_FINALIZE)) {
  		    p->as.free.flags = FL_MARK; /* remain marked */
-@@ -1077,6 +1244,12 @@
+@@ -1077,6 +1300,12 @@
  		    final_list = p;
  		}
  		else {
@@ -281,7 +337,7 @@
  		    p->as.free.flags = 0;
  		    p->as.free.next = freelist;
  		    freelist = p;
-@@ -1090,10 +1263,13 @@
+@@ -1090,10 +1319,13 @@
  	    else {
  		RBASIC(p)->flags &= ~FL_MARK;
  		live++;
@@ -296,7 +352,7 @@
  	    RVALUE *pp;
  
  	    heaps[i].limit = 0;
-@@ -1108,14 +1284,28 @@
+@@ -1108,14 +1340,28 @@
      }
      if (malloc_increase > malloc_limit) {
  	malloc_limit += (malloc_increase - malloc_limit) * (double)live / (live + freed);
@@ -327,7 +383,7 @@
      /* clear finalization list */
      if (final_list) {
  	deferred_final_list = final_list;
-@@ -1311,6 +1501,7 @@
+@@ -1311,6 +1557,7 @@
      struct gc_list *list;
      struct FRAME * volatile frame; /* gcc 2.7.2.3 -O2 bug??  */
      jmp_buf save_regs_gc_mark;
@@ -335,7 +391,7 @@
      SET_STACK_END;
  
  #ifdef HAVE_NATIVETHREAD
-@@ -1327,6 +1518,14 @@
+@@ -1327,6 +1574,14 @@
      if (during_gc) return;
      during_gc++;
  
@@ -350,7 +406,7 @@
      init_mark_stack();
  
      /* mark frame stack */
-@@ -1409,6 +1608,18 @@
+@@ -1409,6 +1664,17 @@
  	}
      }
      gc_sweep();
@@ -362,14 +418,13 @@
 +	gc_time += musecs_used;
 +
 +	if (verbose_gc_stats) {
-+	    fprintf(stderr, "GARBAGE collection completed\n");
 +	    fprintf(stderr, "GC time: %d msec\n", musecs_used / 1000);
 +	}
 +    }
  }
  
  void
-@@ -1522,6 +1733,7 @@
+@@ -1522,6 +1788,7 @@
      if (!rb_gc_stack_start) {
  	Init_stack(0);
      }
@@ -377,7 +432,7 @@
      add_heap();
  }
  
-@@ -1920,6 +2132,12 @@
+@@ -1920,6 +2187,12 @@
      rb_define_singleton_method(rb_mGC, "disable", rb_gc_disable, 0);
      rb_define_method(rb_mGC, "garbage_collect", rb_gc_start, 0);
  

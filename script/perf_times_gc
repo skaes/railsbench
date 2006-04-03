@@ -22,19 +22,24 @@ ARGV.each do |arg|
   end
 end
 
-def sum_a(a)
-  a.inject(0.0){|r,v| r += v }
+class Array
+  def sum
+    inject(0){|r,v| r += v }
+  end
+  
+  def mean
+    sum/length
+  end
+  
+  def stddev(mean=nil)
+    mean ||= self.mean
+    r = inject(0){|r,v| r += (v-mean)*(v-mean) }
+    Math.sqrt(r/(length-1))
+  end
 end
   
-def time_avg(a)
-  sum_a(a)/a.length
-end
-  
-def time_dev(a, mean)
-  r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
-  Math.sqrt(r/(a.length-1))
-end
-
+# Entry Format:
+#
 # Garbage collection started
 # objects processed: 0223696
 # live objects     : 0192126
@@ -55,7 +60,6 @@ end
 # kept 0000067 / freed 0000136 objects of type VARMAP
 # kept 0000167 / freed 0000939 objects of type SCOPE
 # kept 0173634 / freed 0002389 objects of type NODE
-# GARBAGE collection completed
 # GC time: 47 msec
 
 GCInfo = Struct.new(:processed, :live, :freelist, :freed, :time)
@@ -91,45 +95,45 @@ files.each_with_index do |file, idx|
   
   time = gc_info.map{|c| c.time}
   time.pop
-  time_mean = time_avg(time)
-  time_stddev = time_dev(time, time_mean)
+  time_mean = time.mean
+  time_stddev = time.stddev(time_mean)
   std_devp = (time_stddev/time_mean)*100
   
   printf "gc time    : %10.2f %8.1f\n", time_mean, std_devp
     
   processed = gc_info.map{|c| c.processed}
   processed.pop
-  processed_mean = time_avg(processed)
-  processed_stddev = time_dev(processed, processed_mean)
+  processed_mean = processed.mean
+  processed_stddev = processed.stddev(processed_mean)
   std_devp = (processed_stddev/processed_mean)*100
   
   printf "heap slots : %10.2f %8.1f\n", processed_mean, std_devp
 
   live = gc_info.map{|c| c.live}
   live.pop
-  live_mean = time_avg(live)
-  live_stddev = time_dev(live, live_mean)
+  live_mean = live.mean
+  live_stddev = live.stddev(live_mean)
   std_devp = (live_stddev/live_mean)*100
   
   printf "live       : %10.2f %8.1f\n", live_mean, std_devp
   
   freed = gc_info.map{|c| c.freed}
   freed.pop
-  freed_mean = time_avg(freed)
-  freed_stddev = time_dev(freed, freed_mean)
+  freed_mean = freed.mean
+  freed_stddev = freed.stddev(freed_mean)
   std_devp = (freed_stddev/freed_mean)*100
   
   printf "freed      : %10.2f %8.1f\n", freed_mean, std_devp
   
   freelist = gc_info.map{|c| c.freelist}
   freelist.pop
-  freelist_mean = time_avg(freelist)
-  freelist_stddev = time_dev(freelist, freelist_mean)
+  freelist_mean = freelist.mean
+  freelist_stddev = freelist.stddev(freelist_mean)
   std_devp = (freelist_stddev/freelist_mean)*100
   
   printf "freelist   : %10.2f %8.1f\n", freelist_mean, std_devp
   
-  garbage_produced = sum_a(gc_info.map{|c| c.freed})
+  garbage_produced = gc_info.map{|c| c.freed}.sum
   printf "\ngarbage per request    : %7.1f\n", garbage_produced/num_requests
   printf "requests per collection: %7.1f\n", num_requests/gc_info.length
   
