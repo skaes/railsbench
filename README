@@ -63,13 +63,24 @@ FILES
   perf_times file
                 - analyse and print performance data
 
-  perf_comp [-narrow] file
+  perf_comp [-narrow] [-skip_urls] file
                 - compare two performance data sets and print results
+                  -narrow    => produce narrow output
+                  -skip_urls => don't print url map (use with -narrow)
 
   perf_html [-nocss] [file]
                 - format output taken from perf_comp and produce a HTML table
                   for inclusion in HTML pages. Reads from standard input if no
                   file argument is given.
+
+  perf_times_gc file
+                - analyse and print garbage collection statistics, which you
+                  can produce by running your a benchmark like so:
+
+                    RUBY_GC_STATS=1 run_urls 100 -warmup -bm=all >/dev/null 2>gc.log
+                    perf_times_gc gc.log
+
+                - requires Ruby GC patch
 
 
 ENVIRONMENT
@@ -86,7 +97,7 @@ ENVIRONMENT
                   if not set, 3 runs will be performed
 
   RAILS_BENCHMARK_FILE
-                - perf_bench send it's output to this file
+                - perf_bench send its output to this file
 
 
 USAGE
@@ -187,4 +198,4 @@ one could have written
     
 new_session: specifies whether a session cookie is sent with the
 request (default). To make this work correctly, you need to set
-session_data on the instance. See benchmarks.rb for details.
+session_data on the benchmarker instance. See benchmarks.rb for details.
