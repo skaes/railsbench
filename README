@@ -160,6 +160,33 @@ Performance data is sent to $RAILS_BENCHMARK_FILE, HTML output ends up
 on stdout. If RAILS_BENCHMARK_FILE is not set, performance data is
 sent to stderr.
 
+Script perf_times_gc can be used to analyse GC performance:
+
+  RUBY_GC_STATS=1 run_urls 100 -warmup -bm=all >/dev/null 2>gc.log
+  perf_times_gc gc.log
+
+It will produce output looking like this:
+
+garbage collection data file: c:/home/skaes/stable11_gc.log
+
+  collections:     310
+  time used:     12670 ms
+
+                     mean  stddev%
+  gc time    :      40.00     19.4
+  heap slots :  223696.00      0.0
+  live       :  193122.00      0.3
+  freed      :   30573.00      2.0
+  freelist   :       0.00      0.0
+
+  garbage per request    :  1184.0
+  requests per collection:    25.0
+
+Note that these numbers are only an approximation. This is due to the
+fact that run_urls will add one final garbage collection call at the
+end of the run. Of course, higher number of iterations will produce
+more accurate data.
+
 
 CONFIGURATION
 
