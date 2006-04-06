@@ -73,14 +73,16 @@ FILES
                   for inclusion in HTML pages. Reads from standard input if no
                   file argument is given.
 
+  perf_run_gc n [ option-string [ config-name ] ]
+                - run a given benchmark, store performance data in a file
+                  in directory $RAILS_PERF_DATA and print results
+                - requires Ruby GC patch
+
   perf_times_gc file
                 - analyse and print garbage collection statistics, which you
-                  can produce by running your a benchmark like so:
-
-                    RUBY_GC_STATS=1 run_urls 100 -warmup -bm=all >/dev/null 2>gc.log
-                    perf_times_gc gc.log
-
+                  can produce by running perf_run_gc
                 - requires Ruby GC patch
+
 
 
 ENVIRONMENT
