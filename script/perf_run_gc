@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+# set -x
 
 if [ $# -lt 2 ]; then
   echo "usage: perf_run_gc iterations options [conf-name]"
