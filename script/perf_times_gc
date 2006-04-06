@@ -96,7 +96,7 @@ files.each_with_index do |file, idx|
   printf "collections: %7d\n", gc_info.length
   printf "time used: %9.0f ms\n", gc_info.map{|c| c.time}.sum
 
-  printf "\n             %10s %8s %10s %10s\n", "mean", "stddev%", "max", "min"
+  printf "\n             %10s %8s %10s %10s\n", "mean", "stddev%", "min", "max"
   
   time = gc_info.map{|c| c.time}
   time.pop
@@ -104,7 +104,7 @@ files.each_with_index do |file, idx|
   time_stddev = time.stddev(time_mean)
   std_devp = stddev_percentage(time_stddev, time_mean)
   
-  printf "gc time    : %10.2f %8.1f %10.2f %10.2f\n", time_mean, std_devp, time.max, time.min
+  printf "gc time(ms): %10.2f %8.1f %10.2f %10.2f\n", time_mean, std_devp, time.min, time.max
     
   processed = gc_info.map{|c| c.processed}
   processed.pop

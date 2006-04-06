@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+set -x
 
 if [ $# -lt 2 ]; then
   echo "usage: perf_run_gc iterations options [conf-name]"
@@ -14,8 +14,10 @@ test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
 ITER="$1"
 OPT="$2"
 BENCHMARK=""
+WARMUP="-warmup"
 for opt in $OPT; do
   [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
+  [ $opt = "-warmup" ] && WARMUP=""
 done
 DATE=`date +%m-%d`
 if [ $# == 3 ]; then
@@ -24,7 +26,7 @@ else
   RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run${BENCHMARK}.gc.txt"
 fi
 
-PERF_OPTIONS="$ITER $OPT"
+PERF_OPTIONS="$ITER $WARMUP $OPT"
 
 (RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$RAILS_BENCHMARK_FILE) \
  && ruby $BINDIR/perf_times_gc $RAILS_BENCHMARK_FILE
