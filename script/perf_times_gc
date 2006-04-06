@@ -96,7 +96,7 @@ files.each_with_index do |file, idx|
   printf "collections: %7d\n", gc_info.length
   printf "time used: %9.0f ms\n", gc_info.map{|c| c.time}.sum
 
-  printf "\n             %10s %8s\n", "mean", "stddev%"
+  printf "\n             %10s %8s %10s %10s\n", "mean", "stddev%", "max", "min"
   
   time = gc_info.map{|c| c.time}
   time.pop
@@ -104,7 +104,7 @@ files.each_with_index do |file, idx|
   time_stddev = time.stddev(time_mean)
   std_devp = stddev_percentage(time_stddev, time_mean)
   
-  printf "gc time    : %10.2f %8.1f\n", time_mean, std_devp
+  printf "gc time    : %10.2f %8.1f %10.2f %10.2f\n", time_mean, std_devp, time.max, time.min
     
   processed = gc_info.map{|c| c.processed}
   processed.pop
@@ -112,7 +112,7 @@ files.each_with_index do |file, idx|
   processed_stddev = processed.stddev(processed_mean)
   std_devp = stddev_percentage(processed_stddev,processed_mean)
   
-  printf "heap slots : %10.2f %8.1f\n", processed_mean, std_devp
+  printf "heap slots : %10.2f %8.1f %10.2f %10.2f\n", processed_mean, std_devp, processed.max, processed.min
 
   live = gc_info.map{|c| c.live}
   live.pop
@@ -120,7 +120,7 @@ files.each_with_index do |file, idx|
   live_stddev = live.stddev(live_mean)
   std_devp = stddev_percentage(live_stddev,live_mean)
   
-  printf "live       : %10.2f %8.1f\n", live_mean, std_devp
+  printf "live       : %10.2f %8.1f %10.2f %10.2f\n", live_mean, std_devp, live.max, live.min
   
   freed = gc_info.map{|c| c.freed}
   freed.pop
@@ -128,7 +128,7 @@ files.each_with_index do |file, idx|
   freed_stddev = freed.stddev(freed_mean)
   std_devp = stddev_percentage(freed_stddev,freed_mean)
   
-  printf "freed      : %10.2f %8.1f\n", freed_mean, std_devp
+  printf "freed      : %10.2f %8.1f %10.2f %10.2f\n", freed_mean, std_devp, freed.max, freed.min
   
   freelist = gc_info.map{|c| c.freelist}
   freelist.pop
@@ -136,7 +136,7 @@ files.each_with_index do |file, idx|
   freelist_stddev = freelist.stddev(freelist_mean)
   std_devp = stddev_percentage(freelist_stddev,freelist_mean)
   
-  printf "freelist   : %10.2f %8.1f\n", freelist_mean, std_devp
+  printf "freelist   : %10.2f %8.1f %10.2f %10.2f\n", freelist_mean, std_devp, freelist.max, freelist.min
   
   garbage_produced = gc_info.map{|c| c.freed}.sum
   printf "\ngarbage per request    : %7.1f\n", garbage_produced/num_requests
