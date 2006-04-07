@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+trap("INT") { $stderr.puts("benchmarking aborted!"); exit(-1) }
+
 module Benchmark
   if ENV['RAILS_BENCHMARK_FILE']
     OUTPUT = File.open(ENV['RAILS_BENCHMARK_FILE'], "a+")
@@ -16,7 +18,7 @@ bm(32) do |test|
     require File.dirname(__FILE__) + '/../lib/railsbench'
     require ENV['RAILS_ROOT'] + '/config/benchmarks'
   end
-
+  
   benchmarks = YAML::load(File.open(ENV['RAILS_ROOT'] + "/config/benchmarks.yml"))
   benchmark_name = "default"
   ARGV.each{ |arg| benchmark_name = $1 if arg =~ /-bm=([a-zA-Z_0-9]+)/ }

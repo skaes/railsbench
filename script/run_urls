@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+trap("INT") { $stderr.puts("benchmarking aborted!"); exit(-1) }
+
 require File.dirname(__FILE__) + '/../lib/railsbench'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'
 
