@@ -1,9 +1,16 @@
 #!/usr/bin/env ruby
 
-trap("INT") { $stderr.puts("benchmarking aborted!"); exit(-1) }
+trap("INT") { $stderr.puts("benchmarking aborted!"); exit!(-1) }
 
 require File.dirname(__FILE__) + '/../lib/railsbench'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'
+
+trap("INT") do
+  $stderr.puts "clearing database connections ..."
+  ActiveRecord::Base.send :clear_all_cached_connections!
+  $stderr.puts "benchmarking aborted!"
+  exit!(-1)
+end
 
 benchmarks = YAML::load(File.open(ENV['RAILS_ROOT'] + "/config/benchmarks.yml"))
 benchmark_name = "default"
