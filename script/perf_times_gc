@@ -2,7 +2,7 @@
 
 options = ""
 if ARGV.length==0
-  puts "usage: perf_gc_times file1 file2 ..."
+  puts "usage: perf_times_gc file1 file2 ..."
   exit 1
 end
 files=[]

@@ -6,6 +6,8 @@ puts <<'END'
 <!--
 .perf_header, .perf_data, .perf_name { font-size:70%; padding-left:5px; padding-right:5px; }
 .perf_header { text-align:center; vertical-align:top; font-weight:bold;}
+.i { font-style:italic; }
+.b { font-weight:bold; }
 .c1 { background:#fff3df; }
 .c2 { background:#dfedff; }
 .factor { background:#efe0ef; }
@@ -18,26 +20,43 @@ END
 end
 
 unless ARGV.include?('-notable')
-puts "<table cellspacing=1px>"
-puts "<tr>"
-puts "<th class='perf_header name' style='text-align:left;'>page</th>"
-puts "<th class='perf_header c1'>c1 total</th><th class='perf_header c2'>c2 total</th>"
-puts "<th class='perf_header c1'>c1 r/s</th><th class='perf_header c2'>c2 r/s</th>"
-puts "<th class='perf_header c1'>c1 ms/r</th><th class='perf_header c2'>c2 ms/r</th>"
-puts "<th class='perf_header factor'>c1/c2</th>"
-puts "</tr>"
-$stdin.each_line do |l|
-  if l =~ %r{^([A-Za-z0-9./?=]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
-    puts "<tr>"
-    puts "<td class='perf_name name'>#{$1}</td>"
-    puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
-    puts "<td class='perf_data c1'>#{$4}</td><td class='perf_data c2'>#{$5}</td>"
-    puts "<td class='perf_data c1'>#{$6}</td><td class='perf_data c2'>#{$7}</td>"
-    puts "<td class='perf_data factor'>#{$8}</td>"
-    puts "</tr>"
+  puts "<table cellspacing=1px>"
+  $stdin.each_line do |l|
+    case l
+      when /^garbage collection/
+      unless ARGV.include?('-gc')
+        puts "</table>"
+        exit
+      end
+      puts "<tr></tr><tr></tr>"
+      puts "<tr>"
+      puts "<th class='perf_header name' style='text-align:left'>GC statistics</th>"
+      puts "<th class='perf_header c1'>c1 total</th><th class='perf_header c2'>c2 total</th>"
+      puts "<th class='perf_header c1'>c1 #gc</th><th class='perf_header c2'>c2 #gc</th>"
+      puts "<th class='perf_header c1'>c1 gc%</th><th class='perf_header c2'>c2 #gc%</th>"
+      puts "<th class='perf_header factor'>c1/c2</th>"
+      puts "</tr>"
+      when /^page/
+      puts "<tr>"
+      puts "<th class='perf_header name' style='text-align:left;'>page</th>"
+      puts "<th class='perf_header c1'>c1 total</th><th class='perf_header c2'>c2 total</th>"
+      puts "<th class='perf_header c1'>c1 r/s</th><th class='perf_header c2'>c2 r/s</th>"
+      puts "<th class='perf_header c1'>c1 ms/r</th><th class='perf_header c2'>c2 ms/r</th>"
+      puts "<th class='perf_header factor'>c1/c2</th>"
+      puts "</tr>"
+    end
+    case l
+    when %r{^([A-Za-z0-9./?= ]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
+      puts "<tr>"
+      puts "<td class='perf_name name#{" i" if $1.strip == "all requests"}'>#{$1}</td>"
+      puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
+      puts "<td class='perf_data c1'>#{$4}</td><td class='perf_data c2'>#{$5}</td>"
+      puts "<td class='perf_data c1'>#{$6}</td><td class='perf_data c2'>#{$7}</td>"
+      puts "<td class='perf_data factor'>#{$8}</td>"
+      puts "</tr>"
+    end
   end
-end
-puts "</table>"
+  puts "</table>"
 end
 
 __END__
