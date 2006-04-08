@@ -68,10 +68,13 @@ FILES
                   -narrow    => produce narrow output
                   -skip_urls => don't print url map (use with -narrow)
 
-  perf_html [-nocss] [file]
+  perf_html [-nocss] [-gc] [file]
                 - format output taken from perf_comp and produce a HTML table
-                  for inclusion in HTML pages. Reads from standard input if no
-                  file argument is given.
+                  for inclusion in HTML pages. Reads from standard input.
+                  options:
+                    -noccs   suppress css output
+                    -notable suppress table output
+                    -gc      include gc statistics 
 
   perf_run_gc n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file
@@ -169,20 +172,20 @@ Scripts perf_run_gc and perf_times_gc can be used to analyse GC performance:
 
 It will produce output looking like this:
 
-garbage collection data file: /home/skaes/gc.log
+GC data file: d:/perfdata/xp/perf_run.uncached.gc.txt
 
-  collections:     310
-  time used:     12670 ms
+collections            :        40
+garbage total          :   8188429
+gc time total (sec)    :         4.03
+garbage per request    :      2047.11
+requests per collection:       100.00
 
-                     mean  stddev%
-  gc time    :      40.00     19.4
-  heap slots :  223696.00      0.0
-  live       :  193122.00      0.3
-  freed      :   30573.00      2.0
-  freelist   :       0.00      0.0
-
-  garbage per request    :  1184.0
-  requests per collection:    25.0
+                     mean  stddev%          min          max
+gc time(ms):       101.38     10.0        93.00       125.00
+heap slots :    400000.00      0.0    400000.00    400000.00
+live       :    192914.31      0.2    191787.00    193197.00
+freed      :    207085.69      0.2    206803.00    208213.00
+freelist   :         0.00      0.0         0.00         0.00
 
 Note that these numbers, especially requests per collection, are only
 an approximation. This is due to the fact that run_urls will add one
