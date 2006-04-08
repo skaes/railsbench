@@ -19,6 +19,7 @@ BENCHMARK=""
 for opt in $COMMON; do
   [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
 done
+
 if [ $# -gt 4 ]; then
   FILE1="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$5.txt"
 else

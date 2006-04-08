@@ -17,6 +17,7 @@ BENCHMARK=""
 for opt in $OPT; do
   [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
 done
+
 DATE=`date +%m-%d`
 if [ $# == 3 ]; then
   RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$3.txt"

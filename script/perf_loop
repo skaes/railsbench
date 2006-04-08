@@ -14,6 +14,8 @@ unset RUBY_GC_STATS
 echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
 echo "$BINDIR/perf_bench $@" >$FILE
 
+[[ "$@" =~ "-patched_gc" ]] || unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+
 for (( i=$RAILS_PERF_RUNS+1 ; i=i-1 ; ))
 do
     ruby $BINDIR/perf_bench $@ >/dev/null || exit 1

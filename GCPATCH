@@ -12,6 +12,8 @@ initial heap size to start with. Heap size will never drop below the
 initial size. By carefully selecting the initial heap size one can
 increase startup time and throughput of server apps.
 
+The patch is for 1.8.4, but applies to and works with 1.8.2 as well.
+
 Heap size and other options are controlled through environment
 variables:
 
