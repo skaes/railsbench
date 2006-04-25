@@ -15,6 +15,11 @@ class RailsBenchmark
     @patched_gc
   end
   
+  def relative_url_root=(value)
+    ActionController::AbstractRequest.relative_url_root = value
+    @relative_url_root = value
+  end
+  
   def initialize(options={})
     unless @gc_frequency = options[:gc_frequency]
       @gc_frequency = 0
@@ -26,7 +31,6 @@ class RailsBenchmark
     @remote_addr = options[:remote_addr] || '127.0.0.1'
     @http_host =  options[:http_host] || '127.0.0.1'
     @server_port = options[:server_port] || '80'
-    @relative_url_root = options[:relative_url_root] || ''
 
     @session_data = options[:session_data] || {}
 
@@ -59,9 +63,7 @@ class RailsBenchmark
       ActionView::Base.cache_template_loading = true
     end
 
-    if options.has_key?(:relative_url_root)
-      ActionController::AbstractRequest.relative_url_root = options[:relative_url_root]
-    end
+    self.relative_url_root = options[:relative_url_root] || ''
 
     @patched_gc = GC.collections.is_a?(Numeric) rescue false
   end
