@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # set -x
 
 if [ $# -lt 2 ]; then
@@ -15,7 +15,9 @@ ITER="$1"
 OPT="$2"
 BENCHMARK=""
 for opt in $OPT; do
-  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
+  case $opt in
+  -bm=*) BENCHMARK=${opt#-bm=};;
+  esac
 done
 
 DATE=`date +%m-%d`

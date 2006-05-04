@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # set -x
 
 BINDIR=`dirname $0`
@@ -14,11 +14,19 @@ unset RUBY_GC_STATS
 echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
 echo "$BINDIR/perf_bench $@" >$FILE
 
-[[ "$@" =~ "-patched_gc" ]] || unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+use_patched_gc="no"
+for arg in $@; do
+  [ "$arg" = "-patched_gc" ] && use_patched_gc="yes"
+done
 
-for (( i=$RAILS_PERF_RUNS+1 ; i=i-1 ; ))
-do
-    ruby $BINDIR/perf_bench $@ >/dev/null || exit 1
+if [ "${use_patched_gc}" = "no" ]; then 
+  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+fi
+
+i=$(( $RAILS_PERF_RUNS ))
+while [ $i -gt 0 ]; do
+  i=$(( $i-1 ))
+  ruby $BINDIR/perf_bench $@ >/dev/null || exit 1
 done
 echo >>$FILE
 

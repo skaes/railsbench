@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # set -x
 
 if [ $# -lt 2 ]; then
@@ -15,10 +15,15 @@ ITER="$1"
 OPT="$2"
 BENCHMARK=""
 WARMUP="-warmup"
+use_patched_gc="no"
 for opt in $OPT; do
-  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
-  [ $opt = "-warmup" ] && WARMUP=""
+  case $opt in
+  -bm=*) BENCHMARK=${opt#-bm=};;
+  -warmup) WARMUP="";;
+  -patched_gc) use_patched_gc="yes";;
+  esac
 done
+
 DATE=`date +%m-%d`
 if [ $# == 3 ]; then
   RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$3.gc.txt"
@@ -28,7 +33,9 @@ fi
 
 PERF_OPTIONS="$ITER $WARMUP $OPT"
 
-[[ "$OPT" =~ "-patched_gc" ]] || unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+if [ "${use_patched_gc}" = "no" ]; then
+  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+fi
 
 (RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$RAILS_BENCHMARK_FILE) \
  && ruby $BINDIR/perf_times_gc $RAILS_BENCHMARK_FILE

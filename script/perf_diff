@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # set -x
 
 if [ $# -lt 4 ]; then
@@ -17,7 +17,9 @@ OPT2="$4"
 DATE=`date +%m-%d`
 BENCHMARK=""
 for opt in $COMMON; do
-  [[ $opt =~ "-bm=([a-zA-Z0-9]+)" ]] && BENCHMARK=".${BASH_REMATCH[1]}"
+  case $opt in
+  -bm=*) BENCHMARK=${opt#-bm=};;
+  esac
 done
 
 if [ $# -gt 4 ]; then
