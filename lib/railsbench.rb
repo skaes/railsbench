@@ -54,7 +54,8 @@ class RailsBenchmark
     if options.has_key?(:perform_caching)
       ActionController::Base.perform_caching = options[:perform_caching]
     else
-      ActionController::Base.perform_caching = !ARGV.include?('-nocache')
+      ActionController::Base.perform_caching = false if ARGV.include?('-nocache')
+      ActionController::Base.perform_caching = true if ARGV.include?('-cache')
     end
 
     if options.has_key?(:cache_template_loading)

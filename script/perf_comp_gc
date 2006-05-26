@@ -1,0 +1,106 @@
+#!/usr/bin/env ruby
+
+options = ""
+if ARGV.length!=2
+  puts "usage: perf_diff_gc file1 file2"
+  exit 1
+end
+files=[]
+ARGV.each do |arg|
+  fn = arg
+  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
+  begin
+    if File.stat(fn).readable?
+      files << File.open(fn)
+    else
+      print "file #{fn} is unreadable\n"
+      exit 1
+    end
+  rescue 
+    print "file #{fn} does not exist\n"
+    exit 1
+  end
+end
+
+require "#{File.dirname(__FILE__)}/../lib/gc_info.rb"
+
+printf "GC data file1: #{File.expand_path(files[0].path)}\n"
+printf "GC data file2: #{File.expand_path(files[1].path)}\n\n"
+
+gcis = files.map{|file| GCInfo.new(file)}
+files.each{|file| file.close}
+
+printf "                         %12s %12s %7s\n", "c1", "c2", "c1/c2"
+printf "collections            : %12.2f %12.2f %7.2f\n",
+       (n1 = gcis[0].collections),
+       (n2 = gcis[1].collections),
+       n1.to_f/n2
+printf "garbage total          : %12.2f %12.2f %7.2f\n",
+       (n1 = gcis[0].garbage_produced),
+       (n2 = gcis[1].garbage_produced),
+       n1.to_f/n2
+printf "gc time total (sec)    : %12.2f %12.2f %7.2f\n",
+       (n1 = gcis[0].time_total.to_f/1000),
+       (n2 = gcis[1].time_total.to_f/1000),
+       n1/n2
+printf "garbage per request    : %12.2f %12.2f %7.2f\n",
+       (n1 = gcis[0].garbage_produced.to_f/gcis[0].num_requests),
+       (n2 = gcis[1].garbage_produced.to_f/gcis[1].num_requests),
+       n1/n2
+printf "requests per collection: %12.2f %12.2f %7.2f\n",
+       (n1 = gcis[0].num_requests.to_f/gcis[0].collections),
+       (n2 = gcis[1].num_requests.to_f/gcis[1].collections),
+       n1/n2
+
+printf "\n             %12s %12s %12s %12s %12s %12s\n",
+       "c1 mean", "c2 mean", "c1 min", "c2 min", "c1 max", "c2 max"
+
+number_format = "%12.2f %12.2f %12.2f %12.2f %12.2f %12.2f"
+  
+printf "gc time(ms): #{number_format}\n",
+       gcis[0].time_mean, gcis[1].time_mean,
+       gcis[0].time_min, gcis[1].time_min,
+       gcis[0].time_max, gcis[1].time_max
+   
+printf "heap slots : #{number_format}\n",
+       gcis[0].processed_mean, gcis[1].processed_mean,
+       gcis[0].processed_min, gcis[1].processed_min,
+       gcis[0].processed_max, gcis[1].processed_max
+
+printf "live       : #{number_format}\n",
+       gcis[0].live_mean, gcis[1].live_mean,
+       gcis[0].live_min, gcis[1].live_min,
+       gcis[0].live_max, gcis[1].live_max
+  
+printf "freed      : #{number_format}\n",
+       gcis[0].freed_mean, gcis[1].freed_mean,
+       gcis[0].freed_min, gcis[1].freed_min,
+       gcis[0].freed_max, gcis[1].freed_max
+  
+printf "freelist   : #{number_format}\n",
+       gcis[0].freelist_mean, gcis[1].freelist_mean,
+       gcis[0].freelist_min, gcis[1].freelist_min,
+       gcis[0].freelist_max, gcis[1].freelist_max
+
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005, 2006  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA

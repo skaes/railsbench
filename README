@@ -51,7 +51,7 @@ FILES
                 - run a given benchmark, store performance data in a file
                   in directory $RAILS_PERF_DATA and print results
 
-  perf_diff n common-options option-string1  option-string2 [ config-name1 [ config-name2 ] ]
+  perf_diff n common-options option-string1 option-string2 [ config-name1 [ config-name2 ] ]
                 - run a given benchmark with two different sets of arguments
                   store data into directory $RAILS_PERF_DATA and print
                   comparison data
@@ -63,7 +63,7 @@ FILES
   perf_times file
                 - analyse and print performance data
 
-  perf_comp [-narrow] [-skip_urls] file
+  perf_comp [-narrow] [-skip_urls] file1 file2
                 - compare two performance data sets and print results
                   -narrow    => produce narrow output
                   -skip_urls => don't print url map (use with -narrow)
@@ -84,7 +84,15 @@ FILES
   perf_times_gc file
                 - analyse and print garbage collection statistics, which you
                   can produce by running perf_run_gc
+
+  perf_diff_gc n common-options option-string1 option-string2 [ config-name1 [ config-name2 ] ]
+                - run a given benchmark with two different sets of arguments
+                  store GC data into directory $RAILS_PERF_DATA and print
+                  GC stats comparison 
                 - requires Ruby GC patch
+
+  perf_comp_gc file1 file2
+                - compare two GC performance data sets and print results
 
 
 
