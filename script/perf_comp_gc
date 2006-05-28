@@ -52,10 +52,10 @@ printf "requests per collection: %12.2f %12.2f %7.2f\n",
        (n2 = gcis[1].num_requests.to_f/gcis[1].collections),
        n1/n2
 
-printf "\n             %12s %12s %12s %12s %12s %12s\n",
+printf "\n             %12s %12s %9s %9s %9s %9s\n",
        "c1 mean", "c2 mean", "c1 min", "c2 min", "c1 max", "c2 max"
 
-number_format = "%12.2f %12.2f %12.2f %12.2f %12.2f %12.2f"
+number_format = "%12.2f %12.2f %9d %9d %9d %9d"
   
 printf "gc time(ms): #{number_format}\n",
        gcis[0].time_mean, gcis[1].time_mean,

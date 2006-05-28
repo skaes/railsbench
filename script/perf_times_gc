@@ -36,8 +36,8 @@ files.each_with_index do |file, idx|
   printf "garbage per request    : %12.2f\n", gci.garbage_produced.to_f/gci.num_requests
   printf "requests per collection: %12.2f\n", gci.num_requests.to_f/gci.collections
 
-  printf "\n             %12s %8s %12s %12s\n", "mean", "stddev%", "min", "max"
-  number_format = "%12.2f %8.1f %12.2f %12.2f"
+  printf "\n             %12s %8s %9s %9s\n", "mean", "stddev%", "min", "max"
+  number_format = "%12.2f %8.1f %9d %9d"
   
   printf "gc time(ms): #{number_format}\n",
          gci.time_mean, gci.time_stddev_percentage, gci.time_min, gci.time_max

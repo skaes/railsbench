@@ -16,14 +16,6 @@ OPT1="$3"
 OPT2="$4"
 BENCHMARK=""
 WARMUP="-warmup"
-use_patched_gc="no"
-for opt in $COMMON; do
-  case $opt in
-  -bm=*) BENCHMARK=${opt#-bm=};;
-  -warmup) WARMUP="";;
-  -patched_gc) use_patched_gc="yes";;
-  esac
-done
 
 DATE=`date +%m-%d`
 
@@ -39,17 +31,49 @@ else
   FILE2="$RAILS_PERF_DATA/perf_run2${BENCHMARK}.gc.txt"
 fi
 
-if [ "${use_patched_gc}" = "no" ]; then
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+OLD_RUBY_HEAP_MIN_SLOTS=$RUBY_HEAP_MIN_SLOTS
+OLD_RUBY_GC_MALLOC_LIMIT=$RUBY_GC_MALLOC_LIMIT
+OLD_RUBY_HEAP_FREE_MIN=$RUBY_HEAP_FREE_MIN
 
 PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT1"
+
+use_patched_gc="no"
+for opt in $COMMON $OPT1; do
+  case $opt in
+  -patched_gc) use_patched_gc="yes";;
+  esac
+done
+
+if [ "${use_patched_gc}" = "yes" ]; then
+  RUBY_HEAP_MIN_SLOTS=$OLD_RUBY_HEAP_MIN_SLOTS
+  RUBY_GC_MALLOC_LIMIT=$OLD_RUBY_GC_MALLOC_LIMIT
+  RUBY_HEAP_FREE_MIN=$OLD_RUBY_HEAP_FREE_MIN
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+fi
 
 (RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$FILE1) \
  && ruby $BINDIR/perf_times_gc $FILE1
 echo;echo
 
 PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT2"
+
+use_patched_gc="no"
+for opt in $COMMON $OPT2; do
+  case $opt in
+  -patched_gc) use_patched_gc="yes";;
+  esac
+done
+
+if [ "${use_patched_gc}" = "yes" ]; then
+  RUBY_HEAP_MIN_SLOTS=$OLD_RUBY_HEAP_MIN_SLOTS
+  RUBY_GC_MALLOC_LIMIT=$OLD_RUBY_GC_MALLOC_LIMIT
+  RUBY_HEAP_FREE_MIN=$OLD_RUBY_HEAP_FREE_MIN
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+fi
 
 (RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$FILE2) \
  && ruby $BINDIR/perf_times_gc $FILE2
