@@ -22,11 +22,11 @@ FILES
   railsbench.rb
                 - defines classes RailsBenchmark and RailsBenchmarkWithActiveRecordStore
                   switches:
-                  -gcXXX    : perform gc after XXX requests
-                  -log      : turn on rails logging
-                  -nochache : turn off rails caching
-                  -path     : print $: after loading rails and exit
-	          -svl      : use SVL Ruby Performance Validator
+                  -gcXXX	: perform gc after XXX requests
+                  -log[=level]	: turn on rails logging (at given level)
+                  -nochache	: turn off rails caching
+                  -path		: print $: after loading rails and exit
+	          -svl		: use SVL Ruby Performance Validator
 
   config/bechmarks.yml
                 - specification of urls to benchmark
