@@ -50,9 +50,10 @@ class RailsBenchmark
     ARGV.each{|arg| arg =~ /-log=([a-zA-Z]*)/ && (log_level = eval("Logger::#{$1.upcase}")) }
     
     if log_level
-      ActiveRecord::Base.logger.level = log_level
-      ActionController::Base.logger.level = log_level
-      ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
+      RAILS_DEFAULT_LOGGER.level = log_level
+      #ActiveRecord::Base.logger.level = log_level
+      #ActionController::Base.logger.level = log_level
+      #ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
     else
       ActiveRecord::Base.logger = nil
       ActionController::Base.logger = nil
