@@ -1,0 +1,62 @@
+#!/usr/bin/env ruby
+
+unless ARGV.include?('-notable')
+  puts "\\begin{tabular}{lrrrrrrr}"
+  $stdin.each_line do |l|
+    case l
+      when /^garbage collection/
+      unless ARGV.include?('-gc')
+        puts "\\end{tabular}"
+        exit
+      end
+      puts "<tr></tr><tr></tr>"
+      puts "<tr>"
+      puts "<th class='perf_header name' style='text-align:left'>GC statistics</th>"
+      puts "<th class='perf_header c1'>c1 total</th><th class='perf_header c2'>c2 total</th>"
+      puts "<th class='perf_header c1'>c1 #gc</th><th class='perf_header c2'>c2 #gc</th>"
+      puts "<th class='perf_header c1'>c1 gc%</th><th class='perf_header c2'>c2 #gc%</th>"
+      puts "<th class='perf_header factor'>c1/c2</th>"
+      puts "</tr>"
+      when /^page/
+      puts "\\textbf{page} & \\textbf{c1 total} & \\textbf{c2 total} & "
+      puts "\\textbf{c1 r/s} & \\textbf{c2 r/s} & "
+      puts "\\textbf{c1 ms/r} & \\textbf{c2 ms/r} & \\textbf{c1/c2}"
+    end
+    case l
+    when %r{^([A-Za-z0-9./?= ]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
+      puts '\\\\'
+      if $1.strip == "all requests"
+        puts "\\textit{#{$1.strip}} & " 
+      else
+        puts "#{$1.strip} & "
+      end
+      puts "#{$2} & #{$3} & "
+      puts "#{$4} & #{$5} & "
+      puts "#{$6} & #{$7} & "
+      puts "#{$8}"
+    end
+  end
+  puts "\\end{tabular}"
+end
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005, 2006  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
