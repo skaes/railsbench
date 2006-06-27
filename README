@@ -26,7 +26,7 @@ FILES
                   -log[=level]	: turn on rails logging (at given level)
                   -nochache	: turn off rails caching
                   -path		: print $: after loading rails and exit
-	          -svl		: use SVL Ruby Performance Validator
+	          -svlPV	: run test using SVL Ruby Performance Validator
 
   config/bechmarks.yml
                 - specification of urls to benchmark
