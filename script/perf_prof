@@ -45,6 +45,7 @@ $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$BENCHMARK_FILE
 
 echo "profile data written to $BENCHMARK_FILE"
 
-if [ "$OSTYPE" == "cygwin" ]; then
-  cmd /c start "`cygpath -w $BENCHMARK_FILE`"
-fi
+case "$OSTYPE" in
+  cygwin*) cmd /c start "`cygpath -w $BENCHMARK_FILE`";;
+  darwin*) open $BENCHMARK_FILE;;
+esac
