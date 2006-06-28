@@ -1,0 +1,50 @@
+#!/bin/sh
+set -x
+
+if [ $# -lt 2 ]; then
+  echo "usage: perf_prof iterations options [conf-name]"
+  echo "example: perf_prof 100 \"-bm=default -log\" pdata"
+  exit 1
+fi
+
+BINDIR=`dirname $0`
+
+test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
+
+ITER="$1"
+OPT="$2"
+BENCHMARK=""
+RUBY_PROF_OPTS="-ruby_prof=1"
+use_patched_gc="no"
+warmup="-warmup "
+
+for opt in $OPT; do
+  case $opt in
+  -bm=*) BENCHMARK=${opt#-bm=};;
+  -ruby_prof=*) RUBY_PROF_OPTS=${opt};;
+  -patched_gc) use_patched_gc="yes";;
+  -warmup) warmup="";;
+  esac
+done
+
+if [ "${use_patched_gc}" = "no" ]; then 
+  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+fi
+
+DATE=`date +%m-%d`
+if [ $# == 3 ]; then
+  BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$3.html"
+else
+  BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run${BENCHMARK}.html"
+fi
+
+unset RUBY_GC_STATS
+
+PERF_OPTIONS="$ITER $OPT ${warmup}$RUBY_PROF_OPTS"
+$BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$BENCHMARK_FILE
+
+echo "profile data written to $BENCHMARK_FILE"
+
+if [ "$OSTYPE" == "cygwin" ]; then
+  cmd /c start "`cygpath -w $BENCHMARK_FILE`"
+fi

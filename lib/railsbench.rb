@@ -139,6 +139,19 @@ class RailsBenchmark
     rescue LoadError
       # SVL dll not available, do nothing
     end
+    
+    # support ruby-prof
+    ruby_prof = nil
+    ARGV.each{|arg| ruby_prof=$1 if arg =~ /-ruby_prof=(\d*\.?\d*)/ }
+    begin
+      if ruby_prof
+        require 'ruby-prof'
+        RubyProf.clock_mode = RubyProf::WALL_TIME
+        RubyProf.start
+      end
+    rescue LoadError
+      # ruby-prof not available, do nothing
+    end
 
     # start profiler and trigger data collection if required
     if svl
@@ -162,6 +175,13 @@ class RailsBenchmark
 
     # stop data collection if necessary
     svl.stopDataCollection if svl
+    
+    if defined? RubyProf
+      result = RubyProf.stop
+      # Print a flat profile to text
+      printer = RubyProf::GraphHtmlPrinter.new(result)
+      printer.print(STDERR, ruby_prof.to_f)
+    end
     
     delete_test_session
     delete_new_test_sessions

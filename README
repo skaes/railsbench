@@ -94,6 +94,11 @@ FILES
   perf_comp_gc file1 file2
                 - compare two GC performance data sets and print results
 
+  perf_prof n [ option-string [ config-name ] ]
+                - run a given benchmark using ruby-prof for profiling,
+                  store profile data in a HTML file in directory $RAILS_PERF_DATA
+		  file name is computed from date and benchmark name as described above
+                  but has a .html extension instead of .txt
 
 
 ENVIRONMENT
