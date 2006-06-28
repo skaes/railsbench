@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+# set -x
 
 if [ $# -lt 2 ]; then
   echo "usage: perf_prof iterations options [conf-name]"
