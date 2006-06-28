@@ -16,6 +16,7 @@ tag:
 
 clean:
 	rm -rf railsbench* *.tar.gz
+	find . -name '*~' | xargs rm
 
 test:
 	@echo $(VERSION)
