@@ -10,7 +10,7 @@ tar: export
 	rm -rf $(ARCHIVE)
 
 export:
-	svn export -r -d $(ARCHIVE) railsbench
+	svn export . $(ARCHIVE)
 
 tag:
 	svn copy $(REPO_URL)/trunk/railsbench \
