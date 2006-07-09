@@ -23,14 +23,14 @@ for opt in $COMMON; do
 done
 
 if [ $# -gt 4 ]; then
-  FILE1="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$5.txt"
+  FILE1="$RAILS_PERF_DATA/${DATE}.${BENCHMARK}.$5.txt"
 else
-  FILE1="$RAILS_PERF_DATA/perf_run1${BENCHMARK}.txt"
+  FILE1="$RAILS_PERF_DATA/perf_run1.${BENCHMARK}.txt"
 fi
 if [ $# -gt 5 ]; then
-  FILE2="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$6.txt"
+  FILE2="$RAILS_PERF_DATA/${DATE}.${BENCHMARK}.$6.txt"
 else
-  FILE2="$RAILS_PERF_DATA/perf_run2${BENCHMARK}.txt"
+  FILE2="$RAILS_PERF_DATA/perf_run2.${BENCHMARK}.txt"
 fi
 
 unset RUBY_GC_STATS
