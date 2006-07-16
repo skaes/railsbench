@@ -50,7 +50,7 @@ GCLogEntry   = Struct.new(*GCAttributes)
 class GCInfo
   
   attr_reader(*GCAttributes)
-  attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total
+  attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total, :topology
   
   GCAttributes.each do |attr|
     GCSummaries.each do |method|
@@ -61,6 +61,7 @@ class GCInfo
   def initialize(file)
     @entries = []
     @num_requests = 0
+    @topology = []
 
     file.each_line do |line|
       case line
@@ -78,6 +79,8 @@ class GCInfo
         @entries.last.time = $1.to_i
       when /^number of requests processed: (\d+)$/
         @num_requests = $1.to_i
+      when /^HEAP\[\s*(\d+)\]: size=\s*(\d+)$/
+        @topology << $2.to_i
       end
     end
     

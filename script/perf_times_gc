@@ -53,6 +53,9 @@ files.each_with_index do |file, idx|
   
   printf "freelist   : #{number_format}\n",
          gci.freelist_mean, gci.freelist_stddev_percentage, gci.freelist_min, gci.freelist_max
+
+  printf "\nheap topology:\n"
+  gci.topology.each_with_index{|size, idx| printf "    HEAP[%d] = %7d\n", idx, size }
   
   file.close
 

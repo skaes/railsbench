@@ -26,9 +26,9 @@ done
 
 DATE=`date +%m-%d`
 if [ $# == 3 ]; then
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}.${BENCHMARK}.$3.gc.txt"
+  BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}.${BENCHMARK}.$3.gc.txt"
 else
-  RAILS_BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.${BENCHMARK}.gc.txt"
+  BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.${BENCHMARK}.gc.txt"
 fi
 
 PERF_OPTIONS="$ITER $WARMUP $OPT"
@@ -37,5 +37,7 @@ if [ "${use_patched_gc}" = "no" ]; then
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
-(RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$RAILS_BENCHMARK_FILE) \
- && ruby $BINDIR/perf_times_gc $RAILS_BENCHMARK_FILE
+unset RUBY_GC_STATS RUBY_GC_DATA_FILE
+
+(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$BENCHMARK_FILE ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) &&\
+ruby $BINDIR/perf_times_gc $BENCHMARK_FILE
