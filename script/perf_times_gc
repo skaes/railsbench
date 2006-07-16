@@ -30,6 +30,7 @@ files.each_with_index do |file, idx|
   gci = GCInfo.new(file)
 
   printf "GC data file: #{File.expand_path(file.path)}\n\n"
+  printf "requests processed     : %9d\n", gci.num_requests
   printf "collections            : %9d\n", gci.collections
   printf "garbage total          : %9d\n", gci.garbage_produced
   printf "gc time total (sec)    : %12.2f\n", gci.time_total.to_f/1000

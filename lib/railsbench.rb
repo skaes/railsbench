@@ -169,9 +169,9 @@ class RailsBenchmark
     if gc_stats
       GC.enable if gc_frequency
       GC.start
-      GC.dump if defined? GC.dump
+      GC.dump
       GC.disable_stats
-      $stderr.puts "number of requests processed: #{@urls.size * iterations}"
+      GC.log "number of requests processed: #{@urls.size * iterations}"
     end
 
     # stop data collection if necessary

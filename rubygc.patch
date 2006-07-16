@@ -1,5 +1,5 @@
---- gc.c.orig	2006-07-16 11:35:20.000000000 +0200
-+++ gc.c	2006-07-16 11:28:15.000000000 +0200
+--- gc.c.orig	2005-12-16 05:58:51.000000000 +0100
++++ gc.c	2006-07-16 14:46:55.890625000 +0200
 @@ -22,8 +22,16 @@
  #include <setjmp.h>
  #include <sys/types.h>
@@ -17,7 +17,7 @@
  #endif
  
  #ifdef HAVE_SYS_RESOURCE_H
-@@ -175,8 +184,17 @@
+@@ -175,8 +183,17 @@
  	RUBY_CRITICAL(free(x));
  }
  
@@ -35,7 +35,7 @@
  static int during_gc;
  static int need_call_final = 0;
  static st_table *finalizer_table = 0;
-@@ -211,7 +229,7 @@
+@@ -211,7 +228,7 @@
   *  Disables garbage collection, returning <code>true</code> if garbage
   *  collection was already disabled.
   *
@@ -44,7 +44,7 @@
   *     GC.disable   #=> true
   *
   */
-@@ -225,6 +243,104 @@
+@@ -225,6 +242,104 @@
      return old;
  }
  
@@ -149,7 +149,7 @@
  VALUE rb_mGC;
  
  static struct gc_list {
-@@ -308,7 +424,7 @@
+@@ -308,7 +423,7 @@
  static RVALUE *freelist = 0;
  static RVALUE *deferred_final_list = 0;
  
@@ -158,7 +158,7 @@
  static struct heaps_slot {
      RVALUE *slot;
      int limit;
-@@ -316,13 +432,116 @@
+@@ -316,13 +431,141 @@
  static int heaps_length = 0;
  static int heaps_used   = 0;
  
@@ -166,12 +166,12 @@
 -static int heap_slots = HEAP_MIN_SLOTS;
 +static int heap_min_slots = 10000;
 +static int heap_slots = 10000;
-+
+ 
+-#define FREE_MIN  4096
 +static int heap_free_min = 4096;
 +
 +static long initial_malloc_limit = GC_MALLOC_LIMIT;
- 
--#define FREE_MIN  4096
++
 +static int verbose_gc_stats = Qfalse;
 +
 +static FILE* gc_data_file = NULL;
@@ -251,7 +251,6 @@
 +    }
 +}
 +
-+
 +/*
 + *  call-seq:
 + *     GC.dump    => nil
@@ -275,10 +274,36 @@
 +    return Qnil;
 +}
 +
++/*
++ *  call-seq:
++ *     GC.log String  => String
++ *
++ *  Logs string to the GC data file and returns it.
++ *
++ *     GC.log "manual GC call"    #=> "manual GC call"
++ *
++ */
++
++VALUE
++rb_gc_log(self, original_str)
++     VALUE self, original_str;
++{
++    if (original_str == Qnil) {
++        fprintf(gc_data_file, "\n");
++    }
++    else {
++        VALUE str = StringValue(original_str);
++        char *p = RSTRING(str)->ptr;
++        fprintf(gc_data_file, "%s\n", p);
++    }
++    return original_str;
++}
++
++
  static void
  add_heap()
  {
-@@ -333,7 +552,7 @@
+@@ -333,7 +576,7 @@
  	struct heaps_slot *p;
  	int length;
  
@@ -287,7 +312,7 @@
  	length = heaps_length*sizeof(struct heaps_slot);
  	RUBY_CRITICAL(
  	    if (heaps_used > 0) {
-@@ -350,10 +569,10 @@
+@@ -350,10 +593,10 @@
  	RUBY_CRITICAL(p = heaps[heaps_used].slot = (RVALUE*)malloc(sizeof(RVALUE)*heap_slots));
  	heaps[heaps_used].limit = heap_slots;
  	if (p == 0) {
@@ -300,7 +325,7 @@
  	    continue;
  	}
  	break;
-@@ -1031,6 +1250,39 @@
+@@ -1031,6 +1274,39 @@
      }
  }
  
@@ -340,7 +365,7 @@
  static void
  gc_sweep()
  {
-@@ -1039,6 +1291,15 @@
+@@ -1039,6 +1315,15 @@
      int i;
      unsigned long live = 0;
  
@@ -356,7 +381,7 @@
      if (ruby_in_compile && ruby_parser_stack_on_heap()) {
  	/* should not reclaim nodes during compilation
             if yacc's semantic stack is not allocated on machine stack */
-@@ -1070,6 +1331,9 @@
+@@ -1070,6 +1355,9 @@
  	    if (!(p->as.basic.flags & FL_MARK)) {
  		if (p->as.basic.flags) {
  		    obj_free((VALUE)p);
@@ -366,7 +391,7 @@
  		}
  		if (need_call_final && FL_TEST(p, FL_FINALIZE)) {
  		    p->as.free.flags = FL_MARK; /* remain marked */
-@@ -1077,6 +1341,12 @@
+@@ -1077,6 +1365,12 @@
  		    final_list = p;
  		}
  		else {
@@ -379,7 +404,7 @@
  		    p->as.free.flags = 0;
  		    p->as.free.next = freelist;
  		    freelist = p;
-@@ -1090,10 +1360,13 @@
+@@ -1090,10 +1384,13 @@
  	    else {
  		RBASIC(p)->flags &= ~FL_MARK;
  		live++;
@@ -394,7 +419,7 @@
  	    RVALUE *pp;
  
  	    heaps[i].limit = 0;
-@@ -1108,14 +1381,28 @@
+@@ -1108,14 +1405,28 @@
      }
      if (malloc_increase > malloc_limit) {
  	malloc_limit += (malloc_increase - malloc_limit) * (double)live / (live + freed);
@@ -425,7 +450,7 @@
      /* clear finalization list */
      if (final_list) {
  	deferred_final_list = final_list;
-@@ -1311,6 +1598,7 @@
+@@ -1311,6 +1622,7 @@
      struct gc_list *list;
      struct FRAME * volatile frame; /* gcc 2.7.2.3 -O2 bug??  */
      jmp_buf save_regs_gc_mark;
@@ -433,7 +458,7 @@
      SET_STACK_END;
  
  #ifdef HAVE_NATIVETHREAD
-@@ -1327,6 +1615,14 @@
+@@ -1327,6 +1639,14 @@
      if (during_gc) return;
      during_gc++;
  
@@ -448,7 +473,7 @@
      init_mark_stack();
  
      /* mark frame stack */
-@@ -1409,6 +1705,17 @@
+@@ -1409,6 +1729,17 @@
  	}
      }
      gc_sweep();
@@ -466,7 +491,7 @@
  }
  
  void
-@@ -1522,6 +1829,7 @@
+@@ -1522,6 +1853,7 @@
      if (!rb_gc_stack_start) {
  	Init_stack(0);
      }
@@ -474,7 +499,7 @@
      add_heap();
  }
  
-@@ -1920,6 +2228,13 @@
+@@ -1920,6 +2252,14 @@
      rb_define_singleton_method(rb_mGC, "disable", rb_gc_disable, 0);
      rb_define_method(rb_mGC, "garbage_collect", rb_gc_start, 0);
  
@@ -484,6 +509,7 @@
 +    rb_define_singleton_method(rb_mGC, "collections", rb_gc_collections, 0);
 +    rb_define_singleton_method(rb_mGC, "time", rb_gc_time, 0);
 +    rb_define_singleton_method(rb_mGC, "dump", rb_gc_dump, 0);
++    rb_define_singleton_method(rb_mGC, "log", rb_gc_log, 1);
 +
      rb_mObSpace = rb_define_module("ObjectSpace");
      rb_define_module_function(rb_mObSpace, "each_object", os_each_obj, -1);
