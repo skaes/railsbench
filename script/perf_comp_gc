@@ -30,6 +30,8 @@ printf "GC data file2: #{File.expand_path(files[1].path)}\n\n"
 gcis = files.map{|file| GCInfo.new(file)}
 files.each{|file| file.close}
 
+printf "number of requests: %d/%d\n", gcis[0].num_requests, gcis[1].num_requests
+
 printf "                         %12s %12s %7s\n", "c1", "c2", "c1/c2"
 printf "collections            : %12.2f %12.2f %7.2f\n",
        (n1 = gcis[0].collections),

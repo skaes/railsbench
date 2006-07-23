@@ -53,7 +53,10 @@ else
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
-(RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$FILE1) \
+echo "benchmarking GC performance with options $PERF_OPTIONS"
+echo
+
+(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$FILE1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) \
  && ruby $BINDIR/perf_times_gc $FILE1
 echo;echo
 
@@ -75,9 +78,14 @@ else
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
-(RUBY_GC_STATS=1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$FILE2) \
+echo "benchmarking GC performance with options $PERF_OPTIONS"
+echo
+
+(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$FILE2 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) \
  && ruby $BINDIR/perf_times_gc $FILE2
 echo;echo
 
-echo ":::"
+echo "benchmark comparison data"
+echo
+
 ruby $BINDIR/perf_comp_gc $FILE1 $FILE2

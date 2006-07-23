@@ -5,10 +5,12 @@ the command prompt making performance regression testing easy.
 In addition, a patch for the ruby garbage collector is provided, which
 can be used to reduce the amount of time spent doing garbage
 collection, trading memory for speed, as usual (see file GCPATCH for
-details).
+details). In addition, applying the patch will enhance performance
+data obtained from the various scripts (and some won't run at all
+without the patch).
 
 This software was written and conceived by Stefan Kaes. The author can
-be reached via email: <skaes at gmx dot net>. Please send comments, bug
+be reached via email: <skaes@gmx.net>. Please send comments, bug
 reports, patches or feature requests to this address.
 
 
@@ -18,15 +20,14 @@ FILES
                 - replacement for the one that comes with the ruby distribution
                   prints benchmark data to stderr instead of stdout
                   install into the distribution's site-ruby directory
-                 
+
   railsbench.rb
                 - defines classes RailsBenchmark and RailsBenchmarkWithActiveRecordStore
                   switches:
-                  -gcXXX	: perform gc after XXX requests
-                  -log[=level]	: turn on rails logging (at given level)
-                  -nochache	: turn off rails caching
-                  -path		: print $: after loading rails and exit
-	          -svlPV	: run test using SVL Ruby Performance Validator
+                  -gcXXX        : perform gc after XXX requests
+                  -log[=level]  : turn on rails logging (at given level)
+                  -nochache     : turn off rails caching
+                  -path         : print $: after loading rails and exit
 
   config/bechmarks.yml
                 - specification of urls to benchmark
@@ -43,9 +44,14 @@ FILES
                   -mix      : alternates urls in given benchmark
 
   run_urls n options
-                - run a given benchmark without benchmarking
+                - run a given benchmark (without benchmarking)
+                  useful for checking response codes, like so:
+
+                      run_urls 1 -bm=all | grep Status:
+
                   switches as for perf_bench plus
                   -warmup   : run all uris once before measuring
+                  -svlPV    : run test using SVL Ruby Performance Validator
 
   perf_run n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file
@@ -74,7 +80,7 @@ FILES
                   options:
                     -noccs   suppress css output
                     -notable suppress table output
-                    -gc      include gc statistics 
+                    -gc      include gc statistics
 
   perf_run_gc n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file
@@ -88,7 +94,7 @@ FILES
   perf_diff_gc n common-options option-string1 option-string2 [ config-name1 [ config-name2 ] ]
                 - run a given benchmark with two different sets of arguments
                   store GC data into directory $RAILS_PERF_DATA and print
-                  GC stats comparison 
+                  GC stats comparison using perf_comp_gc
                 - requires Ruby GC patch
 
   perf_comp_gc file1 file2
@@ -97,7 +103,7 @@ FILES
   perf_prof n [ option-string [ config-name ] ]
                 - run a given benchmark using ruby-prof for profiling,
                   store profile data in a HTML file in directory $RAILS_PERF_DATA
-		  file name is computed from date and benchmark name as described above
+                  file name is computed from date and benchmark name as described above
                   but has a .html extension instead of .txt
 
 
@@ -115,7 +121,7 @@ ENVIRONMENT
                   if not set, 3 runs will be performed
 
   RAILS_BENCHMARK_FILE
-                - perf_bench send its output to this file
+                - perf_bench sends its output to this file
 
 
 USAGE
@@ -143,7 +149,8 @@ BENCHMARK will be set according to the -bm option.
    perf_run 100 "-bm=index -mail" mail
 
 will store benchmark data in file
-$RAILS_PERF_DATA/`current-date´.index.mail.txt.
+
+   $RAILS_PERF_DATA/`current-date´.index.mail.txt.
 
 You can get nicely formatted output of benchmark data by running
 
@@ -161,7 +168,7 @@ would run benchmark 'blogs' twice, first as
   perf_run 100 "-bm=blogs -mysql_session -mail=0" cf1
 
 and then
-  
+
   perf_run 100 "-bm=blogs -mysql_session -mail=1" cf2
 
 printing a comparison of the bechmark data obtained after finishing
@@ -242,7 +249,7 @@ Instead of
 one could have written
 
     uri: /test/alphabetic?page=7
-    
+
 new_session: specifies whether a session cookie is sent with the
 request (default). To make this work correctly, you need to set
 session_data on the benchmarker instance. See benchmarks.rb for details.
