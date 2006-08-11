@@ -39,6 +39,7 @@ class RailsBenchmark
     ENV['RAILS_ENV'] = 'benchmarking'
     
     require ENV['RAILS_ROOT'] + "/config/environment"
+    require 'dispatcher' # make edge rails happy
     
     if ARGV.include?('-path')
       $:.each{|f| STDERR.puts f}
