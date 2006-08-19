@@ -77,6 +77,11 @@ class RailsBenchmark
     self.relative_url_root = options[:relative_url_root] || ''
 
     @patched_gc = GC.collections.is_a?(Numeric) rescue false
+
+    if ARGV.include? '-headers_only'
+      require File.dirname(__FILE__) + '/write_headers_only'
+    end
+
   end
 
   def establish_test_session
@@ -93,7 +98,7 @@ class RailsBenchmark
     @session = nil
   end
 
-  # can be redefined in subclasses to clean out test sessions 
+  # can be redefined in subclasses to clean out test sessions
   def delete_new_test_sessions
   end
 
