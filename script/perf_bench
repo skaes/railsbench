@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+unless ENV['RAILS_ROOT']
+  $stderr.puts("\nOOPS: can't benchmark unless RAILS_ROOT is set")
+  $stderr.puts("\nbenchmarking aborted!")
+  exit 1
+end
+
 trap("INT") { $stderr.puts("benchmarking aborted!"); exit!(-1) }
 
 module Benchmark
