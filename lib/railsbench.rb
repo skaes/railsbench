@@ -125,6 +125,7 @@ class RailsBenchmark
     error_exit "No urls given for performance test" unless @urls && @urls.size>0
     setup_initial_env
     @urls.each do |entry|
+      error_exit "No uri given for benchmark entry: #{entry.inspect}" unless entry['uri']
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
       Dispatcher.dispatch
     end
