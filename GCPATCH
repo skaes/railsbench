@@ -12,7 +12,8 @@ initial heap size to start with. Heap size will never drop below the
 initial size. By carefully selecting the initial heap size one can
 increase startup time and throughput of server apps.
 
-The patch is for 1.8.4, but applies to and works with 1.8.2 as well.
+There are two patches: one for 1.8.4, which also works for 1.8.2.
+File rubygc185.patch is for ruby 1.8.5.
 
 Heap size and other options are controlled through environment
 variables:
@@ -28,6 +29,7 @@ RUBY_GC_MALLOC_LIMIT
 RUBY_HEAP_FREE_MIN
     - number of free slots that should be available after GC
       if fewer slots are available, additional heap will be allocated
+      (Ruby 1.8.5 ensures the freelist has at least heapsize*0.2 entries)
 
 The following values make the patched GC behave exactly like the
 unpatched GC:
@@ -36,14 +38,18 @@ RUBY_HEAP_MIN_SLOTS=10000
 RUBY_GC_MALLOC_LIMIT=8000000
 RUBY_HEAP_FREE_MIN=4096
 
-I have found the following values to be suitable for my rails app:
+I have found the following values to be suitable for my (small) rails app:
 
 RUBY_HEAP_MIN_SLOTS=600000
 RUBY_GC_MALLOC_LIMIT=60000000
 RUBY_HEAP_FREE_MIN=20000
 
-You can watch memory usage of the ruby interpreter by setting
-RUBY_GC_STATS=1, before you invoke perf_bench.
+Try experimenting with these values (RUBY:HEAP_MIN_SOTS is the most
+important one). You can use perf_run_gc to find out how much memory
+you need.
+
+Memory usage of the ruby interpreter can be observerd by setting
+RUBY_GC_STATS=1, before you invoke any of the railsbench commands.
 
 Per default, GC data gets written to stderr. You can change this
 behavior by setting environment variable RUBY_GC_DATA_FILE.

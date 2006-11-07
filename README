@@ -106,6 +106,9 @@ FILES
                   file name is computed from date and benchmark name as described above
                   but has a .html extension instead of .txt
 
+  perf_plot n [ options ] file1 file2 ...
+                - plot performance data from raw performance files using gruff
+                  see source for options
 
 ENVIRONMENT
 
