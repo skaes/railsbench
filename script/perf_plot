@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require "gruff"
+
+require "#{File.dirname(__FILE__)}/../lib/perf_info"
+
+# extract options
+
+selection = []
+title = "Performance Graph"
+files = []
+names = []
+labels = []
+perf_data = []
+graph_type = Gruff::Line
+graph_width = 800
+
+ARGV.each do |arg|
+  case arg
+  when /^-only=(.*)$/
+    selection = $1.split(',').map{|s| s.strip.to_i}
+  when /^-title=(.*)$/
+    title = $1 unless $1.strip.empty?
+  when '-line'
+    graph_type = Gruff::Line
+  when '-bar'
+    graph_type = Gruff::Bar
+  when /^-width=(\d+)$/
+    graph_width = $1.to_i
+  when /^-names=(.+)$/
+    names = $1.split(',')
+  when /^-labels=(.+)$/
+    labels = $1.split(',')
+  else
+    files << File.open_or_die(arg)
+    names[files.length-1] ||= File.basename(arg)
+  end
+end
+
+files.length > 0 or die "usage: perf_plot [options] file1 file2 ..."
+
+files.each do |file|
+  pi = PerfInfo.new(file)
+  iter = pi.iterations
+  urls = pi.requests_per_key
+  perf_data << pi.keys.map{ |key| iter*urls/pi.timings_mean(key) }
+  file.close
+end
+
+selection = (1..(perf_data.last.length)).to_a if selection.empty?
+if labels.empty?
+  labels = selection.map{|i| i.to_s}.index_map
+else
+  labels = labels.index_map
+end
+perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
+
+# puts selection.inspect
+# puts labels.inspect
+# puts perf_data.inspect
+
+g = graph_type.new(graph_width)
+g.title = title
+g.minimum_value = 0
+g.maximum_value = perf_data.flatten.max.ceil
+g.labels = labels
+perf_data.each_with_index{|d,i| g.data(names[i], d)}
+g.write
+
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005, 2006  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
