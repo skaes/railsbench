@@ -1,85 +1,55 @@
 #!/usr/bin/env ruby
 
-iter = Hash.new(100)
-options = Hash.new("")
-timings = {}
-gc_stats = {}
-keys = []
-configs = []
+require "#{File.dirname(__FILE__)}/../lib/perf_info"
+
 narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
 skip_urls = ARGV.delete('-skip_urls') || ARGV.delete('-s')
 
 if ARGV.length<2
-  print "perfcomp: not enough arguments!\n"
-  print "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2\n"
+  $stderr.puts "perfcomp: not enough arguments!"
+  $stderr.puts "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2"
+  exit 1
+elsif ARGV.length > 2
+  $stderr.puts "perfcomp: too many arguments!"
+  $stderr.puts "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2"
   exit 1
 end
 
+files = []
+configs = []
+pi = []
+
 ARGV.each do |arg|
-  if /^(\d+)$/===arg
-    iter = Hash.new($1.to_i)
-    next
-  end
-  fn = arg
-  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
-  file = nil
-  begin
-    if File.stat(fn).readable?
-      file = File.open(fn)
-    else
-      print "file #{fn} is unreadable\n"
-      exit 1
-    end
-  rescue 
-    print "file #{fn} does not exist\n"
-    exit 1
-  end
-
-  sysvers = fn.split('/').last.sub(/\.txt$/, '')
-  configs << sysvers
-  timings[sysvers] = {}
-  gc_stats[sysvers] = []
-  file.each_line do |l|
-    case l
-    when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
-      k = $1.strip
-      keys << k
-      if timings[sysvers][k]
-        timings[sysvers][k] << $5.to_f
-      else
-        timings[sysvers][k] = [$5.to_f]
-      end
-    when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
-      iter[sysvers] = $2.to_i
-      options[sysvers] = $3
-    when /^GC.collections=(\d+), GC.time=([\d\.]+)$/
-      gc_stats[sysvers] << [$1.to_i,$2.to_f]
-    end
-  end
-  file.close
+  files << File.open_or_die(arg)
+  pi << PerfInfo.new(files.last)
 end
 
-def sum_a(a)
-  a.inject(0.0){|r,v| r += v }
-end
-  
-def time_avg(a)
-  sum_a(a)/a.length
-end
-
-def truncate(text, length = 32, truncate_string = "...")
-  return "" if text.nil?
-  return text if text.length <= length
-  n = length - truncate_string.length
-  text[0..(n-1)] + truncate_string
+if pi[0].keys != pi[1].keys
+  $stderr.puts "perfcomp: can't compare runs with differing requests!"
+  exit 1
+else
+  keys = pi[0].keys
 end
 
-keys.uniq!
+iter1 = pi[0].iterations
+iter2 = pi[1].iterations
 
-printf "perf data file 1: #{configs[0]}\n"
-printf "  requests=#{iter[configs[0]]}, options=#{options[configs[0]]}\n\n"
-printf "perf data file 2: #{configs[1]}\n"
-printf "  requests=#{iter[configs[1]]}, options=#{options[configs[1]]}\n\n"
+if iter1 != iter2
+  $stderr.puts "perfcomp: scaling performance data: iterations of run 1 and run 2 differ: #{iter1}/#{iter2}"
+end
+
+if iter1<iter2
+  c1 = iter2/iter1
+  c2 = 1
+else
+  c1 = 1
+  c2 = iter1/iter2
+end
+
+printf "perf data file 1: #{files[0].path}\n"
+printf "  requests=#{iter1}, options=#{pi[0].options}\n\n"
+printf "perf data file 2: #{files[1].path}\n"
+printf "  requests=#{iter2}, options=#{pi[1].options}\n\n"
 
 if narrow
   printf "%-3s %9s %9s %7s %7s %8s %8s %6s\n",
@@ -89,51 +59,34 @@ else
          'page', 'c1 real', 'c2 real', 'c1 r/s', 'c2 r/s', 'c1 ms/r', 'c2 ms/r', 'c1/c2'
 end
 
-iter1 = iter[configs[0]]
-iter2 = iter[configs[1]]
-if iter1<iter2
-  c1 = iter2/iter1
-  c2 = 1
-else
-  c1 = 1
-  c2 = iter1/iter2
-end
+keys.each_with_index do |k, index|
+  # average runtime
+  t1 = pi[0].timings_mean(k) * c1
+  t2 = pi[1].timings_mean(k) * c2
+  urls1 = pi[0].requests_per_key
+  urls2 = pi[1].requests_per_key
 
-k = 'loading environment'
-perf_runs1 = timings[configs[0]].delete(k).length
-perf_runs2 = timings[configs[1]].delete(k).length
-keys.delete(k)
+  # requests per second
+  rps1 = iter1*urls1*c1/t1
+  rps2 = iter2*urls2*c2/t2
 
-index = 0
-total_requests_run1 = 0
-total_requests_run2 = 0
+  # milliseconds per request
+  mspr1 = t1*1000/(iter1*urls1*c1)
+  mspr2 = t2*1000/(iter2*urls2*c2)
 
-keys.each do |k|
-  ta1 = timings[configs[0]][k]
-  t1 = time_avg(ta1) * c1
-  ta2 = timings[configs[1]][k]
-  t2 = time_avg(ta2) * c2
-  urls = 1
-  urls = $1.to_i if /\((\d+) urls\)$/===k
-  total_requests_run1 += iter1*urls
-  total_requests_run2 += iter2*urls
-  rps1 = iter1*urls*c1/t1
-  rps2 = iter2*urls*c2/t2
-  mspr1 = t1*1000/(iter1*urls*c1)
-  mspr2 = t2*1000/(iter2*urls*c2)
   if narrow
     printf "%2d:  %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
-           (index+=1), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
+           (index+1), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
   else
     printf "%-32s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",
            truncate(k), t1, t2, rps1, rps2, mspr1, mspr2, t1/t2
   end
 end
 
-totals_per_run1 = (0...perf_runs1).map{|i| sum_a(timings[configs[0]].values.map{|a| a[i]})}
-totals_per_run2 = (0...perf_runs2).map{|i| sum_a(timings[configs[1]].values.map{|a| a[i]})}
-total_time1 = time_avg(totals_per_run1) * c1
-total_time2 = time_avg(totals_per_run2) * c2
+total_requests_run1 = pi[0].request_count
+total_requests_run2 = pi[1].request_count
+total_time1 = pi[0].total_time_mean * c1
+total_time2 = pi[1].total_time_mean * c2
 total_rps1 = total_requests_run1 * c1 / total_time1
 total_rps2 = total_requests_run2 * c2 / total_time2
 total_mspr1 = total_time1 * 1000 / (total_requests_run1 * c1)
@@ -151,17 +104,14 @@ else
                      total_time1/total_time2
 end
 
-if gc_stats[configs[0]].length>0
-  collection_counts_1 = gc_stats[configs[0]].map{|p| p[0]}
-  collection_times_1 = gc_stats[configs[0]].map{|p| p[1]}
-  c1 = time_avg(collection_counts_1)
-  t1 = time_avg(collection_times_1)
-  collection_counts_2 = gc_stats[configs[1]].map{|p| p[0]}
-  collection_times_2 = gc_stats[configs[1]].map{|p| p[1]}
-  c2 = time_avg(collection_counts_2)
-  t2 = time_avg(collection_times_2)
+if pi[0].gc_stats? && pi[1].gc_stats?
+  c1 = pi[0].gc_calls_mean
+  t1 = pi[0].gc_time_mean
+  c2 = pi[1].gc_calls_mean
+  t2 = pi[1].gc_time_mean
   factor = (c1-c2==0) ? 1 : c1/c2
-  if narrow 
+
+  if narrow
     printf "\n%-4s %9s %9s %7s %7s %8s %8s %6s\n",
            "GC:", "c1 real", "c2 real", "c1 #gc", "c2 #gc", "c1 gc%", "c2 gc%", "c1/c2"
     printf "%-4s %9.5f %9.5f %7.1f %7.1f %8.2f %8.2f %6.2f\n",

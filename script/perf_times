@@ -1,119 +1,45 @@
 #!/usr/bin/env ruby
 
-iter = 100
+require "#{File.dirname(__FILE__)}/../lib/perf_info"
+
 files = []
-options = ""
 if ARGV.length==0
   puts "usage: perf_times file1 file2 ..."
   exit 1
-end
-ARGV.each do |arg|
-  if /^(\d+)$/===arg
-    iter = $1.to_i
-    next
+else
+  ARGV.each do |arg|
+    files << File.open_or_die(arg)
   end
-  fn = arg
-  fn = fn.sub(/^\/([cdefgh])(\/)/, '\1:\2') if RUBY_PLATFORM =~ /win32/
-  begin
-    if File.stat(fn).readable?
-      files << File.open(fn)
-    else
-      print "file #{fn} is unreadable\n"
-      exit 1
-    end
-  rescue 
-    print "file #{fn} does not exist\n"
-    exit 1
-  end
-end
-
-def truncate(text, length = 32, truncate_string = "...")
-  if text.nil? then return "" end
-  l = truncate_string.length + 1
-
-  if $KCODE == "NONE"
-    text.length > length ? text[0..(length - l)] + truncate_string : text
-  else
-    chars = text.split(//)
-    chars.length > length ? chars[0..(length - l)].join + truncate_string : text
-  end
-end
-
-def sum_a(a)
-  a.inject(0.0){|r,v| r += v }
-end
-  
-def time_avg(a)
-  sum_a(a)/a.length
-end
-  
-def time_dev(a, mean)
-  r = a.inject(0.0){|r,v| r += (v-mean)*(v-mean) }
-  Math.sqrt(r/(a.length-1))
 end
 
 files.each do |file|
-  timings = {}
-  keys = []
-  gc_stats = []
-  file.each_line do |l|
-    case l
-    when /^(.*)\s+([\d\.]+)\s+([\d\.]+)\s+([\d\.]+)\s+\(\s*([\d\.]+)\s*\)$/
-      k = $1.strip
-      keys << k
-      if timings[k]
-        timings[k] << $5.to_f
-      else
-        timings[k] = [$5.to_f]
-      end
-    when /^.*perf_([a-zA-Z.]+)\s+(\d+)\s+(.*)$/
-      iter = $2.to_i
-      options = $3
-    when /^GC.collections=(\d+), GC.time=([\d\.]+)$/
-      gc_stats << [$1.to_i,$2.to_f]
-    end
-  end
+  pi = PerfInfo.new(file)
+  iter = pi.iterations
+  options = pi.options
 
-  keys.uniq!
   printf "\nperf data file: #{file.path}\n"
   printf "    requests=#{iter}, options=#{options}\n\n"
   k = 'loading environment'
-  printf "%-32s  %9.5f\n\n", k, time_avg(timings[k])
+  printf "%-32s  %9.5f\n\n", k, pi.load_time_mean
   printf "%-32s  %9s  %7s  %6s  %6s\n", 'page request', 'total', 'stddev%', 'r/s', 'ms/r'
 
-  perf_runs = timings.delete(k).length
-  keys.delete(k)
-  
-  total_requests_run = 0
-  keys.each do |k|
-    t = time_avg(timings[k])
-    d = time_dev(timings[k], t)
-    urls = 1
-    urls = $1.to_i if /\((\d+) urls\)$/===k
-    total_requests_run += iter*urls
+  pi.keys.each do |k|
+    t = pi.timings_mean(k)
+    devp = pi.timings_stddev_percentage(k)
+    urls = pi.requests_per_key
     printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
-           truncate(k), t, (d/t)*100, (iter*urls)/t, t*1000/(iter*urls)
+           truncate(k), t, devp, (iter*urls)/t, t*1000/(iter*urls)
   end
 
-  totals_per_run = (0...perf_runs).map{|i| sum_a(timings.values.map{|a| a[i]})}
-  total_time = time_avg(totals_per_run)
-  total_stddev = time_dev(totals_per_run, total_time)
-  
   printf "\n%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
-           "all requests", total_time, (total_stddev/total_time)*100,
-                        total_requests_run/total_time, total_time*1000/total_requests_run
+           "all requests", pi.total_time_mean, pi.total_time_stddev_percentage,
+           pi.request_count/pi.total_time_mean, pi.total_time_mean*1000/pi.request_count
 
-  if gc_stats.length>0
-    collection_counts = gc_stats.map{|p| p[0]}
-    collection_times = gc_stats.map{|p| p[1]}
-    c = time_avg(collection_counts)
-    t = time_avg(collection_times)
-    d = time_dev(collection_times, t)
-    stddevp = t==0 ? 0 : (d/t)*100
+  if pi.gc_stats?
     printf "\n%-32s  %9s  %7s  %6s  %6s\n",
            "garbage collection statistics", "time", "stddev%", "count", "total%"
     printf "%-32s  %9.5f  %7.4f  %6.2f  %6.2f\n",
-           "", t, stddevp, c, (t/total_time)*100
+           "", pi.gc_time_mean, pi.gc_time_stddev_percentage, pi.gc_calls_mean, (pi.gc_time_mean/pi.total_time_mean)*100
   end
 
   file.close

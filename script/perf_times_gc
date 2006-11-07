@@ -16,7 +16,7 @@ ARGV.each do |arg|
       print "file #{fn} is unreadable\n"
       exit 1
     end
-  rescue 
+  rescue
     print "file #{fn} does not exist\n"
     exit 1
   end
@@ -26,7 +26,7 @@ require "#{File.dirname(__FILE__)}/../lib/gc_info.rb"
 
 files.each_with_index do |file, idx|
   puts "="*32 if idx>0
-  
+
   gci = GCInfo.new(file)
 
   printf "GC data file: #{File.expand_path(file.path)}\n\n"
@@ -39,25 +39,25 @@ files.each_with_index do |file, idx|
 
   printf "\n             %12s %8s %9s %9s\n", "mean", "stddev%", "min", "max"
   number_format = "%12.2f %8.1f %9d %9d"
-  
+
   printf "gc time(ms): #{number_format}\n",
          gci.time_mean, gci.time_stddev_percentage, gci.time_min, gci.time_max
-   
+
   printf "heap slots : #{number_format}\n",
          gci.processed_mean, gci.processed_stddev_percentage, gci.processed_min, gci.processed_max
 
   printf "live       : #{number_format}\n",
          gci.live_mean, gci.live_stddev_percentage, gci.live_min, gci.live_max
-  
+
   printf "freed      : #{number_format}\n",
          gci.freed_mean, gci.freed_stddev_percentage, gci.freed_min, gci.freed_max
-  
+
   printf "freelist   : #{number_format}\n",
          gci.freelist_mean, gci.freelist_stddev_percentage, gci.freelist_min, gci.freelist_max
 
   printf "\nheap topology:\n"
   gci.topology.each_with_index{|size, idx| printf "    HEAP[%d] = %7d\n", idx, size }
-  
+
   file.close
 
 end

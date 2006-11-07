@@ -1,23 +1,4 @@
-class Array
-  def sum
-    inject(0.0){|r,v| r += v }
-  end
-  
-  def mean
-    sum/length
-  end
-  
-  def stddev(mean=nil)
-    mean ||= self.mean
-    r = inject(0.0){|r,v| r += (v-mean)*(v-mean) }
-    Math.sqrt(r/(length-1))
-  end
-end
-
-def stddev_percentage(stddev, mean)
-  stddev.zero? ? 0.0 : (stddev/mean)*100
-end
-
+require "#{File.dirname(__FILE__)}/perf_utils.rb"
 
 # Entry Format:
 #
@@ -48,16 +29,16 @@ GCSummaries  = [:min, :max, :mean, :stddev, :stddev_percentage]
 GCLogEntry   = Struct.new(*GCAttributes)
 
 class GCInfo
-  
+
   attr_reader(*GCAttributes)
   attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total, :topology
-  
+
   GCAttributes.each do |attr|
     GCSummaries.each do |method|
       attr_reader "#{attr}_#{method}"
     end
   end
-  
+
   def initialize(file)
     @entries = []
     @num_requests = 0
@@ -83,16 +64,16 @@ class GCInfo
         @topology << $2.to_i
       end
     end
-    
+
     @time_total = @entries.map{|c| c.time}.sum
-    @collections = @entries.length 
+    @collections = @entries.length
     @garbage_produced = @entries.map{|c| c.freed}.sum
 
     GCAttributes.each do |attr|
       a = @entries.map{|e| e.send attr}
       a.pop
-      
-      [:min, :max, :mean].each do |method| 
+
+      [:min, :max, :mean].each do |method|
         instance_variable_set "@#{attr}_#{method}", (a.send method)
       end
       mean = instance_variable_get "@#{attr}_mean"
@@ -100,7 +81,7 @@ class GCInfo
       instance_variable_set "@#{attr}_stddev_percentage", stddev_percentage(stddev, mean)
     end
   end
-  
+
 end
 
 
@@ -108,7 +89,7 @@ end
 ### mode:ruby ***
 ### End: ***
 
-#    Copyright (C) 2005, 2006  Stefan Kaes
+#    Copyright (C) 2006  Stefan Kaes
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
