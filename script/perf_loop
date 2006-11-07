@@ -14,13 +14,18 @@ unset RUBY_GC_STATS
 echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
 echo "$BINDIR/perf_bench $@" >$FILE
 
-use_patched_gc="no"
+patched_gc="no"
 for arg in $@; do
-  [ "$arg" = "-patched_gc" ] && use_patched_gc="yes"
+  case $arg in
+   -gc=*) patched_gc=${arg#-gc=};;
+  esac
 done
 
-if [ "${use_patched_gc}" = "no" ]; then 
+if [ "${patched_gc}" = "no" ]; then
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  . $RAILS_ROOT/config/${patched_gc}.gc
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
 i=$(( $RAILS_PERF_RUNS ))

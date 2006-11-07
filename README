@@ -52,6 +52,7 @@ FILES
                   switches as for perf_bench plus
                   -warmup   : run all uris once before measuring
                   -svlPV    : run test using SVL Ruby Performance Validator
+                  -svlMV    : run test using SVL Ruby Memory Validator
 
   perf_run n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file

@@ -15,12 +15,12 @@ ITER="$1"
 OPT="$2"
 BENCHMARK=""
 WARMUP="-warmup"
-use_patched_gc="no"
+patched_gc="no"
 for opt in $OPT; do
   case $opt in
   -bm=*) BENCHMARK=${opt#-bm=};;
   -warmup) WARMUP="";;
-  -patched_gc) use_patched_gc="yes";;
+  -gc=*) patched_gc=${opt#-gc=};;
   esac
 done
 
@@ -33,8 +33,11 @@ fi
 
 PERF_OPTIONS="$ITER $WARMUP $OPT"
 
-if [ "${use_patched_gc}" = "no" ]; then
+if [ "${patched_gc}" = "no" ]; then
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  . $RAILS_ROOT/config/${patched_gc}.gc
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
 unset RUBY_GC_STATS RUBY_GC_DATA_FILE

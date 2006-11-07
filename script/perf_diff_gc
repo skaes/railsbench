@@ -37,20 +37,18 @@ OLD_RUBY_HEAP_FREE_MIN=$RUBY_HEAP_FREE_MIN
 
 PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT1"
 
-use_patched_gc="no"
+patched_gc="no"
 for opt in $COMMON $OPT1; do
   case $opt in
-  -patched_gc) use_patched_gc="yes";;
+  -gc=*) patched_gc=${opt#-gc=};;
   esac
 done
 
-if [ "${use_patched_gc}" = "yes" ]; then
-  RUBY_HEAP_MIN_SLOTS=$OLD_RUBY_HEAP_MIN_SLOTS
-  RUBY_GC_MALLOC_LIMIT=$OLD_RUBY_GC_MALLOC_LIMIT
-  RUBY_HEAP_FREE_MIN=$OLD_RUBY_HEAP_FREE_MIN
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-else
+if [ "${patched_gc}" = "no" ]; then
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  . $RAILS_ROOT/config/${patched_gc}.gc
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
 echo "benchmarking GC performance with options $PERF_OPTIONS"
@@ -62,20 +60,18 @@ echo;echo
 
 PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT2"
 
-use_patched_gc="no"
+patched_gc="no"
 for opt in $COMMON $OPT2; do
   case $opt in
-  -patched_gc) use_patched_gc="yes";;
+  -gc=*) patched_gc=${opt#-gc=};;
   esac
 done
 
-if [ "${use_patched_gc}" = "yes" ]; then
-  RUBY_HEAP_MIN_SLOTS=$OLD_RUBY_HEAP_MIN_SLOTS
-  RUBY_GC_MALLOC_LIMIT=$OLD_RUBY_GC_MALLOC_LIMIT
-  RUBY_HEAP_FREE_MIN=$OLD_RUBY_HEAP_FREE_MIN
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-else
+if [ "${patched_gc}" = "no" ]; then
   unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+else
+  . $RAILS_ROOT/config/${patched_gc}.gc
+  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 fi
 
 echo "benchmarking GC performance with options $PERF_OPTIONS"
@@ -84,6 +80,8 @@ echo
 (RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$FILE2 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) \
  && ruby $BINDIR/perf_times_gc $FILE2
 echo;echo
+
+unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
 
 echo "benchmark comparison data"
 echo
