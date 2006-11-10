@@ -62,6 +62,7 @@ perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 
 g = graph_type.new(graph_width)
 g.title = title
+g.sort = false
 g.minimum_value = 0
 g.maximum_value = perf_data.flatten.max.ceil
 g.labels = labels
