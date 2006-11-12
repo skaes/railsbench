@@ -1,0 +1,110 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'gruff'
+
+require "#{File.dirname(__FILE__)}/../lib/gc_info"
+
+# extract options
+
+selection = []
+title = "GC Data Graph"
+files = []
+names = []
+labels = %w()
+perf_data = []
+graph_type = Gruff::StackedBar
+graph_width = 1400
+
+ARGV.each do |arg|
+  case arg
+#   when '-line'
+#     graph_type = Gruff::Line
+#   when '-bar'
+#     graph_type = Gruff::Bar
+  when /^-width=(\d+)$/
+    graph_width = $1.to_i
+#   when /^-title=(.*)$/
+#     title = $1 unless $1.strip.empty?
+#   when /^-names=(.+)$/
+#     names = $1.split(',')
+  else
+    files << File.open_or_die(arg)
+    names[files.length-1] ||= File.basename(arg)
+  end
+end
+
+files.length > 0 or die "usage: perf_plot_gc [options] file1 file2 ..."
+
+object_types = Set.new
+gcis = []
+files.each do |file|
+  gcis << GCInfo.new(file)
+  object_types.merge gcis.last.object_types
+  file.close
+end
+
+object_types = object_types.to_a
+gc_count_max = gcis.map{|gci| gci.collections}.max
+gc_max_processed = gcis.map{|gci| gci.processed_max}.max
+
+g = graph_type.new(graph_width)
+
+g.add_color("#FF0000")
+g.add_color("#00FF00")
+g.add_color("#0000FF")
+
+g.instance_eval do
+  count = @colors.length
+  count.times{|i| add_color(@colors[i])}
+end
+
+g.title = title
+g.sort = false
+g.legend_font_size = 8
+g.legend_box_size = 8
+g.marker_font_size = 8
+#g.minimum_value = 0
+#g.maximum_value = gc_max_processed
+g.labels = Hash[* (0...gc_count_max).map{|i| [2*i, i.to_s]}.flatten ]
+puts g.labels.inspect
+
+object_types.each do |ot|
+  next if ot =~ /NODE|STRING/i 
+  data = []
+  gc_count_max.times do |gc_index|
+    for gci in gcis
+      map_at_this_gc = gci.freed_objects[gc_index]
+      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0)
+      map_at_this_gc = gci.live_objects[gc_index]
+      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0)
+    end
+  end
+  puts "#{ot}: #{data.inspect}"
+  g.data(ot, data)
+end
+
+g.write
+
+
+__END__
+
+### Local Variables: ***
+### mode:ruby ***
+### End: ***
+
+#    Copyright (C) 2005, 2006  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA

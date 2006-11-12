@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/perf_utils.rb"
+require "set"
 
 # Entry Format:
 #
@@ -26,12 +27,21 @@ require "#{File.dirname(__FILE__)}/perf_utils.rb"
 
 GCAttributes = [:processed, :live, :freelist, :freed, :time]
 GCSummaries  = [:min, :max, :mean, :stddev, :stddev_percentage]
-GCLogEntry   = Struct.new(*GCAttributes)
+
+class GCLogEntry
+  attr_accessor *GCAttributes
+  attr_accessor :live_objects, :freed_objects
+  def initialize
+    @live_objects = {}
+    @freed_objects = {}
+  end
+end
 
 class GCInfo
 
   attr_reader(*GCAttributes)
   attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total, :topology
+  attr_reader :live_objects, :freed_objects, :object_types
 
   GCAttributes.each do |attr|
     GCSummaries.each do |method|
@@ -43,6 +53,7 @@ class GCInfo
     @entries = []
     @num_requests = 0
     @topology = []
+    @object_types = Set.new
 
     file.each_line do |line|
       case line
@@ -62,12 +73,18 @@ class GCInfo
         @num_requests = $1.to_i
       when /^HEAP\[\s*(\d+)\]: size=\s*(\d+)$/
         @topology << $2.to_i
+      when /^kept (\d+) \/ freed (\d+) objects of type ([a-zA-Z]+)/
+        @object_types.add($3)
+        @entries.last.live_objects[$3] = $1.to_i
+        @entries.last.freed_objects[$3] = $2.to_i
       end
     end
 
-    @time_total = @entries.map{|c| c.time}.sum
+    @time_total = @entries.map{|e| e.time}.sum
     @collections = @entries.length
-    @garbage_produced = @entries.map{|c| c.freed}.sum
+    @garbage_produced = @entries.map{|e| e.freed}.sum
+    @live_objects = @entries.map{|e| e.live_objects}
+    @freed_objects = @entries.map{|e| e.freed_objects}
 
     GCAttributes.each do |attr|
       a = @entries.map{|e| e.send attr}
