@@ -40,7 +40,22 @@ class RailsBenchmark
     
     require ENV['RAILS_ROOT'] + "/config/environment"
     require 'dispatcher' # make edge rails happy
-    
+
+    # we don't want local error template output, which crashes anyway
+    ActionController::Rescue.class_eval "def local_request?; false; end"
+   
+    # make sure an error code gets returned for 1.1.6
+    ActionController::Rescue.class_eval <<-"end_eval"
+      def rescue_action_in_public(exception)
+        case exception
+          when ActionController::RoutingError, ActionController::UnknownAction
+            render_text(IO.read(File.join(RAILS_ROOT, 'public', '404.html')), "404 Not Found")
+          else
+            render_text(IO.read(File.join(RAILS_ROOT, 'public', '500.html')), "500 Internal Error")
+        end
+      end
+    end_eval
+
     if ARGV.include?('-path')
       $:.each{|f| STDERR.puts f}
       exit
