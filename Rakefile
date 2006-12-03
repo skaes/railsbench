@@ -17,12 +17,12 @@ DESCRIPTION = "rails benchmarking tools"
 GEM_NAME = "railsbench" # what ppl will type to install your gem
 RUBYFORGE_PROJECT = "railsbench" # The unix name for your project
 HOMEPATH = "http://#{RUBYFORGE_PROJECT}.rubyforge.org"
-RELEASE_TYPES = %w( gem tar zip) # can use: gem, tar, zip
+RELEASE_TYPES = %w(gem tar zip) # can use: gem, tar, zip
 
 
 NAME = "railsbench"
 REV = nil # UNCOMMENT IF REQUIRED: File.read(".svn/entries")[/committed-rev="(d+)"/, 1] rescue nil
-VERS = ENV['VERSION'] || (Railsbench::VERSION::STRING + (REV ? ".#{REV}" : ""))
+VERS = (ENV['VERSION'] ||= (Railsbench::VERSION::STRING + (REV ? ".#{REV}" : "")))
 CLEAN.include ['**/.*.sw?', '*.gem', '.config']
 RDOC_OPTS = ['--quiet', '--title', "railsbench documentation",
     "--opname", "index.html",
