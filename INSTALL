@@ -2,22 +2,36 @@
 INSTALLATION
 ============
 
-STEP 1:
+STEP 1: installing railsbench and PATH modifcation
 
-The file site-ruby/benchmark.rb is a drop in replacement for the
-benchmark.rb file that comes with the ruby distribution. Copy it over
-the old one or install it into your ruby site-ruby directory
-(e.g. /usr/lib/ruby/site_ruby, /usr/local/lib/ruby/site-ruby).
+If you obtained and installed railsbench as a gem, a script called
+railsbench is available in you Ruby bin directory. railsbench is a
+simple driver for the railsbench scripts, which are located in the gem
+installation directory. Example:
 
-Setup the enviroment variable RAILS_ROOT to point to your apps base
-directory (which should have config as subdirectory).
+    railsbench perf_run 100 -bm=all
 
-Add the railsbench script subdirectory to your search path.
+Alternatively, add the railsbench script directory to your search
+path. The exact place can be found running
+
+    railsbench base
+
+which prints the script directory path. After that change, individual
+commands can be run directly:
+
+    railsbench perf_run 100 -bm=all
+
+The environment variable RAILS_ROOT must be set and point to your apps
+base directory, in order for railsbench to work properly.
+
+If you obtained railsbench as a svn checkout, add the railsbench
+script directory to your search path.
 
 
-STEP 2:
+STEP 2: prepare your application for benchmarking
 
 Manual installation:
+
   Copy benchmarks.rb and benchmarks.yml into $RAILS_ROOT/config and
   edit them to suit your needs. The provided default benchmark.yml
   will run the root URL of your app.
@@ -26,14 +40,16 @@ Manual installation:
   corresponding section to database.yml.
 
 Automatic installation:
-  Run install.rb. This will perform all of the above steps and create
-  a section in database.yml pointing to your development database. In
-  case you are worrying about possible results, you can call
-  install.rb --dry-run first.
+
+  Run railsbench install. This will perform all of the above steps and
+  create a section in database.yml pointing to your development
+  database. In case you are worrying about possible results, you can
+  call railsbench install --dry-run first.
 
 
-OPTIONAL (but recommended)
+STEP 3: optional (but highly recommended)
 
-Patch the ruby garbage collector using rubygc.patch. Recompile ruby
-and copy the ruby binary to where it was previously installed.
-See GCPATCH for details on how to influence the patched ruby gc.
+Patch the ruby garbage collector using rubygc18{45}.patch, depending
+on your ruby version. Recompile ruby and copy the ruby binary and
+shared libs to where it was previously installed. See GCPATCH for
+details on how to influence the patched ruby gc.

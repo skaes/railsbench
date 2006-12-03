@@ -22,7 +22,8 @@ ARGV.each do |arg|
   end
 end
 
-require "#{File.dirname(__FILE__)}/../lib/gc_info.rb"
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/gc_info'
 
 files.each_with_index do |file, idx|
   puts "="*32 if idx>0

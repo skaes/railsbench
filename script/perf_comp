@@ -1,11 +1,12 @@
 #!/usr/bin/env ruby
 
-require "#{File.dirname(__FILE__)}/../lib/perf_info"
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/perf_info'
 
 narrow = ARGV.delete('-narrow') || ARGV.delete('-n')
 skip_urls = ARGV.delete('-skip_urls') || ARGV.delete('-s')
 
-if ARGV.length<2
+if ARGV.length < 2
   $stderr.puts "perfcomp: not enough arguments!"
   $stderr.puts "usage: perf_comp [-n[arrow]] [-s[kip_urls]] file1 file2"
   exit 1
@@ -38,12 +39,12 @@ if iter1 != iter2
   $stderr.puts "perfcomp: scaling performance data: iterations of run 1 and run 2 differ: #{iter1}/#{iter2}"
 end
 
-if iter1<iter2
-  c1 = iter2/iter1
+if iter1 < iter2
+  c1 = iter2 / iter1
   c2 = 1
 else
   c1 = 1
-  c2 = iter1/iter2
+  c2 = iter1 / iter2
 end
 
 printf "perf data file 1: #{files[0].path}\n"

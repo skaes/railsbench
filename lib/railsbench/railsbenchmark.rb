@@ -10,24 +10,24 @@ class RailsBenchmark
     STDERR.puts msg
     raise msg
   end
-  
+
   def patched_gc?
     @patched_gc
   end
-  
+
   def relative_url_root=(value)
     ActionController::AbstractRequest.relative_url_root = value
     @relative_url_root = value
   end
-  
+
   def initialize(options={})
     unless @gc_frequency = options[:gc_frequency]
       @gc_frequency = 0
       ARGV.each{|arg| @gc_frequency = $1.to_i if arg =~ /-gc(\d+)/ }
     end
-    
+
     @iterations = (options[:iterations] || 100).to_i
-    
+
     @remote_addr = options[:remote_addr] || '127.0.0.1'
     @http_host =  options[:http_host] || '127.0.0.1'
     @server_port = options[:server_port] || '80'
@@ -35,15 +35,15 @@ class RailsBenchmark
     @session_data = options[:session_data] || {}
 
     @url_spec = options[:url_spec]
-    
+
     ENV['RAILS_ENV'] = 'benchmarking'
-    
+
     require ENV['RAILS_ROOT'] + "/config/environment"
     require 'dispatcher' # make edge rails happy
 
     # we don't want local error template output, which crashes anyway
     ActionController::Rescue.class_eval "def local_request?; false; end"
-   
+
     # make sure an error code gets returned for 1.1.6
     ActionController::Rescue.class_eval <<-"end_eval"
       def rescue_action_in_public(exception)
@@ -60,11 +60,11 @@ class RailsBenchmark
       $:.each{|f| STDERR.puts f}
       exit
     end
-    
+
     log_level = options[:log]
     log_level = Logger::DEBUG if ARGV.include?('-log')
     ARGV.each{|arg| arg =~ /-log=([a-zA-Z]*)/ && (log_level = eval("Logger::#{$1.upcase}")) }
-    
+
     if log_level
       RAILS_DEFAULT_LOGGER.level = log_level
       #ActiveRecord::Base.logger.level = log_level
@@ -161,7 +161,7 @@ class RailsBenchmark
     rescue LoadError
       # SVL dll not available, do nothing
     end
-    
+
     # support ruby-prof
     ruby_prof = nil
     ARGV.each{|arg| ruby_prof=$1 if arg =~ /-ruby_prof=(\d*\.?\d*)/ }
@@ -180,7 +180,7 @@ class RailsBenchmark
       svl.startProfiler
       svl.startDataCollection
     end
-    
+
     setup_initial_env
     GC.enable_stats if gc_stats
     if gc_frequency==0
@@ -198,14 +198,14 @@ class RailsBenchmark
 
     # stop data collection if necessary
     svl.stopDataCollection if svl
-    
+
     if defined? RubyProf
       result = RubyProf.stop
       # Print a flat profile to text
       printer = RubyProf::GraphHtmlPrinter.new(result)
       printer.print(STDERR, ruby_prof.to_f)
     end
-    
+
     delete_test_session
     delete_new_test_sessions
   end
@@ -220,7 +220,7 @@ class RailsBenchmark
     delete_test_session
     delete_new_test_sessions
   end
-    
+
   def run_url_mix(test)
     if gc_frequency>0
       run_url_mix_with_gc_control(test, @urls, iterations, gc_frequency)
@@ -232,7 +232,7 @@ class RailsBenchmark
   end
 
   private
-  
+
   def run_urls_without_benchmark_but_with_gc_control(urls, n, gc_frequency)
     urls.each do |entry|
       setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
@@ -303,7 +303,7 @@ class RailsBenchmark
       GC.clear_stats
     end
   end
-  
+
   def run_url_mix_without_gc_control(test, urls, n)
     gc_stats = patched_gc?
     GC.start
@@ -324,7 +324,7 @@ class RailsBenchmark
       GC.clear_stats
     end
   end
-  
+
   def run_url_mix_with_gc_control(test, urls, n, gc_frequency)
     gc_stats = patched_gc?
     GC.enable; GC.start; GC.disable
@@ -381,7 +381,7 @@ end
 __END__
 
 #  Copyright (C) 2005, 2006  Stefan Kaes
-# 
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -391,7 +391,7 @@ __END__
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA

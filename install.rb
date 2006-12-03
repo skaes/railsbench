@@ -10,7 +10,7 @@ end
 require 'yaml'
 
 unless RAILS_ROOT = ENV['RAILS_ROOT']
-  STDERR.puts "RAILS_ROOT must be fined in your environement"
+  STDERR.puts "RAILS_ROOT must be fined in your environment"
   exit 1
 end
 

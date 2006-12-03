@@ -3,7 +3,7 @@
 
 if [ $# -lt 2 ]; then
   echo "usage: perf_run_gc iterations options [conf-name]"
-  echo "example: perf_run 100 \"-bm=default -log\" pdata"
+  echo "example: perf_run_gc 100 \"-bm=default -log\" pdata"
   exit 1
 fi
 

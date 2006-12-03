@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+
 unless ENV['RAILS_ROOT']
   $stderr.puts("\nOOPS: can't benchmark unless RAILS_ROOT is set")
   $stderr.puts("\nbenchmarking aborted!")
@@ -21,10 +23,10 @@ include Benchmark
 
 bm(32) do |test|
   test.report("loading environment") do
-    require File.dirname(__FILE__) + '/../lib/railsbench'
+    require 'railsbench/railsbenchmark'
     require ENV['RAILS_ROOT'] + '/config/benchmarks'
   end
-  
+
   trap("INT") do
     $stderr.puts "clearing database connections ..."
     ActiveRecord::Base.send :clear_all_cached_connections!

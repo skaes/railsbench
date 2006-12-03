@@ -44,11 +44,11 @@ RUBY_HEAP_MIN_SLOTS=600000
 RUBY_GC_MALLOC_LIMIT=60000000
 RUBY_HEAP_FREE_MIN=20000
 
-Try experimenting with these values (RUBY:HEAP_MIN_SOTS is the most
+Try experimenting with these values (RUBY_HEAP_MIN_SOTS is the most
 important one). You can use perf_run_gc to find out how much memory
 you need.
 
-Memory usage of the ruby interpreter can be observerd by setting
+Memory usage of the ruby interpreter can be observed by setting
 RUBY_GC_STATS=1, before you invoke any of the railsbench commands.
 
 Per default, GC data gets written to stderr. You can change this
@@ -65,4 +65,4 @@ GC.dump           - dumps current heap topology to the GC log file
 GC.log            - log given string to the GC log file
 
 railsbench detects whether the patch has been applied and provides
-GC statistics if available.
+GC statistics only in this case.

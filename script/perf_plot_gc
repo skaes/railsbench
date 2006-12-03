@@ -3,7 +3,8 @@
 require 'rubygems'
 require 'gruff'
 
-require "#{File.dirname(__FILE__)}/../lib/gc_info"
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/gc_info'
 
 # extract options
 

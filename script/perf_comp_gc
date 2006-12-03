@@ -16,13 +16,14 @@ ARGV.each do |arg|
       print "file #{fn} is unreadable\n"
       exit 1
     end
-  rescue 
+  rescue
     print "file #{fn} does not exist\n"
     exit 1
   end
 end
 
-require "#{File.dirname(__FILE__)}/../lib/gc_info.rb"
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/gc_info'
 
 printf "GC data file1: #{File.expand_path(files[0].path)}\n"
 printf "GC data file2: #{File.expand_path(files[1].path)}\n\n"

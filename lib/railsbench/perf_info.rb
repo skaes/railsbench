@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/perf_utils.rb"
+require File.expand_path(File.dirname(__FILE__) + "/perf_utils.rb")
 
 # example of raw performance data
 

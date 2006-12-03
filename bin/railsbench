@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+CMDS = %w(
+base
+perf_comp
+perf_comp_gc
+perf_diff
+perf_diff_gc
+perf_html
+perf_plot
+perf_plot_gc
+perf_prof
+perf_run
+perf_run_gc
+perf_tex
+perf_times
+perf_times_gc
+install
+run_urls
+)
+
+cmd = ARGV.shift
+unless CMDS.include? cmd
+  $stderr.puts "railsbench: unkown command: #{cmd}"
+  $stderr.puts "use one of: #{CMDS.sort.join(', ')}"
+  exit 1
+end
+
+RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__) + '/..')
+
+def quoted_args
+  ARGV.map{|s| "'#{s}'" }.join(' ')
+end
+
+case cmd
+when 'base'
+  puts "railsbench is installed in: #{RAILSBENCH_BASE}"
+  puts "load path: #{$:.join("\n")}"
+  exit
+else
+  if cmd == 'install'
+    script = RAILSBENCH_BASE + '/install.rb'
+  else
+    script = RAILSBENCH_BASE + '/script/' + cmd
+  end
+  command = "sh -c \"#{script} #{quoted_args}\""
+  # puts command
+  exec(command)
+end
+

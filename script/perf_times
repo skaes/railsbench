@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require "#{File.dirname(__FILE__)}/../lib/perf_info"
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/perf_info'
 
 files = []
 if ARGV.length==0

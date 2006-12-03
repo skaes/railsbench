@@ -16,11 +16,6 @@ reports, patches or feature requests to this address.
 
 FILES
 
-  site-ruby/benchmark.rb
-                - replacement for the one that comes with the ruby distribution
-                  prints benchmark data to stderr instead of stdout
-                  install into the distribution's site-ruby directory
-
   railsbench.rb
                 - defines classes RailsBenchmark and RailsBenchmarkWithActiveRecordStore
                   switches:
