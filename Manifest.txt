@@ -1,11 +1,10 @@
-BUGS.txt
-CHANGELOG.txt
-History.txt
+BUGS
+CHANGELOG
 INSTALL
 install.rb
 LICENSE
 Manifest.txt
-README.txt
+README
 Rakefile
 setup.rb
 ruby184gc.patch
