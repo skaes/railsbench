@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 if ARGV.length < 1
-  $stderr.puts "usage: perf_prof iterations options [conf-name]"
-  $stderr.puts "example: perf_prof 100 \"-bm=default -log\" pdata"
+  $stderr.puts "usage: perf_prof iterations options"
+  $stderr.puts "example: perf_prof 100 \"-bm=default -log\""
   exit 1
 end
 
@@ -12,7 +12,8 @@ require "#{bindir}/../lib/railsbench/perf_utils"
 perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
 
 iterations = ARGV[0]
-options= ARGV[1]
+options = ARGV[1]
+config = ARGV[2]
 benchmark = ""
 
 ruby_prof_opts="-ruby_prof=1"
@@ -20,12 +21,13 @@ warmup="-warmup"
 
 warmup = "" if options =~ /-warmup/
 benchmark = $1 if options =~ /-bm=([^ ]*)/
-ruby_prof_opts = $1 if options =~ /-ruby_prof=([^ ]*)/
+ruby_prof_opts = $1 if options =~ /(-ruby_prof=[^ ]*)/
+options = options.sub(ruby_prof_opts, '')
 
 date = Time.now.strftime '%m-%d'
 
-if ARGV.length == 2
-  benchmark_file="#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[2]}.html"
+if config
+  benchmark_file="#{perf_data_dir}/#{date}.#{benchmark}.#{config}.html"
 else
   benchmark_file="#{perf_data_dir}/perf_run.#{benchmark}.html"
 end
