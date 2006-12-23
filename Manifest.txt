@@ -23,7 +23,6 @@ script/perf_comp_gc
 script/perf_diff
 script/perf_diff_gc
 script/perf_html
-script/perf_loop
 script/perf_plot
 script/perf_plot_gc
 script/perf_prof

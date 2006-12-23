@@ -42,4 +42,3 @@ when 'install'
 else
   load "#{RAILSBENCH_BASE}/script/#{cmd}"
 end
-
