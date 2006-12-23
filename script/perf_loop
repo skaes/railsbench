@@ -1,38 +1,38 @@
-#!/bin/sh
-# set -x
+#!/usr/bin/env ruby
 
-BINDIR=`dirname $0`
-test -z $RAILS_PERF_RUNS && RAILS_PERF_RUNS=3
+bindir = File.dirname(__FILE__)
+ENV['RAILS_PERF_RUNS'] ||= "3"
 
-FILE=$RAILS_BENCHMARK_FILE
-if [ "$OSTYPE" == "cygwin" ]; then
-  RAILS_BENCHMARK_FILE=`cygpath -m $FILE`
-fi
+file=ENV['RAILS_BENCHMARK_FILE']
+#if [ "$OSTYPE" == "cygwin" ]; then
+#  RAILS_BENCHMARK_FILE=`cygpath -m $FILE`
+#fi
 
-unset RUBY_GC_STATS
-
-echo "benchmarking $RAILS_PERF_RUNS runs with options $@"
-echo "$BINDIR/perf_bench $@" >$FILE
+ENV.delete 'RUBY_GC_STATS'
 
 patched_gc="no"
-for arg in $@; do
-  case $arg in
-   -gc=*) patched_gc=${arg#-gc=};;
-  esac
-done
+ARGV.each{|arg| patched_gc=$1 if arg =~ /\A-gc=([^ ]*)\Z/}
 
-if [ "${patched_gc}" = "no" ]; then
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+if patched_gc == "no"
+  %w(RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN).each{|v| ENV.delete v}
 else
-  . $RAILS_ROOT/config/${patched_gc}.gc
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+  File.open("#{ENV['RAILS_ROOT']}/config/#{patched_gc}.gc").each_line do |line|
+    ENV[$1] = $2 if line =~ /^(.*)=(.*)$/
+  end
+end
 
-i=$(( $RAILS_PERF_RUNS ))
-while [ $i -gt 0 ]; do
-  i=$(( $i-1 ))
-  ruby $BINDIR/perf_bench $@ >/dev/null || exit 1
-done
-echo >>$FILE
+null = (RUBY_PLATFORM =~ /win32/i) ? 'nul' : '/dev/null'
+perfcmd = "ruby #{bindir}/perf_bench #{ARGV.join(' ')} >#{null}"
+# puts perfcmd
 
-# echo "performance data written to file $RAILS_BENCHMARK_FILE"
+puts "benchmarking #{ENV['RAILS_PERF_RUNS']} runs with options #{ARGV.join(' ')}"
+
+File.open(file, "w"){ |f| f.puts "#{bindir}/perf_bench #{ARGV.join(' ')}" }
+
+ENV['RAILS_PERF_RUNS'].to_i.times do
+  system(perfcmd) || exit(1)
+end
+
+File.open(file, "a" ){|f| f.puts }
+
+# puts "performance data written to file #{file}"
