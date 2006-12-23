@@ -1,89 +1,74 @@
-#!/bin/sh
-# set -x
+#!/usr/bin/env ruby
 
-if [ $# -lt 4 ]; then
-  echo "usage: perf_diff_gc iterations options1 options2 [conf-name1] [conf-name2]"
-  echo "example: perf_diff_gc 100 \"-bm=default\" \"-log\" \"-nocache\" c1 c2"
+if ARGV.length < 4
+  $stderr.puts 'usage: perf_diff_gc iterations options1 options2 [conf-name1] [conf-name2]'
+  $stderr.puts 'example: perf_diff_gc 100 "-bm=default" "-log" "-nocache" c1 c2'
   exit 1
-fi
+end
 
-BINDIR=`dirname $0`
-test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
+bindir = File.dirname(__FILE__)
+require "#{bindir}/../lib/railsbench/perf_utils"
 
-ITER="$1"
-COMMON="$2"
-OPT1="$3"
-OPT2="$4"
-BENCHMARK=""
-WARMUP="-warmup"
+perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
 
-DATE=`date +%m-%d`
+iterations = ARGV[0]
+common = ARGV[1]
+options1 = ARGV[2]
+options2 = ARGV[3]
+date = Time.now.strftime '%m-%d'
 
+benchmark = ""
+benchmark = $1 if common =~ /-bm=([^ ]*)/
 
-if [ $# -gt 4 ]; then
-  FILE1="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$5.gc.txt"
+warmup = "-warmup"
+
+if ARGV[4]
+  file1 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[4]}.gc.txt"
 else
-  FILE1="$RAILS_PERF_DATA/perf_run1${BENCHMARK}.gc.txt"
-fi
-if [ $# -gt 5 ]; then
-  FILE2="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$6.gc.txt"
+  file1 = "#{perf_data_dir}/perf_run1.#{benchmark}.gc.txt"
+end
+if ARGV[5]
+  file2 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[5]}.gc.txt"
 else
-  FILE2="$RAILS_PERF_DATA/perf_run2${BENCHMARK}.gc.txt"
-fi
+  file2 = "#{perf_data_dir}/perf_run2.#{benchmark}.gc.txt"
+end
 
-OLD_RUBY_HEAP_MIN_SLOTS=$RUBY_HEAP_MIN_SLOTS
-OLD_RUBY_GC_MALLOC_LIMIT=$RUBY_GC_MALLOC_LIMIT
-OLD_RUBY_HEAP_FREE_MIN=$RUBY_HEAP_FREE_MIN
+null = (RUBY_PLATFORM =~ /win32/i) ? 'nul' : '/dev/null'
 
-PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT1"
+perf_options = "#{iterations} #{warmup} #{common} #{options1}"
 
-patched_gc="no"
-for opt in $COMMON $OPT1; do
-  case $opt in
-  -gc=*) patched_gc=${opt#-gc=};;
-  esac
-done
+puts "benchmarking GC performance with options #{perf_options}"
+puts
 
-if [ "${patched_gc}" = "no" ]; then
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-else
-  . $RAILS_ROOT/config/${patched_gc}.gc
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+set_gc_variables([common, options1])
+enable_gc_stats(file1)
+perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
+system(perf_cmd) || die("perf_diff_gc: #{perf_cmd} returned #{$?}")
 
-echo "benchmarking GC performance with options $PERF_OPTIONS"
-echo
+unset_gc_variables
+disable_gc_stats
 
-(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$FILE1 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) \
- && ruby $BINDIR/perf_times_gc $FILE1
-echo;echo
+system("ruby #{bindir}/perf_times_gc #{file1}")
+puts;puts
 
-PERF_OPTIONS="$ITER $WARMUP $COMMON $OPT2"
+perf_options = "#{iterations} #{warmup} #{common} #{options2}"
 
-patched_gc="no"
-for opt in $COMMON $OPT2; do
-  case $opt in
-  -gc=*) patched_gc=${opt#-gc=};;
-  esac
-done
+puts "benchmarking GC performance with options #{perf_options}"
+puts
 
-if [ "${patched_gc}" = "no" ]; then
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-else
-  . $RAILS_ROOT/config/${patched_gc}.gc
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+set_gc_variables([common, options2])
+enable_gc_stats(file2)
 
-echo "benchmarking GC performance with options $PERF_OPTIONS"
-echo
+perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
+system(perf_cmd) || die("perf_diff_gc: #{perf_cmd} returned #{$?}")
 
-(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$FILE2 ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) \
- && ruby $BINDIR/perf_times_gc $FILE2
-echo;echo
+unset_gc_variables
+disable_gc_stats
 
-unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
+system("ruby #{bindir}/perf_times_gc #{file2}")
+puts;puts
 
-echo "benchmark comparison data"
-echo
+puts "benchmark comparison data"
+puts
 
-ruby $BINDIR/perf_comp_gc $FILE1 $FILE2
+system("ruby #{bindir}/perf_comp_gc #{file1} #{file2}")

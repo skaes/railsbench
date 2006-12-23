@@ -21,7 +21,7 @@ run_urls
 
 cmd = ARGV.shift
 unless CMDS.include? cmd
-  $stderr.puts "railsbench: unkown command: #{cmd}"
+  $stderr.puts "railsbench: unknown command: #{cmd}"
   $stderr.puts "use one of: #{CMDS.sort.join(', ')}"
   exit 1
 end
@@ -37,14 +37,9 @@ when 'base'
   puts "railsbench is installed in: #{RAILSBENCH_BASE}"
   puts "load path: #{$:.join("\n")}"
   exit
+when 'install'
+  load "#{RAILSBENCH_BASE}/install.rb"
 else
-  if cmd == 'install'
-    script = RAILSBENCH_BASE + '/install.rb'
-  else
-    script = RAILSBENCH_BASE + '/script/' + cmd
-  end
-  command = "sh -c \"#{script} #{quoted_args}\""
-  # puts command
-  exec(command)
+  load "#{RAILSBENCH_BASE}/script/#{cmd}"
 end
 

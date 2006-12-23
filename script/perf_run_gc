@@ -1,46 +1,44 @@
-#!/bin/sh
-# set -x
+#!/usr/bin/env ruby
 
-if [ $# -lt 2 ]; then
-  echo "usage: perf_run_gc iterations options [conf-name]"
-  echo "example: perf_run_gc 100 \"-bm=default -log\" pdata"
+if ARGV.length < 2
+  $stderr.puts "usage: perf_run_gc iterations options [conf-name]"
+  $stderr.puts "example: perf_run_gc 100 \"-bm=default -log\" pdata"
   exit 1
-fi
+end
 
-BINDIR=`dirname $0`
+bindir = File.dirname(__FILE__)
+require "#{bindir}/../lib/railsbench/perf_utils"
 
-test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
+perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
 
-ITER="$1"
-OPT="$2"
-BENCHMARK=""
-WARMUP="-warmup"
-patched_gc="no"
-for opt in $OPT; do
-  case $opt in
-  -bm=*) BENCHMARK=${opt#-bm=};;
-  -warmup) WARMUP="";;
-  -gc=*) patched_gc=${opt#-gc=};;
-  esac
-done
+iterations = ARGV[0]
+options = ARGV[1]
 
-DATE=`date +%m-%d`
-if [ $# == 3 ]; then
-  BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}.${BENCHMARK}.$3.gc.txt"
+warmup = "-warmup"
+warmup = "" if options =~ /-warmup/
+
+benchmark = ""
+benchmark = $1 if options =~ /-bm=([^ ]*)/
+
+date = Time.now.strftime '%m-%d'
+
+if ARGV.length == 3
+  benchmark_file = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[2]}.gc.txt"
 else
-  BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run.${BENCHMARK}.gc.txt"
-fi
+  benchmark_file = "#{perf_data_dir}/perf_run.#{benchmark}.gc.txt"
+end
 
-PERF_OPTIONS="$ITER $WARMUP $OPT"
+enable_gc_stats(benchmark_file)
+set_gc_variables([options])
 
-if [ "${patched_gc}" = "no" ]; then
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-else
-  . $RAILS_ROOT/config/${patched_gc}.gc
-  export RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+perf_options = "#{iterations} #{warmup} #{options}"
+null = (RUBY_PLATFORM =~ /win32/) ? 'nul' : '/dev/null'
 
-unset RUBY_GC_STATS RUBY_GC_DATA_FILE
+perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
+print_cmd = "ruby #{bindir}/perf_times_gc #{benchmark_file}"
 
-(RUBY_GC_STATS=1 RUBY_GC_DATA_FILE=$BENCHMARK_FILE ruby $BINDIR/run_urls $PERF_OPTIONS >/dev/null) &&\
-ruby $BINDIR/perf_times_gc $BENCHMARK_FILE
+system(perf_cmd) || die("perf_run_gc: #{perf_cmd} returned #{$?}")
+
+disable_gc_stats
+unset_gc_variables
+system(print_cmd) || die("perf_run_gc: #{print_cmd} returned #{$?}")

@@ -164,15 +164,22 @@ class RailsBenchmark
 
     # support ruby-prof
     ruby_prof = nil
-    ARGV.each{|arg| ruby_prof=$1 if arg =~ /-ruby_prof=(\d*\.?\d*)/ }
+    ARGV.each{|arg| ruby_prof=$1 if arg =~ /-ruby_prof=([^ ]*)/ }
     begin
       if ruby_prof
+        # redirect stderr
+        if benchmark_file = ENV['RAILS_BENCHMARK_FILE']
+          $stderr = File.open(benchmark_file, "w")
+        end
         require 'ruby-prof'
         RubyProf.clock_mode = RubyProf::WALL_TIME
         RubyProf.start
       end
     rescue LoadError
       # ruby-prof not available, do nothing
+      $stderr = STDERR
+      $stderr.puts "ruby-prof not available: giving up"
+      exit(-1)
     end
 
     # start profiler and trigger data collection if required
@@ -203,7 +210,7 @@ class RailsBenchmark
       result = RubyProf.stop
       # Print a flat profile to text
       printer = RubyProf::GraphHtmlPrinter.new(result)
-      printer.print(STDERR, ruby_prof.to_f)
+      printer.print($stderr, ruby_prof.to_f)
     end
 
     delete_test_session

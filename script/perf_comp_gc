@@ -2,7 +2,7 @@
 
 options = ""
 if ARGV.length!=2
-  puts "usage: perf_diff_gc file1 file2"
+  $stderr.puts "usage: perf_diff_gc file1 file2"
   exit 1
 end
 files=[]
@@ -13,11 +13,11 @@ ARGV.each do |arg|
     if File.stat(fn).readable?
       files << File.open(fn)
     else
-      print "file #{fn} is unreadable\n"
+      $stderr.print "file #{fn} is unreadable\n"
       exit 1
     end
   rescue
-    print "file #{fn} does not exist\n"
+    $stderr.print "file #{fn} does not exist\n"
     exit 1
   end
 end

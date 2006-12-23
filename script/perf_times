@@ -5,8 +5,8 @@ require 'railsbench/perf_info'
 
 files = []
 if ARGV.length==0
-  puts "usage: perf_times file1 file2 ..."
-  exit 1
+  $stderr.puts "usage: perf_times file1 file2 ..."
+  $stderr.exit 1
 else
   ARGV.each do |arg|
     files << File.open_or_die(arg)

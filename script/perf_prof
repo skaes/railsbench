@@ -1,51 +1,48 @@
-#!/bin/sh
-# set -x
+#!/usr/bin/env ruby
 
-if [ $# -lt 2 ]; then
-  echo "usage: perf_prof iterations options [conf-name]"
-  echo "example: perf_prof 100 \"-bm=default -log\" pdata"
+if ARGV.length < 1
+  $stderr.puts "usage: perf_prof iterations options [conf-name]"
+  $stderr.puts "example: perf_prof 100 \"-bm=default -log\" pdata"
   exit 1
-fi
+end
 
-BINDIR=`dirname $0`
+bindir = File.dirname(__FILE__)
+require "#{bindir}/../lib/railsbench/perf_utils"
 
-test -z "$RAILS_PERF_DATA" && RAILS_PERF_DATA=$HOME
+perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
 
-ITER="$1"
-OPT="$2"
-BENCHMARK=""
-RUBY_PROF_OPTS="-ruby_prof=1"
-use_patched_gc="no"
-warmup="-warmup "
+iterations = ARGV[0]
+options= ARGV[1]
+benchmark = ""
 
-for opt in $OPT; do
-  case $opt in
-  -bm=*) BENCHMARK=${opt#-bm=};;
-  -ruby_prof=*) RUBY_PROF_OPTS=${opt};;
-  -patched_gc) use_patched_gc="yes";;
-  -warmup) warmup="";;
-  esac
-done
+ruby_prof_opts="-ruby_prof=1"
+warmup="-warmup"
 
-if [ "${use_patched_gc}" = "no" ]; then 
-  unset RUBY_HEAP_MIN_SLOTS RUBY_GC_MALLOC_LIMIT RUBY_HEAP_FREE_MIN
-fi
+warmup = "" if options =~ /-warmup/
+benchmark = $1 if options =~ /-bm=([^ ]*)/
+ruby_prof_opts = $1 if options =~ /-ruby_prof=([^ ]*)/
 
-DATE=`date +%m-%d`
-if [ $# == 3 ]; then
-  BENCHMARK_FILE="$RAILS_PERF_DATA/${DATE}${BENCHMARK}.$3.html"
+date = Time.now.strftime '%m-%d'
+
+if ARGV.length == 2
+  benchmark_file="#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[2]}.html"
 else
-  BENCHMARK_FILE="$RAILS_PERF_DATA/perf_run${BENCHMARK}.html"
-fi
+  benchmark_file="#{perf_data_dir}/perf_run.#{benchmark}.html"
+end
+ENV['RAILS_BENCHMARK_FILE'] = benchmark_file
 
-unset RUBY_GC_STATS
+set_gc_variables([options])
+disable_gc_stats
 
-PERF_OPTIONS="$ITER $OPT ${warmup}$RUBY_PROF_OPTS"
-$BINDIR/run_urls $PERF_OPTIONS >/dev/null 2>$BENCHMARK_FILE
+null = (RUBY_PLATFORM =~ /win32/) ? 'nul' : '/dev/null'
 
-echo "profile data written to $BENCHMARK_FILE"
+perf_options="#{iterations} #{options} #{warmup} #{ruby_prof_opts}"
+perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
+system(perf_cmd) || die("perf_prof: #{perf_cmd} returned #{$?}")
 
-case "$OSTYPE" in
-  cygwin*) cmd /c start "`cygpath -w $BENCHMARK_FILE`";;
-  darwin*) open $BENCHMARK_FILE;;
-esac
+puts "profile data written to #{benchmark_file}"
+
+case RUBY_PLATFORM
+when /win32/  then system("start #{benchmark_file.gsub(/\//, '\\')}")
+when /darwin/ then system("open #{benchmark_file}")
+end
