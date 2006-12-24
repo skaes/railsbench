@@ -59,12 +59,12 @@ printf "\n             %12s %12s %9s %9s %9s %9s\n",
        "c1 mean", "c2 mean", "c1 min", "c2 min", "c1 max", "c2 max"
 
 number_format = "%12.2f %12.2f %9d %9d %9d %9d"
-  
+
 printf "gc time(ms): #{number_format}\n",
        gcis[0].time_mean, gcis[1].time_mean,
        gcis[0].time_min, gcis[1].time_min,
        gcis[0].time_max, gcis[1].time_max
-   
+
 printf "heap slots : #{number_format}\n",
        gcis[0].processed_mean, gcis[1].processed_mean,
        gcis[0].processed_min, gcis[1].processed_min,
@@ -74,12 +74,12 @@ printf "live       : #{number_format}\n",
        gcis[0].live_mean, gcis[1].live_mean,
        gcis[0].live_min, gcis[1].live_min,
        gcis[0].live_max, gcis[1].live_max
-  
+
 printf "freed      : #{number_format}\n",
        gcis[0].freed_mean, gcis[1].freed_mean,
        gcis[0].freed_min, gcis[1].freed_min,
        gcis[0].freed_max, gcis[1].freed_max
-  
+
 printf "freelist   : #{number_format}\n",
        gcis[0].freelist_mean, gcis[1].freelist_mean,
        gcis[0].freelist_min, gcis[1].freelist_min,
@@ -87,10 +87,6 @@ printf "freelist   : #{number_format}\n",
 
 
 __END__
-
-### Local Variables: ***
-### mode:ruby ***
-### End: ***
 
 #    Copyright (C) 2005, 2006  Stefan Kaes
 #

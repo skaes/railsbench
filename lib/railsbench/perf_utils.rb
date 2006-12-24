@@ -85,13 +85,13 @@ def load_gc_variables(gc_spec)
 end
 
 def set_gc_variables(argv)
-  patched_gc = "no"
-  argv.each{|arg| patched_gc=$1 if arg =~ /-gc=([^ ]*)/}
+  gc_spec = nil
+  argv.each{|arg| gc_spec=$1 if arg =~ /-gc=([^ ]*)/}
 
-  if patched_gc == "no"
-    unset_gc_variables
+  if gc_spec
+    load_gc_variables(gc_spec)
   else
-    load_gc_variables(patched_gc)
+    unset_gc_variables
   end
 end
 

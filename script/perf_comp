@@ -134,10 +134,6 @@ end
 
 __END__
 
-### Local Variables: ***
-### mode:ruby ***
-### End: ***
-
 #    Copyright (C) 2005, 2006  Stefan Kaes
 #
 #    This program is free software; you can redistribute it and/or modify

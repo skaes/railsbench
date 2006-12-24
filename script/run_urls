@@ -14,7 +14,7 @@ end
 
 benchmarks = YAML::load(File.open(ENV['RAILS_ROOT'] + "/config/benchmarks.yml"))
 benchmark_name = "default"
-ARGV.each{ |arg| benchmark_name = $1 if arg =~ /-bm=([a-zA-Z_0-9]+)/ }
+ARGV.each{ |arg| benchmark_name = $1 if arg =~ /-bm=([^ ]+)/ }
 
 RAILS_BENCHMARKER.iterations = ARGV[0].to_i
 RAILS_BENCHMARKER.url_spec = benchmarks
@@ -24,10 +24,6 @@ RAILS_BENCHMARKER.warmup if ARGV.include?('-warmup')
 RAILS_BENCHMARKER.run_urls_without_benchmark(ENV['RUBY_GC_STATS'].to_i == 1)
 
 __END__
-
-### Local Variables: ***
-### mode:ruby ***
-### End: ***
 
 #  Copyright (C) 2005, 2006  Stefan Kaes
 #

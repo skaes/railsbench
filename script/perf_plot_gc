@@ -16,6 +16,7 @@ labels = %w()
 perf_data = []
 graph_type = Gruff::StackedBar
 graph_width = 1400
+ignored_object_types = %w(NODE STRING)
 
 ARGV.each do |arg|
   case arg
@@ -29,6 +30,8 @@ ARGV.each do |arg|
 #     title = $1 unless $1.strip.empty?
 #   when /^-names=(.+)$/
 #     names = $1.split(',')
+  when /^-ignore=(.*)$/
+    ignored_object_types = $1.split(',').map(&:upcase)
   else
     files << File.open_or_die(arg)
     names[files.length-1] ||= File.basename(arg)
@@ -71,7 +74,7 @@ g.labels = Hash[* (0...gc_count_max).map{|i| [2*i, i.to_s]}.flatten ]
 puts g.labels.inspect
 
 object_types.each do |ot|
-  next if ot =~ /NODE|STRING/i 
+  next if ignored_object_types.include?(ot)
   data = []
   gc_count_max.times do |gc_index|
     for gci in gcis
@@ -81,7 +84,7 @@ object_types.each do |ot|
       data << ((map_at_this_gc && map_at_this_gc[ot]) || 0)
     end
   end
-  puts "#{ot}: #{data.inspect}"
+  # puts "#{ot}: #{data.inspect}"
   g.data(ot, data)
 end
 
@@ -89,10 +92,6 @@ g.write
 
 
 __END__
-
-### Local Variables: ***
-### mode:ruby ***
-### End: ***
 
 #    Copyright (C) 2005, 2006  Stefan Kaes
 #
