@@ -1,0 +1,406 @@
+2006-12-24  stkaes
+
+	white space changes
+
+2006-12-24  stkaes
+
+	updated environment format
+
+2006-12-24  stkaes
+
+	added licence to scripts
+
+2006-12-23  stkaes
+
+	removed file from manifest; dos2unix railsbench
+
+2006-12-23  stkaes
+
+	set ruby_prof_options correctly
+
+2006-12-23  stkaes
+
+	scripts rewritten in ruby
+
+2006-12-23  stkaes
+
+	ruby version of obsoleted file
+
+2006-12-03  stkaes
+
+	set ENV['VERSION'] if not supplied
+
+2006-12-03  stkaes
+
+	ensure rake test is working
+
+2006-12-03  stkaes
+
+	files renamed
+
+2006-12-03  stkaes
+
+2006-12-03  stkaes
+
+	gem support
+
+2006-12-02  stkaes
+
+2006-11-12  stkaes
+
+	fixed bogus error reports when logging is turned on
+
+2006-11-12  stkaes
+
+	experimental feauture: gc data plot
+
+2006-11-10  stkaes
+
+	don't sort data when plotting
+
+2006-11-08  stkaes
+
+	executable
+
+2006-11-07  stkaes
+
+	replaced -patched_gc by -gc=<name of shell source file under $RAILS_ROOT/config for setting gc variables>
+
+2006-11-07  stkaes
+
+	updated docs
+
+2006-11-07  stkaes
+
+	added GC patch for ruby1.8.5
+
+2006-11-07  stkaes
+
+	added plotting of perf data using gruff
+
+2006-11-07  stkaes
+
+	refactored perf data display
+
+2006-11-06  stkaes
+
+	whitespace change
+
+2006-10-05  stkaes
+
+	error_exit if uri is not specified for benchmark
+
+2006-08-20  stkaes
+
+	bump up version number for next release
+
+2006-08-20  stkaes
+
+	oops if RAIILS_ROOT is undefined
+
+2006-08-19  stkaes
+
+	allow running with only 1 argument
+
+2006-08-19  stkaes
+
+	support writing only headers to avoid ENOMEM on windows
+
+2006-08-11  stkaes
+
+	require 'dispatcher' for edge rails compatibility
+
+2006-07-23  stkaes
+
+	minor changes
+
+2006-07-16  stkaes
+
+	added GC.log method
+
+2006-07-16  stkaes
+
+	support for GC.dump and RUBY_GC_STATS
+
+2006-07-16  stkaes
+
+	-- use /usr/bin/env ruby in install.rb
+	-- updated docs
+
+2006-07-09  stkaes
+
+	added dot before $BENCHMARK in file names
+
+2006-06-28  stkaes
+
+	autostart support for OS X
+
+2006-06-28  stkaes
+
+	adapted export command to svn
+
+2006-06-28  stkaes
+
+	changed Makefile to support svn
+
+2006-06-28  stkaes
+
+	preparing for version 0.8.3
+
+2006-06-28  stkaes
+
+	removed .cvsignore
+
+2006-06-28  stkaes
+
+	removed set -x from perf_prof
+
+2006-06-28  stkaes
+
+	new script perf_prof similar to perf_run, supporting ruby-prof
+
+2006-06-28  stkaes
+
+	- clean out *~ files on make clean
+	- prepare for 0.8.2 release
+
+2006-06-27  stkaes
+
+	doc change
+
+2006-06-20  stkaes
+
+	perf_tex added
+
+2006-06-20  stkaes
+
+	log level settings
+
+2006-06-01  stkaes
+
+	support -log=level
+
+2006-05-28  stkaes
+
+	smaller numbers
+
+2006-05-26  stkaes
+
+	added two new scripts for GC perf comparison
+	fixed nocache setting
+
+2006-05-04  stkaes
+
+	use /bin/sh instead of bash
+
+2006-04-25  stkaes
+
+	bugfix for relative_url_root
+
+2006-04-08  stkaes
+
+	support -patched_gc option
+
+2006-04-08  stkaes
+
+	update README
+
+2006-04-08  stkaes
+
+	make perf_html recognize GC stats
+
+2006-04-08  stkaes
+
+	perf_times_gc refatoring
+
+2006-04-07  stkaes
+
+	clear database connections on aborting benchmarking
+
+2006-04-07  stkaes
+
+	make scripts abortable
+
+2006-04-06  stkaes
+
+	removed leftover set -x
+
+2006-04-06  stkaes
+
+	print min and max along avg and stddev%
+	automatically add warmup for perf_run_gc
+
+2006-04-06  stkaes
+
+	also print min and max values for gc stats
+
+2006-04-06  stkaes
+
+	removed ctrl-Ms
+
+2006-04-06  stkaes
+
+	fixed Makefile bugs
+
+2006-04-06  stkaes
+
+	make it easier to bundle railsbench
+
+2006-04-06  stkaes
+
+	ignore archives
+
+2006-04-06  stkaes
+
+	added perf_run_gc
+
+2006-04-06  stkaes
+
+	updated README
+
+2006-04-06  stkaes
+
+	changed /usr/local/bin/ruby into /usr/bin/env ruby
+
+2006-04-03  stkaes
+
+	*** empty log message ***
+
+2006-04-03  stkaes
+
+	added description of perf_times_gc to README usage section
+
+2006-04-03  stkaes
+
+	stddev refactoring
+
+2006-04-03  stkaes
+
+	added description of new commands to README
+
+2006-04-03  stkaes
+
+	renamed perf_gc_times to perf_times_gc
+	updated GC patch to include docs
+
+2006-04-02  stkaes
+
+	support for GC time analysis
+
+2006-04-02  stkaes
+
+	updated gc patch
+	enable GC stats for run_urls
+
+2006-04-01  stkaes
+
+	small bug fixes in time display
+
+2006-04-01  stkaes
+
+	print more info
+	unset RUBY_GC_STATS
+
+2006-03-31  stkaes
+
+	only compute GC stats if possible
+
+2006-03-31  stkaes
+
+	changes copyright notice
+
+2006-03-31  stkaes
+
+	support collecting GC stats
+
+2006-03-31  stkaes
+
+	support collection of GC stats
+
+2006-02-15  stkaes
+
+	allow digits in benchmark names
+
+2006-02-14  stkaes
+
+	small correction for SVL RPVL/RMVL
+
+2006-02-14  stkaes
+
+	added support for ruby memeory validator
+
+2006-01-29  stkaes
+
+	updated README
+
+2005-12-19  stkaes
+
+	fixed bug in perf_html: don't ignore urls containing get parameters
+
+2005-12-14  stkaes
+
+	-- added perf_html to create html output for perf comparisons
+
+2005-12-14  stkaes
+
+	-- don't set GC params in perf_loop
+	-- -warmup option for run_urls
+	-- -narrow option for perf_comp
+	-- call perf_times during perf_comp
+
+2005-09-25  stkaes
+
+	updated version number
+
+2005-09-21  stkaes
+
+	fixed some typos
+
+2005-09-13  stkaes
+
+	fixed bug in computing standard deviation
+
+2005-09-03  stkaes
+
+	fixed display of ms/r if number of iterations differs between compared data sets
+
+2005-08-27  stkaes
+
+	stylistic changes
+
+2005-08-27  stkaes
+
+	reorganized directory structure
+
+2005-08-27  stkaes
+
+	*** empty log message ***
+
+2005-08-27  stkaes
+
+	automatic install
+
+2005-08-26  stkaes
+
+	now we can run out of the box!
+
+2005-08-25  stkaes
+
+	updated version number
+
+2005-08-25  stkaes
+
+	moved benchmark.rb into a subdir
+	fixed bug in perf_loop
+
+2005-08-24  stkaes
+
+	added benchmark.rb
+
+2005-08-23  stkaes
+
+	Initial revision
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
