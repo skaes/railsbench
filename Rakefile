@@ -43,6 +43,7 @@ hoe = Hoe.new(GEM_NAME, VERS) do |p|
   p.clean_globs = CLEAN  #An array of file patterns to delete on clean.
   p.need_zip = true
   p.spec_extras = {:has_rdoc => false}
+  p.changes = `cat latest_changes`
 
   # == Optional
   #p.changes        - A description of the release's latest changes.
