@@ -19,7 +19,7 @@ path. The exact place can be found running
 which prints the script directory path. After that change, individual
 commands can be run directly:
 
-    railsbench perf_run 100 -bm=all
+    perf_run 100 -bm=all
 
 The environment variable RAILS_ROOT must be set and point to your apps
 base directory, in order for railsbench to work properly.
@@ -41,15 +41,16 @@ Manual installation:
 
 Automatic installation:
 
-  Run railsbench install. This will perform all of the above steps and
-  create a section in database.yml pointing to your development
-  database. In case you are worrying about possible results, you can
-  call railsbench install --dry-run first.
+  Run 'railsbench install'. This will perform all of the above steps
+  and create a configuration named 'benchmarking' in database.yml
+  pointing to your development database. In case you are worrying
+  about possible results, you can call railsbench install --dry-run
+  first.
 
 
 STEP 3: optional (but highly recommended)
 
 Patch the ruby garbage collector using rubygc18{45}.patch, depending
 on your ruby version. Recompile ruby and copy the ruby binary and
-shared libs to where it was previously installed. See GCPATCH for
+shared libs to where they were previously installed. See GCPATCH for
 details on how to influence the patched ruby gc.

@@ -1,13 +1,13 @@
-Railsbench is a small collection of ruby and shell scripts which make
-measuring raw performance of rails apps a snap. All tests are run from
-the command prompt making performance regression testing easy.
+Railsbench is a small collection of ruby scripts which make measuring
+raw performance of rails apps a snap. All tests are run from the
+command prompt, making performance regression testing easy.
 
 In addition, a patch for the ruby garbage collector is provided, which
 can be used to reduce the amount of time spent doing garbage
 collection, trading memory for speed, as usual (see file GCPATCH for
-details). In addition, applying the patch will enhance performance
-data obtained from the various scripts (and some won't run at all
-without the patch).
+details). Applying the patch will enhance performance data obtained
+from the various scripts (and some won't run at all without the
+patch).
 
 This software was written and conceived by Stefan Kaes. The author can
 be reached via email: <skaes@gmx.net>. Please send comments, bug
