@@ -1,6 +1,6 @@
 * converted shell scripts to ruby.
 * cygwin is no longer needed to run railsbench on windows.
-* fixed problems with scripts not beeing executable when installing railsbench as gem.
+* fixed problems with non executable scripts when installing railsbench as gem.
 * some code refactoring.
 * added error messages for RAILS_ROOT not being set.
 * railsbench driver can be called without 'perf_' prefix for command names.
