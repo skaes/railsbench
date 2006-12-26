@@ -5,7 +5,7 @@ INSTALLATION
 STEP 1: installing railsbench and PATH modifcation
 
 If you obtained and installed railsbench as a gem, a script called
-railsbench is available in you Ruby bin directory. railsbench is a
+railsbench is available in your Ruby bin directory. railsbench is a
 simple driver for the railsbench scripts, which are located in the gem
 installation directory. Example:
 
@@ -16,8 +16,16 @@ path. The exact place can be found running
 
     railsbench base
 
-which prints the script directory path. After that change, individual
-commands can be run directly:
+which prints the script directory path. Another option is to run
+
+    eval `railsbench path`
+
+Since gem packages don't support running postinstall scripts, you will
+need to make the scripts executable by running
+
+   sudo railsbench postinstall
+
+After performing these steps, individual commands can be run directly:
 
     perf_run 100 -bm=all
 
