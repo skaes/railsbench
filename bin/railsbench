@@ -3,6 +3,7 @@
 RAILSBENCH_CMDS = %w(
 base
 install
+path
 perf_comp
 perf_comp_gc
 perf_diff
@@ -23,7 +24,7 @@ run_urls
 cmd = ARGV.shift
 unless real_cmd = RAILSBENCH_CMDS[cmd]
   $stderr.puts "railsbench: unknown command: #{cmd}"
-  $stderr.puts "use one of: #{CMDS.keys.sort.join(', ')}"
+  $stderr.puts "use one of: #{RAILSBENCH_CMDS.keys.sort.join(', ')}"
   exit 1
 end
 
@@ -32,6 +33,9 @@ RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__) + '/..')
 case real_cmd
 when 'base'
   puts "railsbench is installed in: #{RAILSBENCH_BASE}"
+  exit
+when 'path'
+  puts "PATH=#{RAILSBENCH_BASE}/script:$PATH"
   exit
 when 'install', 'postinstall'
   load "#{RAILSBENCH_BASE}/#{real_cmd}.rb"
