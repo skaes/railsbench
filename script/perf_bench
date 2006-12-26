@@ -3,7 +3,7 @@
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 
 unless ENV['RAILS_ROOT']
-  $stderr.puts("\nOOPS: can't benchmark unless RAILS_ROOT is set")
+  $stderr.puts("\nperf_bench: can't benchmark unless RAILS_ROOT is set")
   $stderr.puts("\nbenchmarking aborted!")
   exit 1
 end

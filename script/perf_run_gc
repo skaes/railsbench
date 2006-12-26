@@ -9,39 +9,17 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
-perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
+die("perf_run_gc: RAILS_ROOT not set") unless ENV['RAILS_ROOT']
 
 iterations = ARGV[0]
 options = ARGV[1]
 
-warmup = "-warmup"
-warmup = "" if options =~ /-warmup/
-
-benchmark = ""
+benchmark = "default"
 benchmark = $1 if options =~ /-bm=([^ ]+)/
 
-date = Time.now.strftime '%m-%d'
+benchmark_file = benchmark_file_name(benchmark, ARGV[2], "", :gc)
 
-if ARGV.length == 3
-  benchmark_file = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[2]}.gc.txt"
-else
-  benchmark_file = "#{perf_data_dir}/perf_run.#{benchmark}.gc.txt"
-end
-
-enable_gc_stats(benchmark_file)
-set_gc_variables([options])
-
-perf_options = "#{iterations} #{warmup} #{options}"
-null = (RUBY_PLATFORM =~ /win32/) ? 'nul' : '/dev/null'
-
-perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
-print_cmd = "ruby #{bindir}/perf_times_gc #{benchmark_file}"
-
-system(perf_cmd) || die("perf_run_gc: #{perf_cmd} returned #{$?}")
-
-disable_gc_stats
-unset_gc_variables
-system(print_cmd) || die("perf_run_gc: #{print_cmd} returned #{$?}")
+perf_run_gc("perf_run_gc", iterations, options, benchmark_file)
 
 __END__
 

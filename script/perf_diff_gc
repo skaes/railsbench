@@ -9,63 +9,24 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
-perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
+die("perf_diff_gc: RAILS_ROOT not set") unless ENV['RAILS_ROOT']
 
 iterations = ARGV[0]
 common = ARGV[1]
 options1 = ARGV[2]
 options2 = ARGV[3]
-date = Time.now.strftime '%m-%d'
 
-benchmark = ""
+benchmark = "default"
 benchmark = $1 if common =~ /-bm=([^ ]+)/
 
-warmup = "-warmup"
+file1 = benchmark_file_name(benchmark, ARGV[4], 1, :gc)
+perf_run_gc("perf_run_gc", iterations, "#{common} #{options1}", file1)
 
-if ARGV[4]
-  file1 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[4]}.gc.txt"
-else
-  file1 = "#{perf_data_dir}/perf_run1.#{benchmark}.gc.txt"
-end
-if ARGV[5]
-  file2 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[5]}.gc.txt"
-else
-  file2 = "#{perf_data_dir}/perf_run2.#{benchmark}.gc.txt"
-end
-
-null = (RUBY_PLATFORM =~ /win32/i) ? 'nul' : '/dev/null'
-
-perf_options = "#{iterations} #{warmup} #{common} #{options1}"
-
-puts "benchmarking GC performance with options #{perf_options}"
-puts
-
-set_gc_variables([common, options1])
-enable_gc_stats(file1)
-perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
-system(perf_cmd) || die("perf_diff_gc: #{perf_cmd} returned #{$?}")
-
-unset_gc_variables
-disable_gc_stats
-
-system("ruby #{bindir}/perf_times_gc #{file1}")
 puts;puts
 
-perf_options = "#{iterations} #{warmup} #{common} #{options2}"
+file2 = benchmark_file_name(benchmark, ARGV[5], 2, :gc)
+perf_run_gc("perf_run_gc", iterations, "#{common} #{options2}", file2)
 
-puts "benchmarking GC performance with options #{perf_options}"
-puts
-
-set_gc_variables([common, options2])
-enable_gc_stats(file2)
-
-perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
-system(perf_cmd) || die("perf_diff_gc: #{perf_cmd} returned #{$?}")
-
-unset_gc_variables
-disable_gc_stats
-
-system("ruby #{bindir}/perf_times_gc #{file2}")
 puts;puts
 
 puts "benchmark comparison data"

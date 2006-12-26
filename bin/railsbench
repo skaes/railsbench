@@ -17,28 +17,28 @@ perf_times
 perf_times_gc
 install
 run_urls
-)
+).inject({}){ |h, cmd| h[cmd] = cmd; h[cmd.sub('perf_', '')] = cmd; h}
 
 cmd = ARGV.shift
-unless CMDS.include? cmd
+unless real_cmd = CMDS[cmd]
   $stderr.puts "railsbench: unknown command: #{cmd}"
-  $stderr.puts "use one of: #{CMDS.sort.join(', ')}"
+  $stderr.puts "use one of: #{CMDS.keys.sort.join(', ')}"
+  exit 1
+end
+
+unless ENV['RAILS_ROOT']
+  $stderr.puts "railsbench: RAILS_ROOT not set"
   exit 1
 end
 
 RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__) + '/..')
 
-def quoted_args
-  ARGV.map{|s| "'#{s}'" }.join(' ')
-end
-
-case cmd
+case real_cmd
 when 'base'
   puts "railsbench is installed in: #{RAILSBENCH_BASE}"
-  puts "load path: #{$:.join("\n")}"
   exit
 when 'install'
   load "#{RAILSBENCH_BASE}/install.rb"
 else
-  load "#{RAILSBENCH_BASE}/script/#{cmd}"
+  load "#{RAILSBENCH_BASE}/script/#{real_cmd}"
 end

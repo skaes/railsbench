@@ -9,23 +9,16 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
-perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
+die("perf_run: RAILS_ROOT not set") unless ENV['RAILS_ROOT']
 
-benchmark = ""
-benchmark = $1 if ARGV[1] =~ /-bm=([^ ]+)/
+iterations = ARGV[0]
+options = ARGV[1]
 
-date = Time.now.strftime '%m-%d'
+benchmark = "default"
+benchmark = $1 if options =~ /-bm=([^ ]+)/
 
-if ARGV.length == 3
-  benchmark_file = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[2]}.txt"
-else
-  benchmark_file = "#{perf_data_dir}/perf_run.#{benchmark}.txt"
-end
-
-ENV['RAILS_BENCHMARK_FILE'] = benchmark_file
-perf_loop(ARGV)
-unset_gc_variables
-system("ruby #{bindir}/perf_times #{benchmark_file}")
+benchmark_file = benchmark_file_name(benchmark, ARGV[2])
+perf_run("perf_run", iterations, options, benchmark_file)
 
 __END__
 

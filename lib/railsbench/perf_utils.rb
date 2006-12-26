@@ -64,6 +64,8 @@ def truncate(text, length = 32, truncate_string = "...")
   end
 end
 
+RAILSBENCH_BINDIR = File.expand_path(File.dirname(__FILE__) + "/../../script")
+
 def enable_gc_stats(file)
   ENV['RUBY_GC_STATS'] = "1"
   ENV['RUBY_GC_DATA_FILE'] = file
@@ -95,27 +97,83 @@ def set_gc_variables(argv)
   end
 end
 
+def benchmark_file_name(benchmark, config_name, prefix=nil, suffix=nil)
+  perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
+  date = Time.now.strftime '%m-%d'
+  suffix = ".#{suffix}" if suffix
+  ENV['RAILS_BENCHMARK_FILE'] =
+    if config_name
+      "#{perf_data_dir}/#{date}.#{benchmark}.#{config_name}#{suffix}.txt"
+    else
+      "#{perf_data_dir}/perf_run#{prefix}.#{benchmark}#{suffix}.txt"
+    end
+end
+
 def quote_arguments(argv)
   argv.map{|a| a.include?(' ') ? "'#{a}'" : a.to_s}.join(' ')
 end
 
-def perf_loop(argv)
-  bindir = File.expand_path(File.dirname(__FILE__) + '/../../script')
-
-  iterations = (ENV['RAILS_PERF_RUNS'] ||= "3").to_i
-  raw_data_file = ENV['RAILS_BENCHMARK_FILE']
+def perf_run(script, iterations, options, raw_data_file)
+  perf_runs = (ENV['RAILS_PERF_RUNS'] ||= "3").to_i
 
   disable_gc_stats
-  set_gc_variables(argv)
+  set_gc_variables([iterations, options])
 
+  perf_options = "#{iterations} #{options}"
   null = (RUBY_PLATFORM =~ /win32/i) ? 'nul' : '/dev/null'
-  perf_cmd = "ruby #{bindir}/perf_bench #{argv.join(' ')}"
 
-  puts "benchmarking #{iterations} runs with options #{argv.join(' ')}"
+  perf_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_bench #{perf_options}"
+  print_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_times #{raw_data_file}"
+
+  puts "benchmarking #{perf_runs} runs with options #{perf_options}"
 
   File.open(raw_data_file, "w"){ |f| f.puts perf_cmd }
-  iterations.times do
-    system("#{perf_cmd} >#{null}") || exit(1)
+  perf_runs.times do
+    system("#{perf_cmd} >#{null}") || die("#{script}: #{perf_cmd} returned #{$?}")
   end
   File.open(raw_data_file, "a" ){|f| f.puts }
+
+  unset_gc_variables
+  system(print_cmd) || die("#{script}: #{print_cmd} returned #{$?}")
 end
+
+def perf_run_gc(script, iterations, options, raw_data_file)
+  warmup = "-warmup"
+  warmup = "" if options =~ /-warmup/
+
+  enable_gc_stats(raw_data_file)
+  set_gc_variables([options])
+
+  perf_options = "#{iterations} #{warmup} #{options}"
+  null = (RUBY_PLATFORM =~ /win32/) ? 'nul' : '/dev/null'
+
+  perf_cmd = "ruby #{RAILSBENCH_BINDIR}/run_urls #{perf_options} >#{null}"
+  print_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_times_gc #{raw_data_file}"
+
+  puts "benchmarking GC performance with options #{perf_options}"
+  puts
+
+  system(perf_cmd) || die("#{script}: #{perf_cmd} returned #{$?}")
+
+  disable_gc_stats
+  unset_gc_variables
+  system(print_cmd) || die("#{script}: #{print_cmd} returned #{$?}")
+end
+
+__END__
+
+#  Copyright (C) 2005, 2006  Stefan Kaes
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA

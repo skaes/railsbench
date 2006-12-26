@@ -9,38 +9,22 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
-perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
+die("perf_diff: RAILS_ROOT not set") unless ENV['RAILS_ROOT']
 
-iterations   = ARGV[0]
+iterations = ARGV[0]
 common = ARGV[1]
-options1   = ARGV[2]
-options2   = ARGV[3]
-date   = Time.now.strftime '%m-%d'
+options1 = ARGV[2]
+options2 = ARGV[3]
 
-benchmark = ""
+benchmark = "default"
 benchmark = $1 if common =~ /-bm=([^ ]+)/
 
-if ARGV[4]
-  file1 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[4]}.txt"
-else
-  file1 = "#{perf_data_dir}/perf_run1.#{benchmark}.txt"
-end
-if ARGV[5]
-  file2 = "#{perf_data_dir}/#{date}.#{benchmark}.#{ARGV[5]}.txt"
-else
-  file2 = "#{perf_data_dir}/perf_run2.#{benchmark}.txt"
-end
-
-ENV['RAILS_BENCHMARK_FILE'] = file1
-perf_loop([iterations, common, options1])
-unset_gc_variables
-system("ruby #{bindir}/perf_times #{file1}")
+file1 = benchmark_file_name(benchmark, ARGV[4], 1)
+perf_run("perf_diff", iterations, "#{common} #{options1}", file1)
 puts;puts
 
-ENV['RAILS_BENCHMARK_FILE'] = file2
-perf_loop([iterations, common, options2])
-unset_gc_variables
-system("ruby #{bindir}/perf_times #{file2}")
+file2 = benchmark_file_name(benchmark, ARGV[5], 2)
+perf_run("perf_diff", iterations, "#{common} #{options2}", file2)
 puts;puts
 
 system("ruby #{bindir}/perf_comp -narrow -skip_urls #{file1} #{file2}")

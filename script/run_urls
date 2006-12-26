@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 
-$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+unless ENV['RAILS_ROOT']
+  $stderr.puts("\nrun_urls: can't run urls unless RAILS_ROOT is set")
+  $stderr.puts("\nbenchmarking aborted!")
+  exit 1
+end
 
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'railsbench/railsbenchmark'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'
 
