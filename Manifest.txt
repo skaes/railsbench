@@ -2,6 +2,7 @@ BUGS
 CHANGELOG
 INSTALL
 install.rb
+postinstall.rb
 LICENSE
 Manifest.txt
 README
