@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+
+require "#{ENV['RAILS_ROOT']}/config/environment"
+require 'application'
+
+excluded_controllers = ["application"]
+ARGV.each do |arg|
+  excluded_controllers.concat($1.split(/, */)) if arg =~ /-except=(.*)/
+end
+
+benchmarks = YAML::load(File.open("#{RAILS_ROOT}/config/benchmarks.yml"))
+rs = ActionController::Routing::Routes
+
+named_routes_map = rs.named_routes.to_a.inject({}){|h,(name,route)| h[route] = name; h}
+controller_action_map = {}
+has_default_route = false
+
+rs.routes.to_a.each do |route|
+  uri = route.segments.map(&:to_s).join
+  (has_default_route = true; next) if uri == "/:controller/:action/:id/"
+  controller = route.requirements[:controller]
+  action = route.requirements[:action]
+  controller_action = "#{controller}_#{action}"
+  if uri =~ /destroy|delete/
+    $stderr.puts "deletion url ignored: #{uri}"
+  end
+  name = named_routes_map[route] || controller_action
+  puts "\n#{name}:\n\turi: \t\t#{uri}\n#\tcontroller: \t#{controller}\n#\taction: \t#{action}\n"
+  benchmarks[name] ||= {:uri => uri, :controller => controller, :action => action}
+  controller_action_map[controller_action] = true
+end
+
+if has_default_route
+  $stderr.puts "warning: you are still using the default route"
+  Dir["#{RAILS_ROOT}/app/controllers/*.rb"].each do |file|
+    file_name = File.basename(file).sub(/\.rb$/,'')
+    controller_name = file_name.sub(/_controller$/,'')
+    next if excluded_controllers.include?(controller_name)
+    begin
+      controller = file_name.classify.constantize
+      controller.action_methods.each do |method|
+        next if method =~ /delete|destroy/
+        benchmark_name = "#{controller_name}_#{method}"
+        next if controller_action_map[benchmark_name]
+        uri = rs.generate({:controller => controller_name ,:action => method},{})
+        entry = {:uri => uri, :controller => controller, :action => method}
+        puts "\n#{benchmark_name}:\n\turi: \t\t#{uri}\n#\tcontroller: \t#{controller}\n#\taction: \t#{method}\n"
+        benchmarks[benchmark_name] ||= entry
+      end
+    rescue MissingSourceFile, NoMethodError, ActionController::RoutingError
+    end
+  end
+end

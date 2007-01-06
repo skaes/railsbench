@@ -2,6 +2,7 @@
 
 RAILSBENCH_CMDS = %w(
 base
+generate_benchmarks
 install
 path
 perf_comp
