@@ -16,14 +16,15 @@ end
 
 RAILS_CONFIG = RAILS_ROOT + "/config/"
 RAILS_ENVS = RAILS_ROOT + "/config/environments/"
+RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__))
 
-install("config/benchmarks.rb", RAILS_CONFIG, :mode => 0644) unless
+install("#{RAILSBENCH_BASE}/config/benchmarks.rb", RAILS_CONFIG, :mode => 0644) unless
   File.exists?(RAILS_CONFIG + "benchmarks.rb")
 
-install("config/benchmarks.yml", RAILS_CONFIG, :mode => 0644) unless
+install("#{RAILSBENCH_BASE}/config/benchmarks.yml", RAILS_CONFIG, :mode => 0644) unless
   File.exists?(RAILS_CONFIG + "benchmarks.yml")
 
-install("config/benchmarking.rb", RAILS_ENVS, :mode => 0644) unless
+install("#{RAILSBENCH_BASE}/config/benchmarking.rb", RAILS_ENVS, :mode => 0644) unless
   File.exists?(RAILS_ENVS + "benchmarking.rb")
 
 database = YAML::load(File.open(RAILS_CONFIG + "database.yml"))
