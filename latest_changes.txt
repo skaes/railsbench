@@ -1,8 +1,3 @@
-* converted shell scripts to ruby.
-* cygwin is no longer needed to run railsbench on windows (use railsbench cmd)
-* fixed problems with non executable scripts when installing railsbench (call sudo railsbench postinstall)
-* some code refactoring
-* added error messages for RAILS_ROOT not being set
-* railsbench driver can be called without 'perf_' prefix for command names
-* installation simplified: call 'railsbench install'
-* you can add 'eval `railsbench path` to your profile for direct script access
+* fixed problems with railsbench istall
+* fixed problems for folks running out of the box GC
+* added generate benchmarks command

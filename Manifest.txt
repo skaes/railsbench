@@ -18,6 +18,7 @@ lib/railsbench/perf_utils.rb
 lib/railsbench/write_headers_only.rb
 lib/railsbench/railsbenchmark.rb
 lib/benchmark.rb
+script/generate_benchmarks
 script/perf_bench
 script/perf_comp
 script/perf_comp_gc

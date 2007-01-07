@@ -8,7 +8,16 @@ ARGV.each do |arg|
   excluded_controllers.concat($1.split(/, */)) if arg =~ /-except=(.*)/
 end
 
-benchmarks = YAML::load(File.open("#{RAILS_ROOT}/config/benchmarks.yml"))
+benchmark_config = File.expand_path "#{RAILS_ROOT}/config/benchmarks.yml"
+
+if File.exist? benchmark_config
+  benchmarks = YAML::load(File.open(benchmark_config)) || {}
+else
+  benchmarks = {}
+end
+
+puts benchmarks.inspect
+
 rs = ActionController::Routing::Routes
 
 named_routes_map = rs.named_routes.to_a.inject({}){|h,(name,route)| h[route] = name; h}
@@ -25,8 +34,8 @@ rs.routes.to_a.each do |route|
     $stderr.puts "deletion url ignored: #{uri}"
   end
   name = named_routes_map[route] || controller_action
-  puts "\n#{name}:\n\turi: \t\t#{uri}\n#\tcontroller: \t#{controller}\n#\taction: \t#{action}\n"
-  benchmarks[name] ||= {:uri => uri, :controller => controller, :action => action}
+  puts "\n#{name}:\n\turi: \t\t#{uri}\n\tcontroller: \t#{controller}\n\taction: \t#{action}\n"
+  benchmarks[name] ||= {"uri" => uri, "controller" => controller, "action" => action}
   controller_action_map[controller_action] = true
 end
 
@@ -43,11 +52,40 @@ if has_default_route
         benchmark_name = "#{controller_name}_#{method}"
         next if controller_action_map[benchmark_name]
         uri = rs.generate({:controller => controller_name ,:action => method},{})
-        entry = {:uri => uri, :controller => controller, :action => method}
-        puts "\n#{benchmark_name}:\n\turi: \t\t#{uri}\n#\tcontroller: \t#{controller}\n#\taction: \t#{method}\n"
+        entry = {"uri" => uri, "controller" => controller_name, "action" => method}
+        puts "\n#{benchmark_name}:\n\turi: \t\t#{uri}\n\tcontroller: \t#{controller}\n\taction: \t#{method}\n"
         benchmarks[benchmark_name] ||= entry
       end
     rescue MissingSourceFile, NoMethodError, ActionController::RoutingError
     end
   end
 end
+
+File.open(benchmark_config, "w") do |out|
+  begin
+    YAML::dump(benchmarks, out)
+  rescue Exception => e
+    $stderr.puts "could not write yaml to #{benchmark_config}"
+    $stderr.puts e.msg
+    $stderr.puts e.backtrace.join "\n"
+  end
+end
+
+
+__END__
+
+#    Copyright (C) 2007  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
