@@ -111,6 +111,7 @@ class PerfInfo
     end
 
     PerfAttributes.each do |attr|
+      next if attr.to_s =~ /^gc_/ and !gc_stats?
       a = @entries.map{|e| e.send attr}
       [:min, :max, :mean].each do |method|
         instance_variable_set "@#{attr}_#{method}", (a.send method)
