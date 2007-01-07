@@ -23,7 +23,7 @@ perf_run_gc("perf_run_gc", iterations, options, benchmark_file)
 
 __END__
 
-#  Copyright (C) 2005, 2006  Stefan Kaes
+#  Copyright (C) 2005, 2006, 2007  Stefan Kaes
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
