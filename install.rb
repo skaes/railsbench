@@ -16,7 +16,7 @@ end
 
 RAILS_CONFIG = RAILS_ROOT + "/config/"
 RAILS_ENVS = RAILS_ROOT + "/config/environments/"
-RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__))
+RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__)) unless defined? RAILSBENCH_BASE
 
 install("#{RAILSBENCH_BASE}/config/benchmarks.rb", RAILS_CONFIG, :mode => 0644) unless
   File.exists?(RAILS_CONFIG + "benchmarks.rb")
