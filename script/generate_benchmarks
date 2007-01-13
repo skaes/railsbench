@@ -4,15 +4,18 @@ require "#{ENV['RAILS_ROOT']}/config/environment"
 require 'application'
 
 if ARGV.first == "help"
-  puts <<"endhelp"
-usage: railsbench generate_benchmarks -excluded_actions=<regexp> -excluded_controllers=<controller_list>
-- loads your application\'s routes and generates a benchmarks.yml file containing benchmark definitions for each route found
-- for named routes, benchmark names are derived from the route name
-- for routes defined via map.connect, the benchmark name is derived from the controller and action
-- for each controller, a benchmark consisting of all controller actions is generated
-  (named after the controller file name)
-- generates a benchmark named 'all', consisting of all controller actions
-endhelp
+  puts <<-"endhelp"
+  usage: railsbench generate_benchmarks -excluded_actions=<regexp> -excluded_controllers=<controller_list>
+  1) loads your application\'s routes and generates a benchmarks.yml file
+     containing benchmark definitions for each route found
+  2) for named routes, benchmark names are derived from the route name
+  3) for routes defined via map.connect, the benchmark name is derived
+     from the controller and action
+  4) for each controller, a benchmark consisting of all controller actions
+     is generated (named after the controller file name)
+  5) generates a benchmark named 'all_controllers', consisting of all
+     benchmarks generated in step 4
+  endhelp
   exit
 end
 
@@ -31,8 +34,6 @@ else
   benchmarks = {}
 end
 
-new_benchmarks = {}
-
 VALID_KEYS = %w(uri action controller new_session query_params)
 
 def dump_entry(name, entry, io = $stdout)
@@ -47,6 +48,11 @@ def dump_entry(name, entry, io = $stdout)
   else
     raise "unsupported YAML entry"
   end
+end
+
+if defined? ActionController::CodeGeneration
+  $stderr.puts "this Rails version is not supported. please upgrade to a 1.2 variety."
+  exit 1
 end
 
 rs = ActionController::Routing::Routes
@@ -74,13 +80,13 @@ rs.routes.to_a.each do |route|
   end
   if excluded_controllers.include? controller
     $stderr.puts "ignored controller: #{controller}"
-    benchmarks["all"] = ((benchmarks["all"]||"").split(/, */) - [file_name]).uniq.join(', ')
+    benchmarks["all_controllers"] = ((benchmarks["all_controllers"]||"").split(/, */) - [file_name]).uniq.join(', ')
     next
   end
   dump_entry benchmark_name, entry, out
   controller_action_map[controller_action] = true
   benchmarks[file_name] = ((benchmarks[file_name]||"").split(/, */) + [benchmark_name]).uniq.join(', ')
-  benchmarks["all"] = ((benchmarks["all"]||"").split(/, */) + [file_name]).uniq.join(', ')
+  benchmarks["all_controllers"] = ((benchmarks["all_controllers"]||"").split(/, */) + [file_name]).uniq.join(', ')
 end
 
 if has_default_route
@@ -90,7 +96,7 @@ if has_default_route
     controller_name = file_name.sub(/_controller$/,'')
     if excluded_controllers.include? controller_name
       $stderr.puts "ignored controller: #{controller_name}"
-      benchmarks["all"] = ((benchmarks["all"]||"").split(/, */) - [file_name]).uniq.join(', ')
+      benchmarks["all_controllers"] = ((benchmarks["all_controllers"]||"").split(/, */) - [file_name]).uniq.join(', ')
       next
     end
     begin
@@ -108,7 +114,7 @@ if has_default_route
         end
         dump_entry benchmark_name, entry, out
         benchmarks[file_name] = ((benchmarks[file_name]||"").split(/, */) + [benchmark_name]).uniq.join(', ')
-        benchmarks["all"] = ((benchmarks["all"]||"").split(/, */) + [file_name]).uniq.join(', ')
+        benchmarks["all_controllers"] = ((benchmarks["all_controllers"]||"").split(/, */) + [file_name]).uniq.join(', ')
       end
     rescue MissingSourceFile, NoMethodError, ActionController::RoutingError
     end
@@ -116,28 +122,25 @@ if has_default_route
 end
 
 # dump remaining benchmarks
-all_entry = benchmarks.delete "all"
+all_entry = benchmarks.delete "all_controllers"
 
-benchmarks.each do |benchmark_name, entry|
-  next if entry.is_a?(Hash) && entry["action"].to_s =~ excluded_actions
-  next if entry.is_a?(Hash) && entry["controller"].to_s =~ excluded_controllers
+benchmarks.delete_if do |k,v|
+  v.is_a?(Hash) && (v["action"].to_s =~ excluded_actions || v["controller"].to_s =~ excluded_controllers)
+end
+
+generated_controller_benchmarks, others = benchmarks.partition{|k,v| k =~ /_controller$/}
+
+generated_controller_benchmarks.sort_by(&:first).each do |benchmark_name, entry|
   dump_entry benchmark_name, entry, out
 end
 
-dump_entry "all", all_entry, out
+dump_entry "all_controllers", all_entry, out
+
+others.each do |benchmark_name, entry|
+  dump_entry benchmark_name, entry, out
+end
 
 out.close unless out.nil?
-
-# File.open(benchmark_config, "w") do |out|
-#   begin
-#     YAML::dump(benchmarks, out)
-#   rescue Exception => e
-#     $stderr.puts "could not write yaml to #{benchmark_config}"
-#     $stderr.puts e.msg
-#     $stderr.puts e.backtrace.join "\n"
-#   end
-# end
-
 
 __END__
 
