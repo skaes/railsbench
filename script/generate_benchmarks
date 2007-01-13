@@ -3,9 +3,11 @@
 require "#{ENV['RAILS_ROOT']}/config/environment"
 require 'application'
 
-excluded_controllers = ["application"]
+excluded_controllers = /application/
+excluded_actions = /delete|destroy/
 ARGV.each do |arg|
   excluded_controllers.concat($1.split(/, */)) if arg =~ /-except=(.*)/
+  excluded_actions = Regexp.new($1) if arg =~ /-excuded_actions=(.*)/
 end
 
 benchmark_config = File.expand_path "#{RAILS_ROOT}/config/benchmarks.yml"
@@ -16,7 +18,16 @@ else
   benchmarks = {}
 end
 
-puts benchmarks.inspect
+# puts benchmarks.inspect
+VALID_KEYS = %w(uri action controller new_session query_params)
+
+def dump_entry(name, entry, io = $stdout)
+  io.puts "#{name}:"
+  VALID_KEYS.each do |key|
+    io.printf "    %15-s %s\n", key + ':', entry[key] if entry.has_key? key
+  end
+  io.puts
+end
 
 rs = ActionController::Routing::Routes
 
@@ -24,18 +35,20 @@ named_routes_map = rs.named_routes.to_a.inject({}){|h,(name,route)| h[route] = n
 controller_action_map = {}
 has_default_route = false
 
+out = File.open(benchmark_config, "w")
+
 rs.routes.to_a.each do |route|
   uri = route.segments.map(&:to_s).join
   (has_default_route = true; next) if uri == "/:controller/:action/:id/"
   controller = route.requirements[:controller]
   action = route.requirements[:action]
   controller_action = "#{controller}_#{action}"
-  if uri =~ /destroy|delete/
-    $stderr.puts "deletion url ignored: #{uri}"
+  if uri =~ excluded_actions
+    $stderr.puts "ignored url: #{uri}"
   end
-  name = named_routes_map[route] || controller_action
-  puts "\n#{name}:\n\turi: \t\t#{uri}\n\tcontroller: \t#{controller}\n\taction: \t#{action}\n"
-  benchmarks[name] ||= {"uri" => uri, "controller" => controller, "action" => action}
+  benchmark_name = named_routes_map[route] || controller_action
+  entry = (benchmarks[benchmark_name] || {}).reverse_merge "uri" => uri, "controller" => controller, "action" => action
+  dump_entry benchmark_name, entry, out
   controller_action_map[controller_action] = true
 end
 
@@ -44,32 +57,33 @@ if has_default_route
   Dir["#{RAILS_ROOT}/app/controllers/*.rb"].each do |file|
     file_name = File.basename(file).sub(/\.rb$/,'')
     controller_name = file_name.sub(/_controller$/,'')
-    next if excluded_controllers.include?(controller_name)
+    next if controller_name =~ excluded_controllers
     begin
       controller = file_name.classify.constantize
       controller.action_methods.each do |method|
-        next if method =~ /delete|destroy/
+        next if method =~ excluded_actions
         benchmark_name = "#{controller_name}_#{method}"
         next if controller_action_map[benchmark_name]
         uri = rs.generate({:controller => controller_name ,:action => method},{})
-        entry = {"uri" => uri, "controller" => controller_name, "action" => method}
-        puts "\n#{benchmark_name}:\n\turi: \t\t#{uri}\n\tcontroller: \t#{controller}\n\taction: \t#{method}\n"
-        benchmarks[benchmark_name] ||= entry
+        entry = (benchmarks[benchmark_name] || {}).reverse_merge "uri" => uri, "controller" => controller_name, "action" => method
+        dump_entry benchmark_name, entry, out
       end
     rescue MissingSourceFile, NoMethodError, ActionController::RoutingError
     end
   end
 end
 
-File.open(benchmark_config, "w") do |out|
-  begin
-    YAML::dump(benchmarks, out)
-  rescue Exception => e
-    $stderr.puts "could not write yaml to #{benchmark_config}"
-    $stderr.puts e.msg
-    $stderr.puts e.backtrace.join "\n"
-  end
-end
+out.close unless out.nil?
+
+# File.open(benchmark_config, "w") do |out|
+#   begin
+#     YAML::dump(benchmarks, out)
+#   rescue Exception => e
+#     $stderr.puts "could not write yaml to #{benchmark_config}"
+#     $stderr.puts e.msg
+#     $stderr.puts e.backtrace.join "\n"
+#   end
+# end
 
 
 __END__
