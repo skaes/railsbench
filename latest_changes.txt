@@ -1,3 +1,4 @@
 * fixed problems with railsbench istall
 * fixed problems for folks running out of the box GC
-* added generate benchmarks command
+* added help command (railsbench help, railsbench cmd help)
+* added generate_benchmarks command: automatic generation and maintainance of benchmarks.yml
