@@ -2,3 +2,5 @@
 * fixed problems for folks running out of the box GC
 * added help command (railsbench help, railsbench cmd help)
 * added generate_benchmarks command: automatic generation and maintainance of benchmarks.yml
+* improved installation instructions
+* automatically detect RAILS_ROOT when invoked from a Rails app's top level directory
