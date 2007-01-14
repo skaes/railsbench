@@ -20,6 +20,7 @@ perf_tex
 perf_times
 perf_times_gc
 postinstall
+readme
 run_urls
 ).inject({}){ |h, cmd| h[cmd] = cmd; h[cmd.sub('perf_', '')] = cmd; h}
 
@@ -38,7 +39,7 @@ case real_cmd
 when 'base'
   puts "railsbench is installed in: #{RAILSBENCH_BASE}"
   exit
-when 'help'
+when 'help', 'readme'
   File.open("#{RAILSBENCH_BASE}/README").each_line{|l| puts l}
   exit
 when 'path'
@@ -48,7 +49,23 @@ when 'install', 'postinstall'
   load "#{RAILSBENCH_BASE}/#{real_cmd}.rb"
 else
   unless ENV['RAILS_ROOT']
-    $stderr.puts "railsbench: RAILS_ROOT not set"
+    if File.exists? 'config/environment.rb'
+      ENV['RAILS_ROOT'] = File.expand_path '.'
+    else
+      $stderr.puts "railsbench: RAILS_ROOT not set"
+      exit 1
+    end
+  end
+  unless File.exists? "#{ENV['RAILS_ROOT']}/config/benchmarks.yml"
+    $stderr.puts "railsbench: benchmarks.yml missing: run `railsbench install'"
+    exit 1
+  end
+  unless File.exists? "#{ENV['RAILS_ROOT']}/config/benchmarks.rb"
+    $stderr.puts "railsbench: benchmarks.rb missing: run `railsbench install'"
+    exit 1
+  end
+  unless File.exists? "#{ENV['RAILS_ROOT']}/config/environments/benchmarking.rb"
+    $stderr.puts "railsbench: environment 'benchmarking' missing: run `railsbench install'"
     exit 1
   end
   load "#{RAILSBENCH_BASE}/script/#{real_cmd}"
