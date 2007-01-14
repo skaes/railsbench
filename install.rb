@@ -9,14 +9,23 @@ end
 
 require 'yaml'
 
-unless RAILS_ROOT = ENV['RAILS_ROOT']
-  STDERR.puts "RAILS_ROOT must be fined in your environment"
-  exit 1
+unless ENV['RAILS_ROOT']
+  if File.exists? "config/environment.rb"
+    ENV['RAILS_ROOT'] = File.expand_path "."
+  else
+    $stderr.puts "RAILS_ROOT must be fined in your environment"
+    exit 1
+  end
 end
 
+RAILS_ROOT = ENV['RAILS_ROOT']
 RAILS_CONFIG = RAILS_ROOT + "/config/"
 RAILS_ENVS = RAILS_ROOT + "/config/environments/"
 RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__)) unless defined? RAILSBENCH_BASE
+
+if ARGV.first == 'help'
+  File.open("#{RAILSBENCH_BASE}/INSTALL").each_line{|l| puts l}
+end
 
 install("#{RAILSBENCH_BASE}/config/benchmarks.rb", RAILS_CONFIG, :mode => 0644) unless
   File.exists?(RAILS_CONFIG + "benchmarks.rb")
