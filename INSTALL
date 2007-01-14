@@ -2,7 +2,8 @@
 INSTALLATION
 ============
 
-STEP 1: installing railsbench and PATH modifcation
+STEP 1: installing railsbench and PATH modification
+---------------------------------------------------
 
 If you obtained and installed railsbench as a gem, a script called
 railsbench is available in your Ruby bin directory. railsbench is a
@@ -37,6 +38,7 @@ script directory to your search path.
 
 
 STEP 2: prepare your application for benchmarking
+-------------------------------------------------
 
 Manual installation:
 
@@ -55,8 +57,12 @@ Automatic installation:
   about possible results, you can call railsbench install --dry-run
   first.
 
+In either case, run `railsbench generate_benchmarks'. This will create
+a benchmarks.yml file with a benchmark for each controller and action.
+
 
 STEP 3: optional (but highly recommended)
+-----------------------------------------
 
 Patch the ruby garbage collector using rubygc18{45}.patch, depending
 on your ruby version. Recompile ruby and copy the ruby binary and
