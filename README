@@ -26,12 +26,14 @@ FILES
 
   config/bechmarks.yml
                 - specification of urls to benchmark
-                  install into $RAILS_ROOT/config
+                  install into $RAILS_ROOT/config using `railsbench install'
+                  (use railsbench install)
 
   config/benchmarks.rb
                 - defines constant RAILSBENCH which is used by script perf_bench
-                  modify this to add custom argument processing
-                  install to $RAILS_ROOT/config
+                  modify this to add custom argument processing and to put data
+                  into the session
+                  install to $RAILS_ROOT/config using `railsbench install'
 
   perf_bench n options
                 - main ruby script to run a given benchmark
@@ -45,7 +47,7 @@ FILES
                       run_urls 1 -bm=all | grep Status:
 
                   switches as for perf_bench plus
-                  -warmup   : run all uris once before measuring
+                  -warmup   : run all urls once before measuring
                   -svlPV    : run test using SVL Ruby Performance Validator
                   -svlMV    : run test using SVL Ruby Memory Validator
 
@@ -74,7 +76,7 @@ FILES
                 - format output taken from perf_comp and produce a HTML table
                   for inclusion in HTML pages. Reads from standard input.
                   options:
-                    -noccs   suppress css output
+                    -noccs   suppress CSS output
                     -notable suppress table output
                     -gc      include gc statistics
 
@@ -123,132 +125,165 @@ ENVIRONMENT
                 - perf_bench sends its output to this file
 
 
+INVOCATION
+
+  The gem version installs a driver script called 'railsbench' into
+  Ruby's bin directory. Individual commands can be called by prefixing
+  with railsbench. If you tire of typing railsbench all the time, you
+  can either define an alias (alias rb="railsbench"), or you can
+  include railsbench's script directory into your seach path.
+
+
 USAGE
 
-The two main scripts are named perf_run and perf_diff.
+  The two main scripts are named perf_run and perf_diff.
 
-    perf_run 100
+      perf_run 100
 
-runs the list of urls named "default" specified in benchmkarks.yml
-(see below), requesting each url $RAILS_PERF_RUNS * 100 times.
+  runs the list of urls named "default" specified in benchmkarks.yml
+  (see below), requesting each url $RAILS_PERF_RUNS * 100 times.
 
-   perf_run 100 "-bm=list -aws"
+     perf_run 100 "-bm=list -aws"
 
-runs the benchmark named 'list' and passes the expanded second
-argument to the rails app. By processing arguments inside your
-environment.rb file, you can set performance affecting options. For
-example, you could load action web service only if -aws is passed and
-measure the performance effect of omitting it.
+  runs the benchmark named 'list' and passes the expanded second
+  argument to the rails app. By processing arguments inside your
+  environment.rb file, you can set performance affecting options. For
+  example, you could load action web service only if -aws is passed and
+  measure the performance effect of omitting it.
 
-Benchmark data is stored in directory $RAILS_PERF_DATA, which should
-be set in your environment. If not set, $HOME is used. By default,
-data is stored in file $RAILS_PERF_DATA/perf_run.$BENCHMARK.txt, where
-BENCHMARK will be set according to the -bm option.
+  Benchmark data is stored in directory $RAILS_PERF_DATA, which should
+  be set in your environment. If not set, $HOME is used. By default,
+  data is stored in file $RAILS_PERF_DATA/perf_run.$BENCHMARK.txt, where
+  BENCHMARK will be set according to the -bm option.
 
-   perf_run 100 "-bm=index -mail" mail
+     perf_run 100 "-bm=index -mail" mail
 
-will store benchmark data in file
+  will store benchmark data in file
 
-   $RAILS_PERF_DATA/`current-date´.index.mail.txt.
+     $RAILS_PERF_DATA/`current-date´.index.mail.txt.
 
-You can get nicely formatted output of benchmark data by running
+  You can get nicely formatted output of benchmark data by running
 
-  perf_times file
+    perf_times file
 
-Script perf_run will automatically print the obtained data after
-finishing the run using perf_times.
+  Script perf_run will automatically print the obtained data after
+  finishing the run using perf_times.
 
-Script perf_diff runs a list of urls with two different option lists. So
+  Script perf_diff runs a list of urls with two different option lists. So
 
-  perf_diff 100 "-bm=blogs -mysql_session" "-mail=0" "-mail=1" cf1 cf2
+    perf_diff 100 "-bm=blogs -mysql_session" "-mail=0" "-mail=1" cf1 cf2
 
-would run benchmark 'blogs' twice, first as
+  would run benchmark 'blogs' twice, first as
 
-  perf_run 100 "-bm=blogs -mysql_session -mail=0" cf1
+    perf_run 100 "-bm=blogs -mysql_session -mail=0" cf1
 
-and then
+  and then
 
-  perf_run 100 "-bm=blogs -mysql_session -mail=1" cf2
+    perf_run 100 "-bm=blogs -mysql_session -mail=1" cf2
 
-printing a comparison of the bechmark data obtained after finishing
-the second run. cf1 and cf2 can be omitted, in which case data is
-stored in $RAILS_PERF_DATA/perf_run1.$BENCHMARK.txt and
-$RAILS_PERF_DATA/perf_run2.$BENCHMARK.txt.
+  printing a comparison of the bechmark data obtained after finishing
+  the second run. cf1 and cf2 can be omitted, in which case data is
+  stored in $RAILS_PERF_DATA/perf_run1.$BENCHMARK.txt and
+  $RAILS_PERF_DATA/perf_run2.$BENCHMARK.txt.
 
-Script perf_bench can also be invoked manually to run a given
-benchmark like so:
+  Script perf_bench can also be invoked manually to run a given
+  benchmark like so:
 
-  perf_bench 100 -bm=blogs -mysql_session -mail=1 >/dev/null
+    perf_bench 100 -bm=blogs -mysql_session -mail=1 >/dev/null
 
-Performance data is sent to $RAILS_BENCHMARK_FILE, HTML output ends up
-on stdout. If RAILS_BENCHMARK_FILE is not set, performance data is
-sent to stderr.
+  Performance data is sent to $RAILS_BENCHMARK_FILE, HTML output ends up
+  on stdout. If RAILS_BENCHMARK_FILE is not set, performance data is
+  sent to stderr.
 
-Scripts perf_run_gc and perf_times_gc can be used to analyse GC performance:
+  Scripts perf_run_gc and perf_times_gc can be used to analyse GC performance:
 
-  perf_run_gc 100 "-bm=all -lib=stable11" gc.log
-  perf_times_gc gc.log
+    perf_run_gc 100 "-bm=all -lib=stable11" gc.log
+    perf_times_gc gc.log
 
-It will produce output looking like this:
+  It will produce output looking like this:
 
-GC data file: d:/perfdata/xp/perf_run.uncached.gc.txt
+  GC data file: d:/perfdata/xp/perf_run.uncached.gc.txt
 
-collections            :        40
-garbage total          :   8188429
-gc time total (sec)    :         4.03
-garbage per request    :      2047.11
-requests per collection:       100.00
+  collections            :        40
+  garbage total          :   8188429
+  gc time total (sec)    :         4.03
+  garbage per request    :      2047.11
+  requests per collection:       100.00
 
-                     mean  stddev%          min          max
-gc time(ms):       101.38     10.0        93.00       125.00
-heap slots :    400000.00      0.0    400000.00    400000.00
-live       :    192914.31      0.2    191787.00    193197.00
-freed      :    207085.69      0.2    206803.00    208213.00
-freelist   :         0.00      0.0         0.00         0.00
+                       mean  stddev%          min          max
+  gc time(ms):       101.38     10.0        93.00       125.00
+  heap slots :    400000.00      0.0    400000.00    400000.00
+  live       :    192914.31      0.2    191787.00    193197.00
+  freed      :    207085.69      0.2    206803.00    208213.00
+  freelist   :         0.00      0.0         0.00         0.00
 
-Note that these numbers, especially requests per collection, are only
-an approximation. This is due to the fact that run_urls will add one
-final garbage collection call at the end of the run. Of course, higher
-number of iterations will produce more accurate data. Also, if the
-benchmark lists several uris, garbage per request will not give you
-meaningful information.
+  Note that these numbers, especially requests per collection, are only
+  an approximation. This is due to the fact that run_urls will add one
+  final garbage collection call at the end of the run. Of course, higher
+  number of iterations will produce more accurate data. Also, if the
+  benchmark lists several uris, garbage per request will not give you
+  meaningful information.
 
 
 CONFIGURATION
 
-Benchmarks are configured through file benchmarks.yml. Example:
+  Benchmarks are configured through file benchmarks.yml. Example:
 
-  default:
-    index, other
+    default:
+      index, other
 
-  index:
-    uri: /test/index
-    new_session: true
+    index:
+      uri: /test/index
+      new_session: true
 
-  other:
-    -
-      uri: /test/list
-    -
+    other:
+      -
+        uri: /test/list
+      -
+        uri: /test/alphabetic
+        query_params: page=7
+
+  defines 3 benchmarks:
+
+    "other"    consists of 2 urls (/test/list and /test/alphabetic)
+    "index"    will run (/test/index)
+    "default"  will run all urls in "index" and "other"
+
+  uri: is mandatory, query_params: and new_session: are optional.
+
+  Instead of
+
       uri: /test/alphabetic
       query_params: page=7
 
-defines 3 benchmarks:
+  one could have written
 
-  "other"    consists of 2 urls (/test/list and /test/alphabetic)
-  "index"    will run (/test/index)
-  "default"  will run all urls in "index" and "other"
+      uri: /test/alphabetic?page=7
 
-uri: is mandatory, query_params: and new_session: are optional.
+  new_session: specifies whether a session cookie is sent with the
+  request (default). To make this work correctly, you need to set
+  session_data on the benchmarker instance. See benchmarks.rb for details.
 
-Instead of
+  An inital benchmark configuration file can be generated using command
+  generate_benchmarks.
 
-    uri: /test/alphabetic
-    query_params: page=7
+     generate_benchmarks -exclude_controllers=application,admin \
+        -exclude_actions=edit,delete,destroy
 
-one could have written
+  will generate a benchmark configuration file containing definitions
+  for the following benchmarks:
 
-    uri: /test/alphabetic?page=7
+    a) an entry for each named route
+    b) an entry for each route generated from by the unnamed route definitions
+    c) an entry for each controller, combining all actions (named xyz_controller)
+    d) an entry combining all controllers (all_controllers), combining all
+       benchmarks generated by step c.
 
-new_session: specifies whether a session cookie is sent with the
-request (default). To make this work correctly, you need to set
-session_data on the benchmarker instance. See benchmarks.rb for details.
+  After generating the benchmark configuration file you will need to
+  edit the benchmarks and change the placeholders in urls to real
+  values; i.e., change something like /blog/edit/:id to /blog/edit/235.
+
+  generate_benchmarks can be used on an existing configuration file. It
+  will keep exisiting entries, which will be moved to the end of the
+  config file. Thus it can be used to quickly update the config file
+  after you've added/deleted or renamed controllers and/or actions.
