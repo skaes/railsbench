@@ -6,6 +6,12 @@ unless ENV['RAILS_ROOT']
   exit 1
 end
 
+if ARGV.length == 0 || ARGV.first == 'help'
+  $stderr.puts "usage: run_urls iterations option_1 ... option_n"
+  $stderr.puts "example: run_urls 100 -bm=default -log | grep Status:"
+  exit 1
+end
+
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'railsbench/railsbenchmark'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'

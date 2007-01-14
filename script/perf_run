@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-if ARGV.length == 0 || ARGV.length > 3
-  puts "usage: perf_run iterations options [conf-name]"
-  puts "example: perf_run 100 \"-bm=default -log\" pdata"
+if ARGV.length == 0 || ARGV.length > 3 || ARGV.first == 'help'
+  $stderr.puts "usage: perf_run iterations options [conf-name]"
+  $stderr.puts "example: perf_run 100 \"-bm=default -log\" pdata"
   exit 1
 end
 

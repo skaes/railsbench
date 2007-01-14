@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-if ARGV.length < 2
+if ARGV.length < 2 || ARGV.first == 'help'
   $stderr.puts "usage: perf_run_gc iterations options [conf-name]"
   $stderr.puts "example: perf_run_gc 100 \"-bm=default -log\" pdata"
   exit 1

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-if ARGV.length < 4
+if ARGV.length < 4 || ARGV.first == 'help'
   $stderr.puts 'usage: perf_diff iterations common-options options1 options4 [conf-name1] [conf-name2]'
   $stderr.puts 'example: perf_diff 100 "-bm=all"  "-log" "-nocache" c1 c2'
   exit 1
