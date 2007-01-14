@@ -1,3 +1,105 @@
+2007-01-14 09:02  stkaes
+
+	* test/test_helper.rb: dos2unix
+
+2007-01-14 09:01  stkaes
+
+	* latest_changes.txt: updated latest changes
+
+2007-01-14 08:59  stkaes
+
+	* INSTALL: formatting
+
+2007-01-14 08:56  stkaes
+
+	* install.rb: automatically detect RAILS_ROOT in railsbench install
+
+2007-01-14 08:56  stkaes
+
+	* INSTALL: mention generate_benchmarks in file INSTALL
+
+2007-01-14 08:40  stkaes
+
+	* script/perf_diff, script/perf_diff_gc, script/perf_run,
+	  script/perf_run_gc, script/run_urls: display help when call with
+	  string 'help' as first argument
+
+2007-01-14 08:39  stkaes
+
+	* bin/railsbench: automatically set RAILS_ROOT when invoked from a
+	  Rails app's top level directory
+
+2007-01-14 07:57  stkaes
+
+	* README: updated README
+
+2007-01-13 23:51  stkaes
+
+	* script/generate_benchmarks: keep generated controller benchmarks
+	  sorted. output non generated benchmarks at the end of
+	  benchmarks.yml
+
+2007-01-13 10:19  stkaes
+
+	* latest_changes.txt: updated latest changes
+
+2007-01-13 10:05  stkaes
+
+	* script/generate_benchmarks: enable deletion of benchmarks for
+	  ignored controllers/actions
+
+2007-01-13 10:04  stkaes
+
+	* bin/railsbench: support help
+
+2007-01-13 06:46  stkaes
+
+	* script/generate_benchmarks: improved benchmark generator
+
+2007-01-07 15:28  stkaes
+
+	* Manifest.txt, latest_changes.txt, script/generate_benchmarks:
+	  added generate benchmarks command
+
+2007-01-07 15:27  stkaes
+
+	* install.rb: fixed install problems
+
+2007-01-07 15:27  stkaes
+
+	* lib/railsbench/perf_info.rb: fixed problems with unpatched GC
+	  -This line, and those below, will be ignored--
+	  
+	  M perf_info.rb
+
+2007-01-07 14:15  stkaes
+
+	* lib/railsbench/gc_info.rb, lib/railsbench/perf_info.rb,
+	  lib/railsbench/perf_utils.rb, lib/railsbench/railsbenchmark.rb,
+	  script/perf_bench, script/perf_comp, script/perf_comp_gc,
+	  script/perf_diff, script/perf_diff_gc, script/perf_html,
+	  script/perf_plot, script/perf_plot_gc, script/perf_prof,
+	  script/perf_run, script/perf_run_gc, script/perf_tex,
+	  script/perf_times, script/perf_times_gc, script/run_urls: updated
+	  copyright notice
+
+2007-01-07 14:06  stkaes
+
+	* install.rb: fix installation problems
+
+2007-01-07 13:57  stkaes
+
+	* lib/railsbench/version.rb: incremented version number
+
+2007-01-06 12:56  stkaes
+
+	* Rakefile, bin/railsbench, script/generate_benchmarks: added
+	  generate_benchmarks
+
+2006-12-26 11:02  stkaes
+
+	* CHANGELOG: updated changelog
+
 2006-12-26 10:31  stkaes
 
 	* INSTALL: dedription of railsbench path and railsbench postinstall
