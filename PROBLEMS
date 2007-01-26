@@ -1,15 +1,14 @@
-The benchmarking environment created by railsbench contains the lines
+The benchmarking environment created by railsbench contains the line
 
-# we don't want to see controller internals
-config.action_controller.view_controller_internals   = false
+    config.action_controller.view_controller_internals = false
 
 This is the preferred setting for a production mode config file, but
 can cause problems when a view template tries to access a method only
 available when view_controller_internals is true.
 
-If you experirnec backtraces like the one below, try the setting
+If you experierence backtraces like the one below, try the setting
 
-config.action_controller.view_controller_internals   = true
+    config.action_controller.view_controller_internals = true
 
 Typical backtrace:
 
