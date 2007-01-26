@@ -50,8 +50,8 @@ def dump_entry(name, entry, io = $stdout)
   end
 end
 
-if defined? ActionController::CodeGeneration
-  $stderr.puts "this Rails version is not supported. please upgrade to a 1.2 variety."
+unless Rails::VERSION::MAJOR >= 1 && Rails::VERSION::MINOR >= 2
+  $stderr.puts "Rails version #{Rails::VERSION::STRING} is not supported. please use a 1.2.x variety."
   exit 1
 end
 
