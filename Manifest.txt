@@ -5,6 +5,7 @@ install.rb
 postinstall.rb
 LICENSE
 Manifest.txt
+PROBLEMS
 README
 Rakefile
 setup.rb

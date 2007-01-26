@@ -1,0 +1,55 @@
+The benchmarking environment created by railsbench contains the lines
+
+# we don't want to see controller internals
+config.action_controller.view_controller_internals   = false
+
+This is the preferred setting for a production mode config file, but
+can cause problems when a view template tries to access a method only
+available when view_controller_internals is true.
+
+If you experirnec backtraces like the one below, try the setting
+
+config.action_controller.view_controller_internals   = true
+
+Typical backtrace:
+
+ActionView::TemplateError (undefined method `each' for nil:NilClass) on line #1 of app/views/test/param_access_t
+est.rhtml:
+1: <% for k,v in params %>
+2: <%= h k %> = <%= h v %>
+3: <% end %>
+4:
+
+    #{RAILS_ROOT}/app/views/test/param_access_test.rhtml:1:in `_run_rhtml_47app47views47test47param_access_test46rhtml'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_view/base.rb:326:in `compile_and_render_template'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_view/base.rb:301:in `render_template'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_view/base.rb:260:in `render_file'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/base.rb:806:in `render_file'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/base.rb:711:in `render_with_no_layout'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/layout.rb:256:in `render_without_benchmark'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/benchmarking.rb:50:in `render'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/benchmark.rb:300:in `measure'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/benchmarking.rb:50:in `render'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/base.rb:1096:in `perform_action_without_filters'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:632:in `call_filter'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:638:in `call_filter'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:438:in `call'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:637:in `call_filter'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:634:in `call_filter'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:619:in `perform_action_without_benchmark'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/benchmarking.rb:66:in `perform_action_without_rescue'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/benchmark.rb:300:in `measure'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/benchmarking.rb:66:in `perform_action_without_rescue'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/rescue.rb:83:in `perform_action'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/base.rb:430:in `process_without_filters'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/filters.rb:624:in `process_without_session_management_support'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/session_management.rb:114:in `process'
+    c:/home/skaes/svn/trunk12pre/actionpack/lib/action_controller/base.rb:330:in `process'
+    c:/home/skaes/svn/trunk12pre/railties/lib/dispatcher.rb:41:in `dispatch'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/railsbench/railsbenchmark.rb:262:in `run_urls_without_benchmark_and_without_gc_control'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/railsbench/railsbenchmark.rb:261:in `run_urls_without_benchmark_and_without_gc_control'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/railsbench/railsbenchmark.rb:259:in `run_urls_without_benchmark_and_without_gc_control'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/lib/railsbench/railsbenchmark.rb:194:in `run_urls_without_benchmark'
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/script/run_urls:35
+    c:/ruby184/lib/ruby/gems/1.8/gems/railsbench-0.9.2/bin/railsbench:71
+    /ruby184/bin/railsbench:18
