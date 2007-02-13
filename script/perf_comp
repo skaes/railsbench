@@ -110,7 +110,7 @@ if pi[0].gc_stats? && pi[1].gc_stats?
   t1 = pi[0].gc_time_mean
   c2 = pi[1].gc_calls_mean
   t2 = pi[1].gc_time_mean
-  factor = (c1-c2==0) ? 1 : c1/c2
+  factor = (t1-t2==0) ? 1 : t1/t2
 
   if narrow
     printf "\n%-4s %9s %9s %7s %7s %8s %8s %6s\n",
