@@ -1,6 +1,8 @@
-The benchmarking environment created by railsbench contains the line
+You might experience the problem described below, if your
+benchmarking.rb environment file contains the line
 
     config.action_controller.view_controller_internals = false
+
 
 This is the preferred setting for a production mode config file, but
 can cause problems when a view template tries to access a method only
