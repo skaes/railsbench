@@ -15,7 +15,8 @@ names = []
 labels = []
 perf_data = []
 graph_type = Gruff::Line
-graph_width = 800
+graph_width = '800x600'
+font_size = 14
 
 ARGV.each do |arg|
   case arg
@@ -29,10 +30,14 @@ ARGV.each do |arg|
     graph_type = Gruff::Bar
   when /^-width=(\d+)$/
     graph_width = $1.to_i
+  when /^-geometry=(\d+x\d+)$/
+    graph_width = $1
   when /^-names=(.+)$/
     names = $1.split(',')
   when /^-labels=(.+)$/
     labels = $1.split(',')
+  when /^-font_size=(\d+)$/
+    font_size = $1.to_i
   else
     files << File.open_or_die(arg)
     names[files.length-1] ||= File.basename(arg)
@@ -64,6 +69,9 @@ perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 g = graph_type.new(graph_width)
 g.title = title
 g.sort = false
+g.legend_font_size = font_size
+g.legend_box_size = font_size
+g.marker_font_size = font_size
 g.minimum_value = 0
 g.maximum_value = perf_data.flatten.max.ceil
 g.labels = labels

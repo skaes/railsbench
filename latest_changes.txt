@@ -1,6 +1,3 @@
-* fixed problems with railsbench istall
-* fixed problems for folks running out of the box GC
-* added help command (railsbench help, railsbench cmd help)
-* added generate_benchmarks command: automatic generation and maintainance of benchmarks.yml
-* improved installation instructions
-* automatically detect RAILS_ROOT when invoked from a Rails app's top level directory
+* copy environments/production.rb to environments/benchmarking.rb instead of providing a fixed one
+* perf_plot and perf_plot_gc accept -geometry parameter for exact dimensioning of the produced .png file
+* use -font_size=12 for setting font size when generating performance graphs
