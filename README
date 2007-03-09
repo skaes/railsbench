@@ -241,7 +241,7 @@ CONFIGURATION
         uri: /test/list
       -
         uri: /test/alphabetic
-        query_params: page=7
+        query_string: page=7
 
   defines 3 benchmarks:
 
@@ -254,7 +254,7 @@ CONFIGURATION
   Instead of
 
       uri: /test/alphabetic
-      query_params: page=7
+      query_string: page=7
 
   one could have written
 
