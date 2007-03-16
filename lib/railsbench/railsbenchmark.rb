@@ -1,3 +1,5 @@
+require 'delegate'
+
 class RailsBenchmark
 
   attr_accessor :gc_frequency, :iterations, :url_spec
@@ -53,6 +55,13 @@ class RailsBenchmark
           else
             render_text(IO.read(File.join(RAILS_ROOT, 'public', '500.html')), "500 Internal Error")
         end
+      end
+    end_eval
+
+    # make sure Rails doesn't try to read post data from stdin
+    CGI::QueryExtension.module_eval <<-end_eval
+      def read_body(content_length)
+        ENV['RAW_POST_DATA']
       end
     end_eval
 
@@ -126,22 +135,34 @@ class RailsBenchmark
     ENV['REMOTE_ADDR'] = remote_addr
     ENV['HTTP_HOST'] = http_host
     ENV['SERVER_PORT'] = server_port.to_s
-    ENV['REQUEST_METHOD'] = 'GET'
   end
 
-  def setup_request_env(uri, query_string, new_session)
-    ENV['REQUEST_URI'] = @relative_url_root + uri
-    ENV['QUERY_STRING'] = query_string || ''
-    ENV['CONTENT_LENGTH'] = (query_string || '').length.to_s
-    ENV['HTTP_COOKIE'] = new_session ? '' : "_session_id=#{@session_id}"
+  def setup_request_env(entry)
+    ENV['REQUEST_URI'] = @relative_url_root + entry.uri
+    ENV['RAW_POST_DATA'] = nil
+    ENV['QUERY_STRING'] = nil
+    case ENV['REQUEST_METHOD'] = (entry.method || 'get').upcase
+    when 'GET'
+      query_data = escape_data(entry.query_string || '')
+      ENV['QUERY_STRING'] = query_data
+    when 'POST'
+      query_data = escape_data(entry.post_data || '')
+      ENV['RAW_POST_DATA'] = query_data
+    end
+    ENV['CONTENT_LENGTH'] = query_data.length.to_s
+    ENV['HTTP_COOKIE'] = entry.new_session ? '' : "_session_id=#{@session_id}"
+  end
+
+  def escape_data(str)
+    str.split('&').map{|e| e.split('=').map{|e| CGI::escape e}.join('=')}.join('&')
   end
 
   def warmup
     error_exit "No urls given for performance test" unless @urls && @urls.size>0
     setup_initial_env
     @urls.each do |entry|
-      error_exit "No uri given for benchmark entry: #{entry.inspect}" unless entry['uri']
-      setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+      error_exit "No uri given for benchmark entry: #{entry.inspect}" unless entry.uri
+      setup_request_env(entry)
       Dispatcher.dispatch
     end
   end
@@ -242,7 +263,7 @@ class RailsBenchmark
 
   def run_urls_without_benchmark_but_with_gc_control(urls, n, gc_frequency)
     urls.each do |entry|
-      setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+      setup_request_env(entry)
       GC.enable; GC.start; GC.disable
       request_count = 0
       n.times do
@@ -257,7 +278,7 @@ class RailsBenchmark
 
   def run_urls_without_benchmark_and_without_gc_control(urls, n)
     urls.each do |entry|
-      setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+      setup_request_env(entry)
       n.times do
         Dispatcher.dispatch
       end
@@ -269,8 +290,8 @@ class RailsBenchmark
     GC.clear_stats if gc_stats
     urls.each do |entry|
       request_count = 0
-      setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
-      test.report(entry['uri']) do
+      setup_request_env(entry)
+      test.report(entry.name) do
         GC.disable_stats if gc_stats
         GC.enable; GC.start; GC.disable
         GC.enable_stats  if gc_stats
@@ -294,11 +315,11 @@ class RailsBenchmark
     gc_stats = patched_gc?
     GC.clear_stats if gc_stats
     urls.each do |entry|
-      setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+      setup_request_env(entry)
       GC.disable_stats if gc_stats
       GC.start
       GC.enable_stats  if gc_stats
-      test.report(entry['uri']) do
+      test.report(entry.name) do
         n.times do
           Dispatcher.dispatch
         end
@@ -320,7 +341,7 @@ class RailsBenchmark
     test.report("url_mix (#{urls.length} urls)") do
       n.times do
         urls.each do |entry|
-          setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+          setup_request_env(entry)
           Dispatcher.dispatch
         end
       end
@@ -342,7 +363,7 @@ class RailsBenchmark
       request_count = 0
       n.times do
         urls.each do |entry|
-          setup_request_env(entry['uri'], entry['query_string'], entry['new_session'])
+          setup_request_env(entry)
           Dispatcher.dispatch
           if (request_count += 1) == gc_frequency
             GC.enable; GC.start; GC.disable
@@ -358,14 +379,32 @@ class RailsBenchmark
     end
   end
 
-  def self.parse_url_spec(url_spec, name)
-    res = url_spec[name]
-    if res.is_a?(String)
-      res = res.split(/, */).collect!{ |n| parse_url_spec(url_spec, n) }.flatten
-    elsif res.is_a?(Hash)
-      res = [ res ]
+  class Entry < DelegateClass(Hash)
+    attr_accessor :name
+    READERS = %w(uri method post_data query_string new_session action controller)
+    READERS.each do |method|
+      define_method(method) { self[method] }
     end
-    res
+    def initialize(name, hash)
+      super(hash)
+      @name = name
+    end
+    def inspect
+      "Entry(#{name},#{super})"
+    end
+  end
+
+  def self.parse_url_spec(url_spec, name)
+    spec = url_spec[name]
+    if spec.is_a?(String)
+      spec.split(/, */).collect!{ |n| parse_url_spec(url_spec, n) }.flatten
+    elsif spec.is_a?(Hash)
+      [ Entry.new(name,spec) ]
+    elsif spec.is_a?(Array)
+      spec.collect{|n| parse_url_spec(url_spec, n)}.flatten
+    else
+      raise "oops: unknown entry type in benchmark specification"
+    end
   end
 
 end
