@@ -40,12 +40,13 @@ ARGV.each do |arg|
     font_size = $1.to_i
   else
     files << File.open_or_die(arg)
-    names[files.length-1] ||= File.basename(arg)
+    names[files.length-1] ||= File.basename(arg).sub(/\.txt$/, '')
   end
 end
 
 files.length > 0 or die "usage: perf_plot [options] file1 file2 ..."
 
+pi = nil
 files.each do |file|
   pi = PerfInfo.new(file)
   iter = pi.iterations
@@ -56,9 +57,7 @@ end
 
 selection = (1..(perf_data.last.length)).to_a if selection.empty?
 if labels.empty?
-  labels = selection.map{|i| i.to_s}.index_map
-else
-  labels = labels.index_map
+  labels = pi.keys.restrict_to(selection.map{|i| i-1})
 end
 perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 
@@ -74,7 +73,7 @@ g.legend_box_size = font_size
 g.marker_font_size = font_size
 g.minimum_value = 0
 g.maximum_value = perf_data.flatten.max.ceil
-g.labels = labels
+g.labels = labels.index_map
 perf_data.each_with_index{|d,i| g.data(names[i], d)}
 g.write
 

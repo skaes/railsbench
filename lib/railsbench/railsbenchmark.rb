@@ -1,8 +1,8 @@
-require 'delegate'
+require File.expand_path(File.dirname(__FILE__) + '/benchmark_specs')
 
 class RailsBenchmark
 
-  attr_accessor :gc_frequency, :iterations, :url_spec
+  attr_accessor :gc_frequency, :iterations
   attr_accessor :http_host, :remote_addr, :server_port
   attr_accessor :relative_url_root
   attr_accessor :perform_caching, :cache_template_loading
@@ -35,8 +35,6 @@ class RailsBenchmark
     @server_port = options[:server_port] || '80'
 
     @session_data = options[:session_data] || {}
-
-    @url_spec = options[:url_spec]
 
     ENV['RAILS_ENV'] = 'benchmarking'
 
@@ -127,8 +125,7 @@ class RailsBenchmark
   end
 
   def setup_test_urls(name)
-    raise "There is no benchmark named '#{name}'" unless @url_spec[name]
-    @urls = self.class.parse_url_spec(@url_spec, name)
+    @urls = BenchmarkSpec.load(name)
   end
 
   def setup_initial_env
@@ -378,35 +375,6 @@ class RailsBenchmark
       GC.clear_stats
     end
   end
-
-  class Entry < DelegateClass(Hash)
-    attr_accessor :name
-    READERS = %w(uri method post_data query_string new_session action controller)
-    READERS.each do |method|
-      define_method(method) { self[method] }
-    end
-    def initialize(name, hash)
-      super(hash)
-      @name = name
-    end
-    def inspect
-      "Entry(#{name},#{super})"
-    end
-  end
-
-  def self.parse_url_spec(url_spec, name)
-    spec = url_spec[name]
-    if spec.is_a?(String)
-      spec.split(/, */).collect!{ |n| parse_url_spec(url_spec, n) }.flatten
-    elsif spec.is_a?(Hash)
-      [ Entry.new(name,spec) ]
-    elsif spec.is_a?(Array)
-      spec.collect{|n| parse_url_spec(url_spec, n)}.flatten
-    else
-      raise "oops: unknown entry type in benchmark specification"
-    end
-  end
-
 end
 
 
