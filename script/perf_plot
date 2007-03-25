@@ -40,7 +40,7 @@ ARGV.each do |arg|
     font_size = $1.to_i
   else
     files << File.open_or_die(arg)
-    names[files.length-1] ||= File.basename(arg).sub(/\.txt$/, '')
+    names[files.length-1] ||= File.basename(arg).sub(/\.txt$/, '').sub(/^\d\d-\d\d\.[^\.]+./, '')
   end
 end
 
