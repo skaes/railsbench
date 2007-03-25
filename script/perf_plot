@@ -17,6 +17,7 @@ perf_data = []
 graph_type = Gruff::Line
 graph_width = '800x600'
 font_size = 14
+output_file = "graph.png"
 
 ARGV.each do |arg|
   case arg
@@ -38,6 +39,8 @@ ARGV.each do |arg|
     labels = $1.split(',')
   when /^-font_size=(\d+)$/
     font_size = $1.to_i
+  when /^-out=(.+)$/
+    output_file = $1
   else
     files << File.open_or_die(arg)
     names[files.length-1] ||= File.basename(arg).sub(/\.txt$/, '').sub(/^\d\d-\d\d\.[^\.]+./, '')
@@ -75,7 +78,7 @@ g.minimum_value = 0
 g.maximum_value = perf_data.flatten.max.ceil
 g.labels = labels.index_map
 perf_data.each_with_index{|d,i| g.data(names[i], d)}
-g.write
+g.write(output_file)
 
 
 __END__
