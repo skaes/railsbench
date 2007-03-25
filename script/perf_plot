@@ -18,6 +18,7 @@ graph_type = Gruff::Line
 graph_width = '800x600'
 font_size = 14
 output_file = "graph.png"
+colors = nil
 
 ARGV.each do |arg|
   case arg
@@ -33,6 +34,8 @@ ARGV.each do |arg|
     graph_width = $1.to_i
   when /^-geometry=(\d+x\d+)$/
     graph_width = $1
+  when /^-colors=(.*)$/
+    colors = $1.split(/ *,/)
   when /^-names=(.+)$/
     names = $1.split(',')
   when /^-labels=(.+)$/
@@ -69,6 +72,7 @@ perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 # puts perf_data.inspect
 
 g = graph_type.new(graph_width)
+g.replace_colors(colors) if colors
 g.title = title
 g.sort = false
 g.legend_font_size = font_size
