@@ -1,5 +1,6 @@
 require 'delegate'
 require 'yaml'
+require 'erb'
 
 class BenchmarkSpec < DelegateClass(Hash)
   attr_accessor :name
@@ -23,7 +24,7 @@ class BenchmarkSpec < DelegateClass(Hash)
       unless file_name
         file_name = ENV['RAILS_ROOT'] + "/config/benchmarks.yml"
       end
-      @@specs = YAML::load(File.open(file_name))
+      @@specs = YAML::load(ERB.new(IO.read(file_name)).result)
       raise "There is no benchmark named '#{name}'" unless @@specs[name]
       parse(@@specs, name)
     end
