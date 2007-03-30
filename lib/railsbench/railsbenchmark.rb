@@ -110,12 +110,15 @@ class RailsBenchmark
     session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
     session_options = session_options.merge('new_session' => true)
     @session = CGI::Session.new(Hash.new, session_options)
+    @session_data.each{ |k,v| @session[k] = v }
     @session.update
     @session_id = @session.session_id
   end
 
   def update_test_session_data(session_data)
-    new_session_data = @session_data.merge(session_data || {})
+    dbman = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
+    old_session_data = dbman.new(@session).restore
+    new_session_data = old_session_data.merge(session_data || {})
     new_session_data.each{ |k,v| @session[k] = v }
     @session.update
   end
