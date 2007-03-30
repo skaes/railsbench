@@ -4,7 +4,7 @@ require 'yaml'
 class BenchmarkSpec < DelegateClass(Hash)
   attr_accessor :name
 
-  READERS = %w(uri method post_data query_string new_session action controller)
+  READERS = %w(uri method post_data query_string new_session action controller session_data)
   READERS.each do |method|
     define_method(method) { self[method] }
   end

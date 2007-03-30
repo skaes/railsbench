@@ -110,9 +110,14 @@ class RailsBenchmark
     session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
     session_options = session_options.merge('new_session' => true)
     @session = CGI::Session.new(Hash.new, session_options)
-    @session_data.each{ |k,v| @session[k] = v }
     @session.update
     @session_id = @session.session_id
+  end
+
+  def update_test_session_data(session_data)
+    new_session_data = @session_data.merge(session_data || {})
+    new_session_data.each{ |k,v| @session[k] = v }
+    @session.update
   end
 
   def delete_test_session
@@ -148,6 +153,7 @@ class RailsBenchmark
     end
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
     ENV['HTTP_COOKIE'] = entry.new_session ? '' : "_session_id=#{@session_id}"
+    update_test_session_data(entry.session_data) unless entry.new_session
   end
 
   def escape_data(str)
