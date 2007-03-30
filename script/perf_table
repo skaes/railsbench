@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
+require 'railsbench/perf_info'
+
+# extract options
+
+selection = []
+title = "Performance Graph"
+files = []
+names = []
+labels = []
+perf_data = []
+font_size = 14
+output_file = "graph.png"
+colors = nil
+
+ARGV.each do |arg|
+  case arg
+  when /^-only=(.*)$/
+    selection = $1.split(',').map{|s| s.strip.to_i}
+  when /^-title=(.*)$/
+    title = $1 unless $1.strip.empty?
+  when '-line'
+    graph_type = Gruff::Line
+  when '-bar'
+    graph_type = Gruff::Bar
+  when /^-width=(\d+)$/
+    graph_width = $1.to_i
+  when /^-geometry=(\d+x\d+)$/
+    graph_width = $1
+  when /^-colors=(.*)$/
+    colors = $1.split(/ *,/)
+  when /^-names=(.+)$/
+    names = $1.split(',')
+  when /^-labels=(.+)$/
+    labels = $1.split(',')
+  when /^-font_size=(\d+)$/
+    font_size = $1.to_i
+  when /^-out=(.+)$/
+    output_file = $1
+  else
+    files << File.open_or_die(arg)
+    names << File.basename(arg).sub(/\.txt$/, '').sub(/^\d\d-\d\d\.[^\.]+./, '')
+  end
+end
+
+files.length > 0 or die "usage: perf_table [options] file1 file2 ..."
+
+pi = nil
+files.each do |file|
+  pi = PerfInfo.new(file)
+  iter = pi.iterations
+  urls = pi.requests_per_key
+  perf_data << pi.keys.map{ |key| iter*urls/pi.timings_mean(key) }
+  file.close
+end
+
+selection = (1..(perf_data.last.length)).to_a if selection.empty?
+if labels.empty?
+  labels = pi.keys.restrict_to(selection.map{|i| i-1})
+end
+perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
+
+#puts selection.inspect
+#puts labels.length
+#puts labels.inspect
+#puts perf_data.length
+#puts perf_data.inspect
+#puts names.inspect 
+
+# puts labels.zip(perf_data).inspect
+puts "<table border=1>"
+puts "<tr><td></td>"
+labels.each{|l| puts "<th>#{l}</th>"}
+puts "</tr>"
+names.zip(perf_data).each do |row|
+  puts "<tr>"
+  puts "<th align='left'>#{row.first}</th>"
+  row.last.each do |cell|
+    puts "<td align='right'>#{sprintf "%6.2f", cell}</td>"
+  end
+  puts "</tr>"
+end
+puts "</table>"
+
+
+__END__
+
+#    Copyright (C) 2007  Stefan Kaes
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
