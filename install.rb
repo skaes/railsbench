@@ -33,7 +33,7 @@ install("#{RAILSBENCH_BASE}/config/benchmarks.rb", RAILS_CONFIG, :mode => 0644) 
 install("#{RAILSBENCH_BASE}/config/benchmarks.yml", RAILS_CONFIG, :mode => 0644) unless
   File.exists?(RAILS_CONFIG + "benchmarks.yml")
 
-install("#{RAILSBENCH_BASE}/config/benchmarking.rb", RAILS_ENVS, :mode => 0644) unless
+cp(RAILS_ENVS + "production.rb", RAILS_ENVS + "benchmarking.rb") unless
   File.exists?(RAILS_ENVS + "benchmarking.rb")
 
 database = YAML::load(File.open(RAILS_CONFIG + "database.yml"))
@@ -41,8 +41,8 @@ unless database["benchmarking"]
   puts "creating database configuration: benchmarking"
   File.open(RAILS_CONFIG + "database.yml", "ab") do |file|
     file.puts "\nbenchmarking:\n"
-    %w(adapter database host username password).each do |k|
-      file.puts "  #{k}: #{database['development'][k]}"
+    database['development'].each do |k, v|
+      file.puts "  #{k}: #{v}"
     end
   end
 end
@@ -53,7 +53,7 @@ __END__
 ### mode:ruby ***
 ### End: ***
 
-#  Copyright (C) 2005, 2006  Stefan Kaes
+#  Copyright (C) 2005, 2006, 2007  Stefan Kaes
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
