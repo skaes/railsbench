@@ -104,9 +104,14 @@ FILES
                   file name is computed from date and benchmark name as described above
                   but has a .html extension instead of .txt
 
-  perf_plot n [ options ] file1 file2 ...
+  perf_plot [ options ] file1 file2 ...
                 - plot performance data from raw performance files using gruff
                   see source for options
+
+  perf_table [ options ] file1 file2 ...
+                - produces a tabular overview of perf data from given raw data files
+                  see source for options
+
 
 ENVIRONMENT
 
@@ -131,7 +136,9 @@ INVOCATION
   Ruby's bin directory. Individual commands can be called by prefixing
   with railsbench. If you tire of typing railsbench all the time, you
   can either define an alias (alias rb="railsbench"), or you can
-  include railsbench's script directory into your seach path.
+  include railsbench's script directory into your seach path. In this
+  case you need to run 'sudo railsbench postinstall' to make the
+  scripts executable.
 
 
 USAGE
@@ -217,12 +224,12 @@ USAGE
   freed      :    207085.69      0.2    206803.00    208213.00
   freelist   :         0.00      0.0         0.00         0.00
 
-  Note that these numbers, especially requests per collection, are only
-  an approximation. This is due to the fact that run_urls will add one
-  final garbage collection call at the end of the run. Of course, higher
-  number of iterations will produce more accurate data. Also, if the
-  benchmark lists several uris, garbage per request will not give you
-  meaningful information.
+  Note that these numbers, especially requests per collection, are
+  only an approximation. This is due to the fact that perf_run_gc will
+  add one final garbage collection call at the end of the run. Of
+  course, higher number of iterations will produce more accurate
+  data. Also, if the benchmark lists several uris, garbage per request
+  will not give you meaningful information.
 
 
 CONFIGURATION
@@ -230,24 +237,27 @@ CONFIGURATION
   Benchmarks are configured through file benchmarks.yml. Example:
 
     default:
-      index, other
+      index, query, alpha
 
     index:
       uri: /test/index
       new_session: true
 
-    other:
-      -
+    query:
         uri: /test/list
-      -
+        method: post
+        post_data: search_string=tomatoes
+
+    alpha:
         uri: /test/alphabetic
-        query_string: page=7
+        query_string: page=7&letter=A
 
-  defines 3 benchmarks:
+  defines 4 benchmarks:
 
-    "other"    consists of 2 urls (/test/list and /test/alphabetic)
-    "index"    will run (/test/index)
-    "default"  will run all urls in "index" and "other"
+    "index"    will run (/test/index) using method GET
+    "query"    will run (/test/list) using method POST
+    "alpha"    will run (/test/alphabetic) using method GET
+    "default"  will run benchmarks "index", "query" and "alpha"
 
   uri: is mandatory, query_params: and new_session: are optional.
 
@@ -258,11 +268,33 @@ CONFIGURATION
 
   one could have written
 
-      uri: /test/alphabetic?page=7
+      uri: /test/alphabetic?page=7&letter=A
 
-  new_session: specifies whether a session cookie is sent with the
-  request (default). To make this work correctly, you need to set
-  session_data on the benchmarker instance. See benchmarks.rb for details.
+  A single test session is created before running the benchmarks and
+  stored in the sesion container of your choice. The corresponding
+  _session_id value is sent with each request. If you specifiy
+  new_session: true, railsbench will not send the session_id value, so
+  Rails will create a new session per request for the given benchmark.
+
+  Session data can either be set on the benchmarker instance, or
+  specified in the benchmark config file like so:
+
+    list_user_5:
+      uri: /test/list
+      method: post
+      post_data: search_string=tomatoes
+      session_data:
+        user_id: 5
+
+  benchmarks.yml is loaded using ERB. This makes it possible to avoid
+  using primary keys in the config file:
+
+    list_user_stefan:
+      uri: /test/list
+      method: post
+      post_data: search_string=tomatoes
+      session_data:
+        user_id: <%= User.find_by_login('stefan').id %>
 
   An inital benchmark configuration file can be generated using command
   generate_benchmarks.
