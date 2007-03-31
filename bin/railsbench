@@ -3,6 +3,7 @@
 RAILSBENCH_CMDS = %w(
 base
 generate_benchmarks
+convert_raw_data_files
 help
 install
 path
@@ -16,6 +17,7 @@ perf_plot_gc
 perf_prof
 perf_run
 perf_run_gc
+perf_table
 perf_tex
 perf_times
 perf_times_gc
