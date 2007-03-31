@@ -1,3 +1,99 @@
+2007-03-30 10:49  stkaes
+
+	* lib/railsbench/railsbenchmark.rb: merge benchmark session data
+	  with session data from session store
+
+2007-03-30 09:43  stkaes
+
+	* lib/railsbench/benchmark_specs.rb: load benchmark file using ERB
+
+2007-03-30 09:13  stkaes
+
+	* lib/railsbench/benchmark_specs.rb,
+	  lib/railsbench/railsbenchmark.rb: make it possible to specify
+	  session data in benchmarks.yml
+
+2007-03-30 05:45  stkaes
+
+	* script/perf_table: script for generating a tabular overview
+
+2007-03-25 14:34  stkaes
+
+	* script/perf_plot: allow specification of colors
+
+2007-03-25 11:37  stkaes
+
+	* script/perf_plot: allow specification of output file
+
+2007-03-25 07:15  stkaes
+
+	* script/perf_plot: automatically remove date and benchmark names
+	  from config names
+
+2007-03-20 06:23  stkaes
+
+	* lib/railsbench/benchmark_specs.rb: don't fuck with array
+	  extensions during running rails
+
+2007-03-18 19:02  stkaes
+
+	* Manifest.txt, lib/railsbench/benchmark_specs.rb,
+	  lib/railsbench/railsbenchmark.rb, script/convert_raw_data_files,
+	  script/perf_bench, script/perf_plot, script/run_urls: refactored
+	  benchmark loading; added script for converting benchmark data
+	  files to new format
+
+2007-03-16 10:22  stkaes
+
+	* lib/railsbench/railsbenchmark.rb: added post support; use
+	  benchmark names instead of urls for display
+
+2007-03-09 07:57  stkaes
+
+	* README: it's query_string, not query_params
+
+2007-03-09 07:54  stkaes
+
+	* PROBLEMS: doc change
+
+2007-03-09 06:57  stkaes
+
+	* latest_changes.txt, script/perf_plot, script/perf_plot_gc: use
+	  -geometry=1600x1200 to specify dimensions foer generated .png
+	  files
+	  use -font_size=12 to set font size for labels, markers etc
+
+2007-02-13 08:30  stkaes
+
+	* script/perf_comp: use time instad of number of collections for gc
+	  change factor calculation
+
+2007-01-26 17:46  stkaes
+
+	* PROBLEMS: dos2unix
+
+2007-01-26 17:24  stkaes
+
+	* Manifest.txt, PROBLEMS: aded file PROBLEMS for things which are
+	  not really railsbench bugs
+
+2007-01-26 17:23  stkaes
+
+	* script/generate_benchmarks: added better version checking
+
+2007-01-26 15:26  stkaes
+
+	* lib/railsbench/version.rb: prepare for 0.9.2 release
+
+2007-01-26 15:25  stkaes
+
+	* config/benchmarks.yml: changed default benchmarks.yml to contain
+	  only default benchmark
+
+2007-01-14 09:07  stkaes
+
+	* CHANGELOG: updated CHANGELOG
+
 2007-01-14 09:02  stkaes
 
 	* test/test_helper.rb: dos2unix
