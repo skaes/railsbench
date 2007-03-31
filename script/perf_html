@@ -46,7 +46,7 @@ unless ARGV.include?('-notable')
       puts "</tr>"
     end
     case l
-    when %r{^([A-Za-z0-9./?= ]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
+    when %r{^([A-Za-z0-9./?=_ ]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+$}
       puts "<tr>"
       puts "<td class='perf_name name#{" i" if $1.strip == "all requests"}'>#{$1}</td>"
       puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
