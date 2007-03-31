@@ -27,7 +27,7 @@ file2 = benchmark_file_name(benchmark, ARGV[5], 2)
 perf_run("perf_diff", iterations, "#{common} #{options2}", file2)
 puts;puts
 
-system("ruby #{bindir}/perf_comp -narrow -skip_urls #{file1} #{file2}")
+system("ruby #{bindir}/perf_comp #{file1} #{file2}")
 
 __END__
 
