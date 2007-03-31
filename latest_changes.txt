@@ -1,3 +1,38 @@
-* copy environments/production.rb to environments/benchmarking.rb instead of providing a fixed one
-* perf_plot and perf_plot_gc accept -geometry parameter for exact dimensioning of the produced .png file
-* use -font_size=12 for setting font size when generating performance graphs
+* added POST support:
+    search:
+      uri: /search
+      method: post
+      post_data: category=dessert
+  - method defaults to get
+  - post_data will be url encoded by railsbench
+
+* allow specification of session_data in benchmarks.yml:
+    benchmark_name:
+      uri: /
+      session_data:
+         user_id: 1
+      post_data: category=dessert
+
+* load benchmarks.yml using ERB. Example: retrieve login ids using Rails)
+    admin_interface:
+      uri: /admin
+      session_data:
+        user_id: <%= User.find_by_name('admin').id %>
+
+* use benchmark names instead of urls in raw data files,
+  old files can be converted using script convert_raw_data_files.
+  change was required by post support
+
+* copy environments/production.rb to environments/benchmarking.rb,
+  instead of providing a fixed one
+
+* don't create a broken benchmarks.yml file when running railsbench install
+
+* perf_plot and perf_plot_gc accept -geometry parameter,
+  for exact dimensioning of the produced .png file
+
+* use -font_size=12 for setting font size when generating graphs
+
+* use 'perf_plot -colors=color1,color2,...' to get a different color set
+
+* use 'perf_plot -out=name' to write graph to file 'name'
