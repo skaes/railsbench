@@ -33,6 +33,7 @@ script/perf_plot_gc
 script/perf_prof
 script/perf_run
 script/perf_run_gc
+script/perf_table
 script/perf_tex
 script/perf_times
 script/perf_times_gc
