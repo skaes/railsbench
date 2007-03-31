@@ -36,3 +36,5 @@
 * use 'perf_plot -colors=color1,color2,...' to get a different color set
 
 * use 'perf_plot -out=name' to write graph to file 'name'
+
++ new script perf_table: create a tabular overview of perf data
