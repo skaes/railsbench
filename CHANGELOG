@@ -1,3 +1,49 @@
+2007-04-01 07:29  stkaes
+
+	* latest_changes.txt, script/perf_html: -colorize option for
+	  perf_html
+
+2007-04-01 07:29  stkaes
+
+	* script/perf_plot: added -theme option
+
+2007-03-31 07:49  stkaes
+
+	* script/perf_diff: options -narrow and -skip_urls are no longer
+	  necessary
+
+2007-03-31 07:48  stkaes
+
+	* script/perf_html: allow _ in benchmark names
+
+2007-03-31 07:26  stkaes
+
+	* CHANGELOG: updated CHANGELOG
+
+2007-03-31 07:26  stkaes
+
+	* Manifest.txt: include new scripts
+
+2007-03-31 07:25  stkaes
+
+	* bin/railsbench: make new scripts callabe from railsbench
+
+2007-03-31 07:25  stkaes
+
+	* latest_changes.txt: still more changes
+
+2007-03-31 07:24  stkaes
+
+	* README: adapted README to latest changes
+
+2007-03-31 06:56  stkaes
+
+	* install.rb: copy all entries from the development database config
+
+2007-03-31 06:43  stkaes
+
+	* latest_changes.txt: lates changes description
+
 2007-03-30 10:49  stkaes
 
 	* lib/railsbench/railsbenchmark.rb: merge benchmark session data
