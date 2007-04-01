@@ -37,4 +37,9 @@
 
 * use 'perf_plot -out=name' to write graph to file 'name'
 
-+ new script perf_table: create a tabular overview of perf data
+* new script perf_table: create a tabular overview of perf data
+
+* added -colorize option to perf_html, which results in green and red
+  backgrounds in the factor columns
+
+* added -theme option to perf_plot

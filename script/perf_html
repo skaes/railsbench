@@ -11,12 +11,37 @@ puts <<'END'
 .c1 { background:#fff3df; }
 .c2 { background:#dfedff; }
 .factor { background:#efe0ef; }
+.factor_red_alert { background:#CC303B; }
+.factor_red { background:#FF6060; }
+.factor_reddish { background:#FFA766; }
+.factor_green_alert { background:#0B8900; }
+.factor_green { background:#6AB788; }
+.factor_greenish { background:#7FFFB0; }
 .name { background:#dfdfdf; }
 .perf_name   { text-align:left;   }
 .perf_data   { text-align:right;  }
 -->
 </style>
 END
+end
+
+def factor_class(v)
+  return 'factor' unless ARGV.include?('-colorize')
+  if v <= 0.85
+    'factor_red_alert'
+  elsif v <= 0.90
+    'factor_red'
+  elsif v <= 0.95
+    'factor_reddish'
+  elsif v >= 1.15
+    'factor_green_alert'
+  elsif v >= 1.10
+    'factor_green'
+  elsif v >= 1.05
+    'factor_greenish'
+  else
+    'factor'
+  end
 end
 
 unless ARGV.include?('-notable')
@@ -52,7 +77,7 @@ unless ARGV.include?('-notable')
       puts "<td class='perf_data c1'>#{$2}</td><td class='perf_data c2'>#{$3}</td>"
       puts "<td class='perf_data c1'>#{$4}</td><td class='perf_data c2'>#{$5}</td>"
       puts "<td class='perf_data c1'>#{$6}</td><td class='perf_data c2'>#{$7}</td>"
-      puts "<td class='perf_data factor'>#{$8}</td>"
+      puts "<td class='perf_data #{factor_class($8.to_f)}'>#{$8}</td>"
       puts "</tr>"
     end
   end
