@@ -16,27 +16,26 @@ labels = %w()
 perf_data = []
 graph_type = Gruff::StackedBar
 graph_width = '1400x1050'
-font_size = 14
+font_size = 10
 ignored_object_types = %w(NODE STRING)
+output_file = "graph.png"
 
 ARGV.each do |arg|
   case arg
-#   when '-line'
-#     graph_type = Gruff::Line
-#   when '-bar'
-#     graph_type = Gruff::Bar
   when /^-width=(\d+)$/
     graph_width = $1.to_i
   when /^-geometry=(\d+x\d+)$/
     graph_width = $1
-#   when /^-title=(.*)$/
-#     title = $1 unless $1.strip.empty?
+   when /^-title=(.*)$/
+     title = $1 unless $1.strip.empty?
 #   when /^-names=(.+)$/
 #     names = $1.split(',')
   when /^-font_size=(\d+)$/
     font_size = $1.to_i
   when /^-ignore=(.*)$/
-    ignored_object_types = $1.split(',').map(&:upcase)
+    ignored_object_types = $1.split(',').compact.map{|s|s.upcase}
+  when /^-out=(.+)$/
+    output_file = $1
   else
     files << File.open_or_die(arg)
     names[files.length-1] ||= File.basename(arg)
@@ -45,27 +44,26 @@ end
 
 files.length > 0 or die "usage: perf_plot_gc [options] file1 file2 ..."
 
-object_types = Set.new
+object_types = %w(NODE STRING ARRAY HASH  SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
+
 gcis = []
 files.each do |file|
   gcis << GCInfo.new(file)
-  object_types.merge gcis.last.object_types
+  object_types = (object_types + gcis.last.object_types.to_a).uniq
   file.close
 end
 
 object_types = object_types.to_a
 gc_count_max = gcis.map{|gci| gci.collections}.max
 gc_max_processed = gcis.map{|gci| gci.processed_max}.max
+gc_max_freed = gcis.map{|gci| gci.freed_max}.max
+gc_max_live = gcis.map{|gci| gci.live_max}.max
 
 g = graph_type.new(graph_width)
 
-g.add_color("#FF0000")
-g.add_color("#00FF00")
-g.add_color("#0000FF")
-
-g.instance_eval do
-  count = @colors.length
-  count.times{|i| add_color(@colors[i])}
+%w(#FF0000 #00FF00 #0000FF #D2FF77 #FF68C0 #D1FDFF #FFF0BD #15FFDC
+).each do |color|
+ g.add_color(color)
 end
 
 g.title = title
@@ -73,10 +71,13 @@ g.sort = false
 g.legend_font_size = font_size
 g.legend_box_size = font_size
 g.marker_font_size = font_size
-#g.minimum_value = 0
-#g.maximum_value = gc_max_processed
+if ignored_object_types.empty?
+  g.minimum_value = 0
+  g.maximum_value = [gc_max_freed, gc_max_live, 400000].max
+end
 g.labels = Hash[* (0...gc_count_max).map{|i| [2*i, i.to_s]}.flatten ]
-puts g.labels.inspect
+# puts g.labels.inspect
+# puts object_types.inspect
 
 object_types.each do |ot|
   next if ignored_object_types.include?(ot)
@@ -93,7 +94,15 @@ object_types.each do |ot|
   g.data(ot, data)
 end
 
-g.write
+class Gruff::StackedBar < Gruff::Base
+  alias_method :old_draw, :draw
+  def draw
+    @d = @d.stroke_antialias false
+    old_draw
+  end
+end
+
+g.write(output_file)
 
 
 __END__
