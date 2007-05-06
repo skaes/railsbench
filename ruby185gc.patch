@@ -1,5 +1,5 @@
---- gc.c.orig	2006-10-30 04:35:55.000000000 +0100
-+++ gc.c	2006-11-06 20:25:12.562500000 +0100
+--- gc.c.orig	2006-08-25 10:12:46.000000000 +0200
++++ gc.c	2007-05-06 10:55:19.000000000 +0200
 @@ -22,8 +22,16 @@
  #include <setjmp.h>
  #include <sys/types.h>
@@ -17,7 +17,7 @@
  #endif
  
  #ifdef HAVE_SYS_RESOURCE_H
-@@ -40,7 +48,6 @@
+@@ -54,7 +62,6 @@
  #if !defined(setjmp) && defined(HAVE__SETJMP)
  #define setjmp(env) _setjmp(env)
  #endif
@@ -25,7 +25,7 @@
  /* Make alloca work the best possible way.  */
  #ifdef __GNUC__
  # ifndef atarist
-@@ -159,8 +166,17 @@
+@@ -173,8 +180,17 @@
  	RUBY_CRITICAL(free(x));
  }
  
@@ -43,7 +43,7 @@
  static int during_gc;
  static int need_call_final = 0;
  static st_table *finalizer_table = 0;
-@@ -195,7 +211,7 @@
+@@ -209,7 +225,7 @@
   *  Disables garbage collection, returning <code>true</code> if garbage
   *  collection was already disabled.
   *
@@ -52,7 +52,7 @@
   *     GC.disable   #=> true
   *
   */
-@@ -209,6 +225,104 @@
+@@ -223,6 +239,104 @@
      return old;
  }
  
@@ -157,7 +157,7 @@
  VALUE rb_mGC;
  
  static struct gc_list {
-@@ -300,7 +414,7 @@
+@@ -314,7 +428,7 @@
  static RVALUE *freelist = 0;
  static RVALUE *deferred_final_list = 0;
  
@@ -166,7 +166,7 @@
  static struct heaps_slot {
      void *membase;
      RVALUE *slot;
-@@ -309,13 +423,141 @@
+@@ -323,13 +437,165 @@
  static int heaps_length = 0;
  static int heaps_used   = 0;
  
@@ -176,6 +176,8 @@
 +static int heap_slots = 10000;
 +
 +static int heap_free_min = 4096;
++static int heap_slots_increment = 10000;
++static double heap_slots_growth_factor = 1.8;
 +
 +static long initial_malloc_limit = GC_MALLOC_LIMIT;
  
@@ -188,11 +190,11 @@
  
 +static void set_gc_parameters()
 +{
-+    char *gc_stats_ptr, *min_slots_ptr, *free_min_ptr,
-+	*heap_incr_ptr, *malloc_limit_ptr, *gc_heap_file_ptr;
++    char *gc_stats_ptr, *min_slots_ptr, *free_min_ptr, *heap_slots_incr_ptr,
++      *heap_incr_ptr, *malloc_limit_ptr, *gc_heap_file_ptr, *heap_slots_growth_factor_ptr;
 +
 +    gc_data_file = stderr;
-+    
++
 +    gc_stats_ptr = getenv("RUBY_GC_STATS");
 +    if (gc_stats_ptr != NULL) {
 +	int gc_stats_i = atoi(gc_stats_ptr);
@@ -200,10 +202,10 @@
 +	    verbose_gc_stats = Qtrue;
 +	}
 +    }
-+    
++
 +    gc_heap_file_ptr = getenv("RUBY_GC_DATA_FILE");
 +    if (gc_heap_file_ptr != NULL) {
-+	FILE* data_file = fopen(gc_heap_file_ptr, "w"); 
++	FILE* data_file = fopen(gc_heap_file_ptr, "w");
 +	if (data_file != NULL) {
 +	    gc_data_file = data_file;
 +	}
@@ -244,6 +246,28 @@
 +	}
 +	if (heap_incr_i > 0) {
 +	    heaps_increment = heap_incr_i;
++	}
++    }
++
++    heap_slots_incr_ptr = getenv("RUBY_HEAP_SLOTS_INCREMENT");
++    if (heap_slots_incr_ptr != NULL) {
++	int heap_slots_incr_i = atoi(heap_slots_incr_ptr);
++        if (verbose_gc_stats) {
++	    fprintf(gc_data_file, "RUBY_HEAP_SLOTS_INCREMENT=%s\n", heap_slots_incr_ptr);
++	}
++	if (heap_slots_incr_i > 0) {
++	    heap_slots_increment = heap_slots_incr_i;
++	}
++    }
++
++    heap_slots_growth_factor_ptr = getenv("RUBY_HEAP_SLOTS_GROWTH_FACTOR");
++    if (heap_slots_growth_factor_ptr != NULL) {
++	double heap_slots_growth_factor_d = atoi(heap_slots_growth_factor_ptr);
++        if (verbose_gc_stats) {
++	    fprintf(gc_data_file, "RUBY_HEAP_SLOTS_GROWTH_FACTOR=%s\n", heap_slots_growth_factor_ptr);
++	}
++	if (heap_slots_growth_factor_d > 0) {
++	    heap_slots_growth_factor = heap_slots_growth_factor_d;
 +	}
 +    }
 +
@@ -311,7 +335,7 @@
  static void
  add_heap()
  {
-@@ -326,7 +568,7 @@
+@@ -340,7 +606,7 @@
  	struct heaps_slot *p;
  	int length;
  
@@ -320,7 +344,7 @@
  	length = heaps_length*sizeof(struct heaps_slot);
  	RUBY_CRITICAL(
  	    if (heaps_used > 0) {
-@@ -342,10 +584,10 @@
+@@ -356,10 +622,10 @@
      for (;;) {
  	RUBY_CRITICAL(p = (RVALUE*)malloc(sizeof(RVALUE)*(heap_slots+1)));
  	if (p == 0) {
@@ -333,16 +357,19 @@
  	    continue;
  	}
          heaps[heaps_used].membase = p;
-@@ -362,7 +604,7 @@
+@@ -375,8 +641,9 @@
+     if (lomem == 0 || lomem > p) lomem = p;
      if (himem < pend) himem = pend;
      heaps_used++;
-     heap_slots *= 1.8;
+-    heap_slots *= 1.8;
 -    if (heap_slots <= 0) heap_slots = HEAP_MIN_SLOTS;
++    heap_slots += heap_slots_increment;
++    heap_slots_increment *= heap_slots_growth_factor;
 +    if (heap_slots <= 0) heap_slots = heap_min_slots;
  
      while (p < pend) {
  	p->as.free.flags = 0;
-@@ -1015,6 +1257,39 @@
+@@ -1026,6 +1293,39 @@
      }
  }
  
@@ -382,7 +409,7 @@
  static void
  free_unused_heaps()
  {
-@@ -1045,12 +1320,21 @@
+@@ -1056,12 +1356,21 @@
      unsigned long live = 0;
      unsigned long free_min = 0;
  
@@ -406,7 +433,7 @@
  
      if (ruby_in_compile && ruby_parser_stack_on_heap()) {
  	/* should not reclaim nodes during compilation
-@@ -1083,6 +1367,9 @@
+@@ -1094,6 +1403,9 @@
  	    if (!(p->as.basic.flags & FL_MARK)) {
  		if (p->as.basic.flags) {
  		    obj_free((VALUE)p);
@@ -416,7 +443,7 @@
  		}
  		if (need_call_final && FL_TEST(p, FL_FINALIZE)) {
  		    p->as.free.flags = FL_MARK; /* remain marked */
-@@ -1090,6 +1377,12 @@
+@@ -1101,6 +1413,12 @@
  		    final_list = p;
  		}
  		else {
@@ -429,7 +456,7 @@
  		    p->as.free.flags = 0;
  		    p->as.free.next = freelist;
  		    freelist = p;
-@@ -1103,6 +1396,9 @@
+@@ -1114,6 +1432,9 @@
  	    else {
  		RBASIC(p)->flags &= ~FL_MARK;
  		live++;
@@ -439,7 +466,7 @@
  	    }
  	    p++;
  	}
-@@ -1121,7 +1417,7 @@
+@@ -1132,7 +1453,7 @@
      }
      if (malloc_increase > malloc_limit) {
  	malloc_limit += (malloc_increase - malloc_limit) * (double)live / (live + freed);
@@ -448,7 +475,7 @@
      }
      malloc_increase = 0;
      if (freed < free_min) {
-@@ -1129,6 +1425,20 @@
+@@ -1140,6 +1461,20 @@
      }
      during_gc = 0;
  
@@ -469,7 +496,7 @@
      /* clear finalization list */
      if (final_list) {
  	deferred_final_list = final_list;
-@@ -1323,6 +1633,7 @@
+@@ -1334,6 +1669,7 @@
      struct gc_list *list;
      struct FRAME * volatile frame; /* gcc 2.7.2.3 -O2 bug??  */
      jmp_buf save_regs_gc_mark;
@@ -477,7 +504,7 @@
      SET_STACK_END;
  
  #ifdef HAVE_NATIVETHREAD
-@@ -1339,6 +1650,14 @@
+@@ -1350,6 +1686,14 @@
      if (during_gc) return;
      during_gc++;
  
@@ -492,7 +519,7 @@
      init_mark_stack();
  
      gc_mark((VALUE)ruby_current_node, 0);
-@@ -1414,6 +1733,17 @@
+@@ -1438,6 +1782,17 @@
      } while (!MARK_STACK_EMPTY);
  
      gc_sweep();
@@ -510,7 +537,7 @@
  }
  
  void
-@@ -1582,6 +1912,7 @@
+@@ -1551,6 +1906,7 @@
      if (!rb_gc_stack_start) {
  	Init_stack(0);
      }
@@ -518,7 +545,7 @@
      add_heap();
  }
  
-@@ -2051,6 +2382,14 @@
+@@ -2020,6 +2376,14 @@
      rb_define_singleton_method(rb_mGC, "disable", rb_gc_disable, 0);
      rb_define_method(rb_mGC, "garbage_collect", rb_gc_start, 0);
  
