@@ -21,6 +21,14 @@ variables:
 RUBY_HEAP_MIN_SLOTS
     - the initial heap size in number of slots used
 
+RUBY_HEAP_SLOTS_INCREMENT
+    - how many additional slots to allocate when Ruby allocates
+      new heap slots
+
+RUBY_HEAP_SLOTS_GROWTH_FACTOR
+    - multiplicator used to increase heap block size for the next
+      allocation.
+
 RUBY_GC_MALLOC_LIMIT
     - the amount of C data structures which can be allocated
       without triggering a GC (if this is set too low, GC will be
@@ -31,22 +39,16 @@ RUBY_HEAP_FREE_MIN
       if fewer slots are available, additional heap will be allocated
       (Ruby 1.8.5 ensures the freelist has at least heapsize*0.2 entries)
 
-The following values make the patched GC behave exactly like the
-unpatched GC:
+The following values make the patched GC behave like the unpatched GC:
 
 RUBY_HEAP_MIN_SLOTS=10000
+RUBY_HEAP_SLOTS_INCREMENT=10000
+RUBY_HEAP_SLOTS_GROWTH_FACTOR=1.8
 RUBY_GC_MALLOC_LIMIT=8000000
 RUBY_HEAP_FREE_MIN=4096
 
-I have found the following values to be suitable for my (small) rails app:
-
-RUBY_HEAP_MIN_SLOTS=600000
-RUBY_GC_MALLOC_LIMIT=60000000
-RUBY_HEAP_FREE_MIN=20000
-
-Try experimenting with these values (RUBY_HEAP_MIN_SOTS is the most
-important one). You can use perf_run_gc to find out how much memory
-you need.
+Try experimenting with these values. You can use perf_run_gc to find
+out how many slots you need.
 
 Memory usage of the ruby interpreter can be observed by setting
 RUBY_GC_STATS=1, before you invoke any of the railsbench commands.
