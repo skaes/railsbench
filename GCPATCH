@@ -10,10 +10,13 @@ run faster.
 The supplied patch fixes this problem: it allows one to specify the
 initial heap size to start with. Heap size will never drop below the
 initial size. By carefully selecting the initial heap size one can
-increase startup time and throughput of server apps.
+decrease startup time and increase throughput of server apps.
 
-There are two patches: one for 1.8.4, which also works for 1.8.2.
-File rubygc185.patch is for ruby 1.8.5.
+There are 4 patches for different versions of Ruby:
+   rubygc184.patch     Ruby 1.8.4 (but will apply to 1.82 as well)
+   rubygc185.patch     Ruby 1.8.5
+   rubygc186.patch     Ruby 1.8.6
+   rubygc19.patch      Ruby 1.9
 
 Heap size and other options are controlled through environment
 variables:
@@ -37,7 +40,7 @@ RUBY_GC_MALLOC_LIMIT
 RUBY_HEAP_FREE_MIN
     - number of free slots that should be available after GC
       if fewer slots are available, additional heap will be allocated
-      (Ruby 1.8.5 ensures the freelist has at least heapsize*0.2 entries)
+      (Ruby >= 1.8.5 ensures the freelist has at least heapsize*0.2 entries)
 
 The following values make the patched GC behave like the unpatched GC:
 
