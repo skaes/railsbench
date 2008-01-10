@@ -40,7 +40,7 @@ def dump_entry(name, entry, io = $stdout)
   io.puts "#{name}:"
   if entry.is_a? Hash
     VALID_KEYS.each do |key|
-      io.printf "    %15-s %s\n", key + ':', entry[key] if entry.has_key? key
+      io.printf "    %-15s %s\n", key + ':', entry[key] if entry.has_key? key
     end
     io.puts
   elsif entry.is_a? String
