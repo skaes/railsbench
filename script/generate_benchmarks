@@ -50,8 +50,8 @@ def dump_entry(name, entry, io = $stdout)
   end
 end
 
-unless Rails::VERSION::MAJOR >= 1 && Rails::VERSION::MINOR >= 2
-  $stderr.puts "Rails version #{Rails::VERSION::STRING} is not supported. please use a 1.2.x variety."
+unless Rails::VERSION::STRING >= "1.2"
+  $stderr.puts "Rails version #{Rails::VERSION::STRING} is not supported. please use a 1.2.x or later variety."
   exit 1
 end
 
