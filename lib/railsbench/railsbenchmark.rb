@@ -41,18 +41,16 @@ class RailsBenchmark
     require ENV['RAILS_ROOT'] + "/config/environment"
     require 'dispatcher' # make edge rails happy
 
-    # we don't want local error template output, which crashes anyway
+    # we don't want local error template output, which crashes anyway, when run under railsbench
     ActionController::Rescue.class_eval "def local_request?; false; end"
 
-    # make sure an error code gets returned for 1.1.6
+    # print backtrace and exit if action execution raises an exception
     ActionController::Rescue.class_eval <<-"end_eval"
       def rescue_action_in_public(exception)
-        case exception
-          when ActionController::RoutingError, ActionController::UnknownAction
-            render_text(IO.read(File.join(RAILS_ROOT, 'public', '404.html')), "404 Not Found")
-          else
-            render_text(IO.read(File.join(RAILS_ROOT, 'public', '500.html')), "500 Internal Error")
-        end
+        $stderr.puts "benchmarking aborted due to application error: " + exception.message
+        exception.backtrace.each{|line| $stderr.puts line}
+        ActiveRecord::Base.send :clear_all_cached_connections!
+        exit!(-1)
       end
     end_eval
 
