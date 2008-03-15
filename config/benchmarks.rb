@@ -13,8 +13,9 @@ RAILS_BENCHMARKER = RailsBenchmark.new
 # especially if you use page caching.
 # RAILS_BENCHMARKER.relative_url_root = '/blog'
 
-# Create session data required to run the benchmark.
-# Customize the code below if your benchmark needs session data.
+# Customize the code below if your benchmark needs session data
+# and/or your application specifies a custom session key.
 
 # require 'user'
 # RAILS_BENCHMARKER.session_data = {'account' => User.find_first("name='stefan'")}
+# RAILS_BENCHMARKER.session_key = "my_secret_cookie_name"

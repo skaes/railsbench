@@ -6,7 +6,7 @@ class RailsBenchmark
   attr_accessor :http_host, :remote_addr, :server_port
   attr_accessor :relative_url_root
   attr_accessor :perform_caching, :cache_template_loading
-  attr_accessor :session_data
+  attr_accessor :session_data, :session_key
 
   def error_exit(msg)
     STDERR.puts msg
@@ -35,6 +35,7 @@ class RailsBenchmark
     @server_port = options[:server_port] || '80'
 
     @session_data = options[:session_data] || {}
+    @session_key = options[:session_key] || '_session_id'
 
     ENV['RAILS_ENV'] = 'benchmarking'
 
@@ -153,7 +154,7 @@ class RailsBenchmark
       ENV['RAW_POST_DATA'] = query_data
     end
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
-    ENV['HTTP_COOKIE'] = entry.new_session ? '' : "_session_id=#{@session_id}"
+    ENV['HTTP_COOKIE'] = entry.new_session ? '' : "#{@session_key}=#{@session_id}"
     update_test_session_data(entry.session_data) unless entry.new_session
   end
 
