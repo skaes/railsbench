@@ -67,8 +67,10 @@ g = graph_type.new(graph_width)
 end
 
 g.title = title
+g.title += " (ignoring #{ignored_object_types.join(', ')})" unless ignored_object_types.empty?
 g.sort = false
-g.legend_font_size = font_size
+g.title_font_size = font_size
+g.legend_font_size = font_size-2
 g.legend_box_size = font_size
 g.marker_font_size = font_size
 if ignored_object_types.empty?
@@ -78,6 +80,7 @@ end
 g.labels = Hash[* (0...gc_count_max).map{|i| [2*i, i.to_s]}.flatten ]
 # puts g.labels.inspect
 # puts object_types.inspect
+puts "ignoring #{ignored_object_types.join(', ')}" unless ignored_object_types.empty?
 
 object_types.each do |ot|
   next if ignored_object_types.include?(ot)
