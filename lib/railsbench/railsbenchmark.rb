@@ -199,7 +199,7 @@ class RailsBenchmark
           $stderr = File.open(benchmark_file, "w")
         end
         require 'ruby-prof'
-        RubyProf.clock_mode = RubyProf::WALL_TIME
+        RubyProf.measure_mode = RubyProf::WALL_TIME
         RubyProf.start
       end
     rescue LoadError
@@ -237,7 +237,7 @@ class RailsBenchmark
       result = RubyProf.stop
       # Print a flat profile to text
       printer = RubyProf::GraphHtmlPrinter.new(result)
-      printer.print($stderr, ruby_prof.to_f)
+      printer.print($stderr, :min_percent => ruby_prof.to_f)
     end
 
     delete_test_session
