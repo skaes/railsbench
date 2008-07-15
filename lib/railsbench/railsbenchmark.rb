@@ -117,6 +117,7 @@ class RailsBenchmark
   def update_test_session_data(session_data)
     dbman = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
     old_session_data = dbman.new(@session).restore
+    # $stderr.puts old_session_data.inspect
     new_session_data = old_session_data.merge(session_data || {})
     new_session_data.each{ |k,v| @session[k] = v }
     @session.update
@@ -142,6 +143,7 @@ class RailsBenchmark
   end
 
   def setup_request_env(entry)
+    # $stderr.puts entry.inspect
     ENV['REQUEST_URI'] = @relative_url_root + entry.uri
     ENV['RAW_POST_DATA'] = nil
     ENV['QUERY_STRING'] = nil
@@ -156,6 +158,7 @@ class RailsBenchmark
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
     ENV['HTTP_COOKIE'] = entry.new_session ? '' : "#{@session_key}=#{@session_id}"
     ENV['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest' if entry.xhr
+    # $stderr.puts entry.session_data.inspect
     update_test_session_data(entry.session_data) unless entry.new_session
   end
 
