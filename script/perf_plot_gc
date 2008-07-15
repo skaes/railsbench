@@ -77,7 +77,7 @@ if ignored_object_types.empty?
   g.minimum_value = 0
   g.maximum_value = [gc_max_freed, gc_max_live, 400000].max
 end
-g.labels = Hash[* (0...gc_count_max).map{|i| [2*i, i.to_s]}.flatten ]
+g.labels = Hash[* (0...gc_count_max).map{|i| [2*i*files.length, i.to_s]}.flatten ]
 # puts g.labels.inspect
 # puts object_types.inspect
 puts "ignoring #{ignored_object_types.join(', ')}" unless ignored_object_types.empty?
