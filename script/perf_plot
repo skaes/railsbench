@@ -75,6 +75,11 @@ perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 # puts perf_data.inspect
 
 g = graph_type.new(graph_width)
+
+# on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
+g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
+# g.font = 'Helvetica-Narrow' if RUBY_PLATFORM =~ /darwin/
+
 g.send "theme_#{theme}" if theme
 g.replace_colors(colors) if colors
 g.title = title
