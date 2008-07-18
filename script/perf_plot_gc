@@ -61,6 +61,10 @@ gc_max_live = gcis.map{|gci| gci.live_max}.max
 
 g = graph_type.new(graph_width)
 
+# on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
+# g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
+g.font = 'Helvetica-Narrow' if RUBY_PLATFORM =~ /darwin/
+
 %w(#FF0000 #00FF00 #0000FF #D2FF77 #FF68C0 #D1FDFF #FFF0BD #15FFDC
 ).each do |color|
  g.add_color(color)
@@ -69,10 +73,10 @@ end
 g.title = title
 g.title += " (ignoring #{ignored_object_types.join(', ')})" unless ignored_object_types.empty?
 g.sort = false
-g.title_font_size = font_size
+g.title_font_size = font_size+2
 g.legend_font_size = font_size-2
-g.legend_box_size = font_size
-g.marker_font_size = font_size
+g.legend_box_size = font_size-2
+g.marker_font_size = font_size-2
 if ignored_object_types.empty?
   g.minimum_value = 0
   g.maximum_value = [gc_max_freed, gc_max_live, 400000].max
