@@ -49,11 +49,10 @@ object_types = %w(NODE STRING ARRAY HASH  SCOPE VARMAP CLASS ICLASS REGEXP FLOAT
 gcis = []
 files.each do |file|
   gcis << GCInfo.new(file)
-  object_types = (object_types + gcis.last.object_types.to_a).uniq
   file.close
 end
 
-object_types = object_types.to_a
+object_types = GCInfo.object_types(gcis)
 gc_count_max = gcis.map{|gci| gci.collections}.max
 gc_max_processed = gcis.map{|gci| gci.processed_max}.max
 gc_max_freed = gcis.map{|gci| gci.freed_max}.max

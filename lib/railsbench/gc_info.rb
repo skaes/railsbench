@@ -106,6 +106,15 @@ class GCInfo
     end
   end
 
+  OBJECT_TYPES = %w(NODE STRING ARRAY HASH  SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
+
+  class << self
+    def object_types(list_of_gc_infos)
+      list_of_gc_infos.inject(OBJECT_TYPES) do |object_types, gci|
+        (object_types + gci.object_types.to_a).uniq
+      end
+    end
+  end
 end
 
 
