@@ -85,6 +85,14 @@ printf "freelist   : #{number_format}\n",
        gcis[0].freelist_min, gcis[1].freelist_min,
        gcis[0].freelist_max, gcis[1].freelist_max
 
+printf "\ngarbage per object type:\n"
+printf "%-12s %9s %9s %9s %7s\n", "object type", "#c1", "#c2", "c2-c1", "c2/c1"
+
+GCInfo.object_types(gcis).each do |object_type|
+  n1, n2 = gcis[0].garbage_totals[object_type], gcis[1].garbage_totals[object_type]
+  printf "%-12s %9d %9d %9d %7.2f\n", object_type, n1, n2, n2-n1, n2.to_f/n1
+end
+
 
 __END__
 
