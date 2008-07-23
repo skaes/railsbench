@@ -41,7 +41,7 @@ class GCInfo
 
   attr_reader(*GCAttributes)
   attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total, :topology
-  attr_reader :live_objects, :freed_objects, :object_types
+  attr_reader :live_objects, :freed_objects, :object_types, :garbage_totals
 
   GCAttributes.each do |attr|
     GCSummaries.each do |method|
@@ -85,6 +85,12 @@ class GCInfo
     @garbage_produced = @entries.map{|e| e.freed}.sum
     @live_objects = @entries.map{|e| e.live_objects}
     @freed_objects = @entries.map{|e| e.freed_objects}
+    @garbage_totals = @freed_objects.inject(Hash.new(0)) do |totals, freed|
+      freed.each do |object_type, count|
+        totals[object_type] += freed[object_type] || 0
+      end
+      totals
+    end
 
     GCAttributes.each do |attr|
       a = @entries.map{|e| e.send attr}
