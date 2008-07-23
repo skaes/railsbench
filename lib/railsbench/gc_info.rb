@@ -88,7 +88,8 @@ class GCInfo
 
     GCAttributes.each do |attr|
       a = @entries.map{|e| e.send attr}
-      a.pop
+      # we need to pop the last entry, as the freelist is not empty when doing the last forced GC
+      a.pop if :freelist == attr.to_sym
 
       [:min, :max, :mean].each do |method|
         instance_variable_set "@#{attr}_#{method}", (a.send method)
