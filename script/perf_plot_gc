@@ -9,7 +9,7 @@ require 'railsbench/gc_info'
 # extract options
 
 selection = []
-title = "GC Data Graph"
+title = "GC Data Plot"
 files = []
 names = []
 labels = %w()
@@ -19,6 +19,8 @@ graph_width = '1400x1050'
 font_size = 10
 ignored_object_types = %w(NODE STRING)
 output_file = "graph.png"
+plot_live = true
+plot_freed = true
 
 ARGV.each do |arg|
   case arg
@@ -36,6 +38,16 @@ ARGV.each do |arg|
     ignored_object_types = $1.split(',').compact.map{|s|s.upcase}
   when /^-out=(.+)$/
     output_file = $1
+  when /^-type=(.+)$/
+    plot_freed = plot_live = false
+    $1.split(/,/).compact.each do |plot_what|
+      case plot_what
+      when 'live' then plot_live = true
+      when 'freed' then plot_freed = true
+      else
+        die "unknown plot type: #{$1}"
+      end
+    end
   else
     files << File.open_or_die(arg)
     names[files.length-1] ||= File.basename(arg)
@@ -69,7 +81,11 @@ g.font = 'Helvetica-Narrow' if RUBY_PLATFORM =~ /darwin/
  g.add_color(color)
 end
 
-g.title = title
+g.title = title + " ["
+g.title += "freed" if plot_freed
+g.title += "," if plot_freed && plot_live
+g.title += "live" if plot_live
+g.title += "]"
 g.title += " (ignoring #{ignored_object_types.join(', ')})" unless ignored_object_types.empty?
 g.sort = false
 g.title_font_size = font_size+2
@@ -78,9 +94,15 @@ g.legend_box_size = font_size-2
 g.marker_font_size = font_size-2
 if ignored_object_types.empty?
   g.minimum_value = 0
-  g.maximum_value = [gc_max_freed, gc_max_live, 400000].max
+  maximums = []
+  maximums << gc_max_live if plot_live
+  maximums << gc_max_freed if plot_freed
+  g.maximum_value = maximums.max
 end
-g.labels = Hash[* (0...gc_count_max).map{|i| [2*i*files.length, i.to_s]}.flatten ]
+label_step = 0
+label_step += 1 if plot_live
+label_step += 1 if plot_freed
+g.labels = Hash[* (0...gc_count_max).map{|i| [label_step*i*files.length, i.to_s]}.flatten ]
 # puts g.labels.inspect
 # puts object_types.inspect
 puts "ignoring #{ignored_object_types.join(', ')}" unless ignored_object_types.empty?
@@ -91,9 +113,9 @@ object_types.each do |ot|
   gc_count_max.times do |gc_index|
     for gci in gcis
       map_at_this_gc = gci.freed_objects[gc_index]
-      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0)
+      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if plot_freed
       map_at_this_gc = gci.live_objects[gc_index]
-      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0)
+      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if plot_live
     end
   end
   # puts "#{ot}: #{data.inspect}"
