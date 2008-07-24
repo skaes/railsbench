@@ -122,14 +122,6 @@ object_types.each do |ot|
   g.data(ot, data)
 end
 
-class Gruff::StackedBar < Gruff::Base
-  alias_method :old_draw, :draw
-  def draw
-    @d = @d.stroke_antialias false
-    old_draw
-  end
-end
-
 g.write(output_file)
 
 
