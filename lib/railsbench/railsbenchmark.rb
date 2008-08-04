@@ -233,6 +233,22 @@ class RailsBenchmark
       GC.log "number of requests processed: #{@urls.size * iterations}"
     end
 
+    # try to detect Ruby interpreter memory leaks (OS X)
+    if ARGV.include?('-leaks')
+      leaks_log = "#{ENV['RAILS_PERF_DATA']}/leaks.log"
+      leaks_command = "leaks -nocontext #{$$} >#{leaks_log}"
+      ENV.delete 'MallocStackLogging'
+      # $stderr.puts "executing '#{leaks_command}'"
+      raise "could not execute leaks command" unless system(leaks_command)
+      mallocs, leaks = *`head -n 2 #{leaks_log}`.split("\n").map{|l| l.gsub(/Process #{$$}: /, '')}
+      if mem_leaks = (leaks =~ /(\d+) leaks for (\d+) total leaked bytes/)
+        $stderr.puts "\n!!!!! memory leaks detected !!!!! (#{leaks_log})"
+        $stderr.puts "=" * leaks.length
+      end
+      $stderr.puts mallocs, leaks
+      $stderr.puts "=" * leaks.length if mem_leaks
+    end
+
     # stop data collection if necessary
     svl.stopDataCollection if svl
 

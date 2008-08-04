@@ -150,6 +150,15 @@ def perf_run_gc(script, iterations, options, raw_data_file)
   perf_cmd = "ruby #{RAILSBENCH_BINDIR}/run_urls #{perf_options} >#{null}"
   print_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_times_gc #{raw_data_file}"
 
+  if options =~ /-leaks/
+    if RUBY_PLATFORM =~ /darwin9/
+      puts "enabling MallocStackLogging"
+      perf_cmd.insert(0, "MallocStackLogging=1 ")
+    else
+      die "leak debugging not supported on #{RUBY_PLATFORM}"
+    end
+  end
+
   puts "benchmarking GC performance with options #{perf_options}"
   puts
 
