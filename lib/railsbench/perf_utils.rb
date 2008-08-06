@@ -56,7 +56,7 @@ def truncate(text, length = 32, truncate_string = "...")
   if text.nil? then return "" end
   l = truncate_string.length + 1
 
-  if $KCODE == "NONE"
+  if RUBY_VERSION !~ /1.9/ && $KCODE == "NONE"
     text.length > length ? text[0..(length - l)] + truncate_string : text
   else
     chars = text.split(//)
