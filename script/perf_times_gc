@@ -57,8 +57,12 @@ files.each_with_index do |file, idx|
          gci.freelist_mean, gci.freelist_stddev_percentage, gci.freelist_min, gci.freelist_max
 
   printf "\nheap topology:\n"
-  gci.topology.each_with_index{|size, idx| printf "    HEAP[%d] = %7d\n", idx, size }
-
+  printf "%9s   %6s\n", "slot_size", "#heaps"
+  heaps_count = {}
+  gci.topology.each{|size| heaps_count[size] = (heaps_count[size] ||0) + 1}
+  heaps_count.keys.sort.each do |size|
+    printf "%9d   %6d\n", size, heaps_count[size]
+  end
   file.close
 
 end
