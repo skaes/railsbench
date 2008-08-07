@@ -145,8 +145,8 @@ class RailsBenchmark
   def setup_request_env(entry)
     # $stderr.puts entry.inspect
     ENV['REQUEST_URI'] = @relative_url_root + entry.uri
-    ENV['RAW_POST_DATA'] = nil
-    ENV['QUERY_STRING'] = nil
+    ENV.delete 'RAW_POST_DATA'
+    ENV.delete 'QUERY_STRING'
     case ENV['REQUEST_METHOD'] = (entry.method || 'get').upcase
     when 'GET'
       query_data = escape_data(entry.query_string || '')
