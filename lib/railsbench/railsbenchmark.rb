@@ -245,6 +245,10 @@ class RailsBenchmark
         $stderr.puts "\n!!!!! memory leaks detected !!!!! (#{leaks_log})"
         $stderr.puts "=" * leaks.length
       end
+      if gc_stats
+        GC.log mallocs
+        GC.log leaks
+      end
       $stderr.puts mallocs, leaks
       $stderr.puts "=" * leaks.length if mem_leaks
     end

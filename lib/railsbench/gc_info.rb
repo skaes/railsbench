@@ -25,6 +25,15 @@ require "set"
 # kept 0173634 / freed 0002389 objects of type NODE
 # GC time: 47 msec
 
+# Sentinel:
+# HEAP[ 0]: size= 300000
+# HEAP[ 1]: size= 600000
+# ...
+# number of requests processed: 1000
+# 128334 nodes malloced for 17345 KB
+# 396 leaks for 10464 total leaked bytes.
+
+
 GCAttributes = [:processed, :live, :freelist, :freed, :time]
 GCSummaries  = [:min, :max, :mean, :stddev, :stddev_percentage]
 
@@ -42,6 +51,7 @@ class GCInfo
   attr_reader(*GCAttributes)
   attr_reader :entries, :num_requests, :collections, :garbage_produced, :time_total, :topology
   attr_reader :live_objects, :freed_objects, :object_types, :garbage_totals
+  attr_reader :mallocs, :malloced, :leaks, :leaked
 
   GCAttributes.each do |attr|
     GCSummaries.each do |method|
@@ -54,6 +64,7 @@ class GCInfo
     @num_requests = 0
     @topology = []
     @object_types = Set.new
+    @mallocs = @malloced = @leaks = @leaked = 0
 
     file.each_line do |line|
       case line
@@ -77,6 +88,12 @@ class GCInfo
         @object_types.add($3)
         @entries.last.live_objects[$3] = $1.to_i
         @entries.last.freed_objects[$3] = $2.to_i
+      when /^(\d+) nodes malloced for (\d+) KB$/
+        @mallocs = $1.to_i
+        @malloced = $2.to_i * 1024
+      when /^(\d+) leaks for (\d+) total leaked bytes.$/
+        @leaks = $1.to_i
+        @leaked = $2.to_i
       end
     end
 

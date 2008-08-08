@@ -63,6 +63,14 @@ files.each_with_index do |file, idx|
   heaps_count.keys.sort.each do |size|
     printf "%9d   %6d\n", size, heaps_count[size]
   end
+
+  if gci.mallocs > 0
+    printf "\nleak anlysis:\n"
+    printf "mallocs/bytes : %10d / %10d\n", gci.mallocs, gci.malloced
+    printf "leaks/bytes   : %10d / %10d\n", gci.leaks, gci.leaked
+    printf "leaked/request: %10.2f bytes\n", gci.leaked.to_f/gci.num_requests
+  end
+
   file.close
 
 end
