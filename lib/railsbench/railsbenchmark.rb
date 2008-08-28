@@ -6,7 +6,7 @@ class RailsBenchmark
   attr_accessor :http_host, :remote_addr, :server_port
   attr_accessor :relative_url_root
   attr_accessor :perform_caching, :cache_template_loading
-  attr_accessor :session_data, :session_key
+  attr_accessor :session_data, :session_key, :cookie_data
 
   def error_exit(msg)
     STDERR.puts msg
@@ -156,10 +156,14 @@ class RailsBenchmark
       ENV['RAW_POST_DATA'] = query_data
     end
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
-    ENV['HTTP_COOKIE'] = entry.new_session ? '' : "#{@session_key}=#{@session_id}"
+    ENV['HTTP_COOKIE'] = entry.new_session ? '' : cookie
     ENV['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest' if entry.xhr
     # $stderr.puts entry.session_data.inspect
     update_test_session_data(entry.session_data) unless entry.new_session
+  end
+
+  def cookie
+    "#{@session_key}=#{@session_id}#{cookie_data}"
   end
 
   def escape_data(str)
