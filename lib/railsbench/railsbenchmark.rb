@@ -186,7 +186,7 @@ class RailsBenchmark
         svl = SvlRubyPV.new
       elsif ARGV.include?('-svlMV')
         require 'svlRubyMV'
-        svl = SvlRubyMV.new
+        svl = SvlRubyMV
       end
     rescue LoadError
       # SVL dll not available, do nothing
