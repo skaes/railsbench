@@ -36,6 +36,11 @@ base directory, in order for railsbench to work properly.
 If you obtained railsbench as a svn checkout, add the railsbench
 script directory to your search path.
 
+For bash shells you can use railsbench command completion by adding
+this line code to your .bashrc file:
+
+     complete -W "`railsbench commands`" -o default railsbench
+
 
 STEP 2: prepare your application for benchmarking
 -------------------------------------------------

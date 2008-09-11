@@ -3,6 +3,7 @@
 RAILSBENCH_CMDS = %w(
 base
 generate_benchmarks
+commands
 convert_raw_data_files
 help
 install
@@ -38,6 +39,8 @@ end
 RAILSBENCH_BASE = File.expand_path(File.dirname(__FILE__) + '/..')
 
 case real_cmd
+when 'commands'
+  puts RAILSBENCH_CMDS.keys.uniq.sort
 when 'base'
   puts "railsbench is installed in: #{RAILSBENCH_BASE}"
   exit
