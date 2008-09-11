@@ -54,7 +54,7 @@ else
     if File.exists? 'config/environment.rb'
       ENV['RAILS_ROOT'] = File.expand_path '.'
     else
-      $stderr.puts "railsbench: RAILS_ROOT not set"
+      $stderr.puts "railsbench: RAILS_ROOT not set and could not be configured automatically"
       exit 1
     end
   end

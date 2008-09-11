@@ -3,9 +3,12 @@
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 
 unless ENV['RAILS_ROOT']
-  $stderr.puts("\nperf_bench: can't benchmark unless RAILS_ROOT is set")
-  $stderr.puts("\nbenchmarking aborted!")
-  exit 1
+  if File.directory?("config") && File.exists?("config/environment.rb")
+    ENV['RAILS_ROOT'] = File.expand_path(".")
+  else
+    $stderr.puts("\nperf_bench: can't benchmark unless RAILS_ROOT is set")
+    exit 1
+  end
 end
 
 trap("INT") { $stderr.puts("benchmarking aborted!"); exit!(-1) }

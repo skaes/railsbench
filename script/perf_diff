@@ -9,7 +9,7 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
-die("perf_diff: RAILS_ROOT not set") unless ENV['RAILS_ROOT']
+determine_rails_root_or_die!
 
 iterations = ARGV[0]
 common = ARGV[1]

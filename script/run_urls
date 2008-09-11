@@ -1,15 +1,18 @@
 #!/usr/bin/env ruby
 
-unless ENV['RAILS_ROOT']
-  $stderr.puts("\nrun_urls: can't run urls unless RAILS_ROOT is set")
-  $stderr.puts("\nbenchmarking aborted!")
-  exit 1
-end
-
 if ARGV.length == 0 || ARGV.first == 'help'
   $stderr.puts "usage: run_urls iterations option_1 ... option_n"
   $stderr.puts "example: run_urls 100 -bm=default -log | grep Status:"
   exit 1
+end
+
+unless ENV['RAILS_ROOT']
+  if File.directory?("config") && File.exists?("config/environment.rb")
+    ENV['RAILS_ROOT'] = File.expand_path(".")
+  else
+    $stderr.puts("#{File.basename $PROGRAM_NAME}: $RAILS_ROOT not set and could not be configured automatically")
+    exit 1
+  end
 end
 
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))

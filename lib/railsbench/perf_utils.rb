@@ -32,6 +32,16 @@ def stddev_percentage(stddev, mean)
   stddev.zero? ? 0.0 : (stddev/mean)*100
 end
 
+def determine_rails_root_or_die!(msg=nil)
+  unless ENV['RAILS_ROOT']
+    if File.directory?("config") && File.exists?("config/environment.rb")
+      ENV['RAILS_ROOT'] = File.expand_path(".")
+    else
+      die(msg || "#{File.basename $PROGRAM_NAME}: $RAILS_ROOT not set and could not be configured automatically")
+    end
+  end
+end
+
 def die(msg, error_code=1)
   $stderr.puts msg
   exit error_code

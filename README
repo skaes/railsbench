@@ -121,7 +121,8 @@ FILES
 ENVIRONMENT
 
   RAILS_ROOT
-                - must be set to point to your rails app
+                - can be set to point to your rails app. if not set, railsbench can only
+                  be called from the top level directory of your rails app
 
   RAILS_PERF_DATA
                 - performance data sets will be stored into this directory

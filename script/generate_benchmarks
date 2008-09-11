@@ -1,5 +1,15 @@
 #!/usr/bin/env ruby
 
+unless ENV['RAILS_ROOT']
+  if File.directory?("config") && File.exists?("config/environment.rb")
+    ENV['RAILS_ROOT'] = File.expand_path(".")
+  else
+    $stderr.puts("\nperf_bench: can't generate benchmarks unless RAILS_ROOT is set")
+    $stderr.puts("\nbenchmarking aborted!")
+    exit 1
+  end
+end
+
 require "#{ENV['RAILS_ROOT']}/config/environment"
 require 'application'
 

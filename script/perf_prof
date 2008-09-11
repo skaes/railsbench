@@ -9,6 +9,8 @@ end
 bindir = File.dirname(__FILE__)
 require "#{bindir}/../lib/railsbench/perf_utils"
 
+determine_rails_root_or_die!
+
 perf_data_dir = (ENV['RAILS_PERF_DATA'] ||= ENV['HOME'])
 
 iterations = ARGV[0]
