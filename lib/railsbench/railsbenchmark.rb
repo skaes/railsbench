@@ -149,10 +149,12 @@ class RailsBenchmark
     ENV.delete 'QUERY_STRING'
     case ENV['REQUEST_METHOD'] = (entry.method || 'get').upcase
     when 'GET'
-      query_data = escape_data(entry.query_string || '')
+      query_data = entry.query_string || ''
+      query_data = escape_data(query_data) unless entry.raw_data
       ENV['QUERY_STRING'] = query_data
     when 'POST'
-      query_data = escape_data(entry.post_data || '')
+      query_data = entry.post_data || ''
+      query_data = escape_data(query_data) unless entry.raw_data
       ENV['RAW_POST_DATA'] = query_data
     end
     ENV['CONTENT_LENGTH'] = query_data.length.to_s

@@ -5,7 +5,7 @@ require 'erb'
 class BenchmarkSpec < DelegateClass(Hash)
   attr_accessor :name
 
-  READERS = %w(uri method post_data query_string new_session action controller session_data xhr)
+  READERS = %w(uri method post_data query_string new_session action controller session_data xhr raw_data)
   READERS.each do |method|
     define_method(method) { self[method] }
   end
