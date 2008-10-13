@@ -1,129 +1,216 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'gruff'
+require 'optparse'
+require 'ostruct'
 
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'railsbench/gc_info'
 
-# extract options
+# parse options
+o = OpenStruct.new
+o.title = "GC Data Plot"
+o.graph_width = '1400x1050'
+o.font_size = 10
+o.ignored_object_types = %w(NODE STRING)
+o.output_file = "graph.png"
+o.plot_live = true
+o.plot_freed = true
+o.engine = :gruff
 
-selection = []
-title = "GC Data Plot"
-files = []
-names = []
-labels = %w()
-perf_data = []
-graph_type = Gruff::StackedBar
-graph_width = '1400x1050'
-font_size = 10
-ignored_object_types = %w(NODE STRING)
-output_file = "graph.png"
-plot_live = true
-plot_freed = true
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: perf_plot_gc [options] file1 file2 ..."
 
-ARGV.each do |arg|
-  case arg
-  when /^-width=(\d+)$/
-    graph_width = $1.to_i
-  when /^-geometry=(\d+x\d+)$/
-    graph_width = $1
-   when /^-title=(.*)$/
-     title = $1 unless $1.strip.empty?
-#   when /^-names=(.+)$/
-#     names = $1.split(',')
-  when /^-font_size=(\d+)$/
-    font_size = $1.to_i
-  when /^-ignore=(.*)$/
-    ignored_object_types = $1.split(',').compact.map{|s|s.upcase}
-  when /^-out=(.+)$/
-    output_file = $1
-  when /^-type=(.+)$/
-    plot_freed = plot_live = false
-    $1.split(/,/).compact.each do |plot_what|
-      case plot_what
-      when 'live' then plot_live = true
-      when 'freed' then plot_freed = true
-      else
-        die "unknown plot type: #{$1}"
-      end
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-t", "--title T",
+          "Specify the title for your plot") do |t|
+    o.title = t
+  end
+
+  opts.on("-i", "--ignore [LIST]", Array,
+          "Specify the object types to ignore") do |i|
+    o.ignored_object_types = i.map{|t| t.upcase}
+  end
+
+  opts.on("-d", "--type TYPE", [:freed, :live, :both],
+          "Select data points to plot: (live, freed, both)") do |dp|
+    o.plot_freed = o.plot_live = false
+    case dp
+    when :live  then o.plot_live = true
+    when :freed then o.plot_freed = true
+    when :both  then o.plot_freed = true; o.plot_live = true
     end
-  else
-    files << File.open_or_die(arg)
-    names[files.length-1] ||= File.basename(arg)
+  end
+
+  opts.on("-e", "--engine ENGINE", [:gruff, :gnuplot],
+          "Select plotting engine: (gruff, gnuplot)") do |e|
+    o.engine = e
+  end
+
+  opts.on("-f", "--font-size N", Integer,
+          "Overall font size to use in the plot (points)") do |n|
+    o.font_size = n
+  end
+
+  opts.on("-w", "--width W", Integer,
+          "Width of the plot (pixels)") do |w|
+    o.graph_width = w
+  end
+
+  opts.on("-g", "--geometry WxH", /\d+x\d+/,
+          "Specify plot dimensions (pixels)") do |d|
+    puts d
+    o.graph_width = d
+  end
+
+  opts.on("-o", "--out FILE",
+          "Specify output file") do |f|
+    o.output_file = f
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
   end
 end
 
-files.length > 0 or die "usage: perf_plot_gc [options] file1 file2 ..."
+# option compatibility with older versions
+args=[]
+ARGV.each do |arg|
+  arg = arg.sub("font_size", "font-size") if arg =~ /^-font_size/
+  arg = "-" + arg if arg =~ /^-(title|width|out|geometry|font-size|ignore)/
+  args << arg
+end
 
-object_types = %w(NODE STRING ARRAY HASH  SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
+parser.parse!(args)
 
-gcis = []
-files.each do |file|
-  gcis << GCInfo.new(file)
+o.files = []
+o.names = []
+args.each do |arg|
+  o.files << File.open_or_die(arg)
+  o.names[o.files.length-1] ||= File.basename(arg)
+end
+
+o.files.length > 0 or die(parser.banner)
+
+o.gcis = []
+o.files.each do |file|
+  o.gcis << GCInfo.new(file)
   file.close
 end
 
-object_types = GCInfo.object_types(gcis)
-gc_count_max = gcis.map{|gci| gci.collections}.max
-gc_max_processed = gcis.map{|gci| gci.processed_max}.max
-gc_max_freed = gcis.map{|gci| gci.freed_max}.max
-gc_max_live = gcis.map{|gci| gci.live_max}.max
+o.object_types = %w(NODE STRING ARRAY HASH SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
 
-g = graph_type.new(graph_width)
+o.object_types = GCInfo.object_types(o.gcis)
+o.gc_count_max = o.gcis.map{|gci| gci.collections}.max
+o.gc_max_processed = o.gcis.map{|gci| gci.processed_max}.max
+o.gc_max_freed = o.gcis.map{|gci| gci.freed_max}.max
+o.gc_max_live = o.gcis.map{|gci| gci.live_max}.max
 
-# on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
-# g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
-g.font = 'Helvetica-Narrow' if RUBY_PLATFORM =~ /darwin/
+o.title << " ["
+o.title << "freed" if o.plot_freed
+o.title << "," if o.plot_freed && o.plot_live
+o.title << "live" if o.plot_live
+o.title << "]"
+o.title << " (ignoring #{o.ignored_object_types.join(', ')})" unless o.ignored_object_types.empty?
 
-%w(#FF0000 #00FF00 #0000FF #D2FF77 #FF68C0 #D1FDFF #FFF0BD #15FFDC
-).each do |color|
- g.add_color(color)
-end
+class Plotter
+  attr_reader :o
+  def initialize(options)
+    @o = options
+  end
 
-g.title = title + " ["
-g.title += "freed" if plot_freed
-g.title += "," if plot_freed && plot_live
-g.title += "live" if plot_live
-g.title += "]"
-g.title += " (ignoring #{ignored_object_types.join(', ')})" unless ignored_object_types.empty?
-g.sort = false
-g.title_font_size = font_size+2
-g.legend_font_size = font_size-2
-g.legend_box_size = font_size-2
-g.marker_font_size = font_size-2
-if ignored_object_types.empty?
-  g.minimum_value = 0
-  maximums = []
-  maximums << gc_max_live if plot_live
-  maximums << gc_max_freed if plot_freed
-  g.maximum_value = maximums.max
-end
-label_step = 0
-label_step += 1 if plot_live
-label_step += 1 if plot_freed
-g.labels = Hash[* (0...gc_count_max).map{|i| [label_step*i*files.length, i.to_s]}.flatten ]
-# puts g.labels.inspect
-# puts object_types.inspect
-puts "ignoring #{ignored_object_types.join(', ')}" unless ignored_object_types.empty?
+  def plot_with_gruff
+    require 'gruff'
 
-object_types.each do |ot|
-  next if ignored_object_types.include?(ot)
-  data = []
-  gc_count_max.times do |gc_index|
-    for gci in gcis
-      map_at_this_gc = gci.freed_objects[gc_index]
-      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if plot_freed
-      map_at_this_gc = gci.live_objects[gc_index]
-      data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if plot_live
+    g = Gruff::StackedBar.new(o.graph_width)
+
+    # on OS X, ImageMagick can't find it's default font (arial) sometimes, so specify some font
+    # g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
+    g.font = 'Helvetica-Narrow' if RUBY_PLATFORM =~ /darwin/
+
+    %w(#FF0000 #00FF00 #0000FF #D2FF77 #FF68C0 #D1FDFF #FFF0BD #15FFDC
+    ).each do |color|
+      g.add_color(color)
+    end
+
+    g.title = o.title
+    g.sort = false
+    g.title_font_size = o.font_size+2
+    g.legend_font_size = o.font_size-2
+    g.legend_box_size = o.font_size-2
+    g.marker_font_size = o.font_size-2
+    if o.ignored_object_types.empty?
+      g.minimum_value = 0
+      maximums = []
+      maximums << o.gc_max_live if o.plot_live
+      maximums << o.gc_max_freed if o.plot_freed
+      g.maximum_value = maximums.max
+    end
+    label_step = 0
+    label_step += 1 if o.plot_live
+    label_step += 1 if o.plot_freed
+    g.labels = Hash[* (0...o.gc_count_max).map{|i| [label_step*i*o.files.length, i.to_s]}.flatten ]
+    # puts g.labels.inspect
+    # puts object_types.inspect
+    puts "ignoring #{o.ignored_object_types.join(', ')}" unless o.ignored_object_types.empty?
+
+    o.object_types.each do |ot|
+      data = prepare_data(ot)
+      # puts "#{ot}: #{data.inspect}"
+      g.data(ot, data)
+    end
+
+    g.write(o.output_file)
+  end
+
+  def prepare_data(ot)
+    return if o.ignored_object_types.include?(ot)
+    data = []
+    o.gc_count_max.times do |gc_index|
+      for gci in o.gcis
+        map_at_this_gc = gci.freed_objects[gc_index]
+        data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if o.plot_freed
+        map_at_this_gc = gci.live_objects[gc_index]
+        data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if o.plot_live
+      end
+    end
+    data
+  end
+
+  def plot_with_gnuplot
+    require 'gnuplot'
+    Gnuplot.open(false) do |gnuplot|
+      Gnuplot::Plot.new(gnuplot) do |plot|
+        plot.terminal "pdf enhanced fname 'Helvetica' fsize 4"
+        plot.output "graph.pdf"
+        plot.xlabel "Collections"
+        plot.ylabel "Objects"
+        plot.title  o.title
+        plot.style  "fill solid border 0"
+        plot.style  "data histogram"
+        plot.style  "histogram rowstacked"
+        plot.xtics  "1,5"
+        plot.key    "outside"
+
+        o.object_types.each do |ot|
+          next unless data = prepare_data(ot)
+          plot.data << Gnuplot::DataSet.new([ot.downcase] + data) do |ds|
+            ds.using = "1 title 1"
+          end
+        end
+      end
     end
   end
-  # puts "#{ot}: #{data.inspect}"
-  g.data(ot, data)
+
+  def plot
+    send "plot_with_#{o.engine}"
+  end
 end
 
-g.write(output_file)
-
+Plotter.new(o).plot
 
 __END__
 
