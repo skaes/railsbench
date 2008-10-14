@@ -102,7 +102,7 @@ o.files.each do |file|
 end
 
 o.object_types = %w(NODE STRING ARRAY HASH SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
-
+o.colors = %w(ff0000 00c000 0080ff c000ff 00eeee c04000 ee0000 2020c0 ffc020 008040 a080ff 804000 ff80ff 00c060 006080 c06080 008000 40ff80 306080 806000).map{|c| "#" + c}
 o.object_types = GCInfo.object_types(o.gcis)
 o.gc_count_max = o.gcis.map{|gci| gci.collections}.max
 o.gc_max_processed = o.gcis.map{|gci| gci.processed_max}.max
@@ -184,22 +184,26 @@ class Plotter
     require 'gnuplot'
     Gnuplot.open(false) do |gnuplot|
       Gnuplot::Plot.new(gnuplot) do |plot|
-        plot.terminal "pdf enhanced fname 'Helvetica' fsize 4"
+        plot.terminal "pdf enhanced color fname 'Helvetica' fsize 4"
         plot.output "graph.pdf"
         plot.xlabel "Collections"
         plot.ylabel "Objects"
         plot.title  o.title
-        plot.style  "fill solid 0.9 noborder"
+        plot.style  "fill solid 1.0 noborder"
         plot.style  "data histogram"
         plot.style  "histogram rowstacked"
         plot.xtics  "1,5"
         plot.key    "outside"
         plot.boxwidth "0.8"
+        plot.grid "nopolar"
+        plot.grid "noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics"
+        plot.grid "layerdefault linetype 0 linewidth 0.7, linetype 0 linewidth 0.7"
 
-        o.object_types.each do |ot|
+
+        o.object_types.each_with_index do |ot, i|
           next unless data = prepare_data(ot)
           plot.data << Gnuplot::DataSet.new([ot.downcase] + data) do |ds|
-            ds.using = "1 title 1"
+            ds.using = "1 title 1 lc rgb '#{o.colors[i]}'"
           end
         end
       end
