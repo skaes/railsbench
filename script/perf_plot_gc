@@ -31,7 +31,7 @@ parser = OptionParser.new do |opts|
 
   opts.on("-i", "--ignore [LIST]", Array,
           "Specify the object types to ignore") do |i|
-    o.ignored_object_types = i.map{|t| t.upcase}
+    o.ignored_object_types = (i||[]).map{|t| t.upcase}
   end
 
   opts.on("-d", "--type TYPE", [:freed, :live, :both],
@@ -189,11 +189,12 @@ class Plotter
         plot.xlabel "Collections"
         plot.ylabel "Objects"
         plot.title  o.title
-        plot.style  "fill solid border 0"
+        plot.style  "fill solid 0.9 noborder"
         plot.style  "data histogram"
         plot.style  "histogram rowstacked"
         plot.xtics  "1,5"
         plot.key    "outside"
+        plot.boxwidth "0.8"
 
         o.object_types.each do |ot|
           next unless data = prepare_data(ot)
