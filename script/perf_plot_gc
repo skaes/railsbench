@@ -16,6 +16,7 @@ o.ignored_object_types = []
 o.output_file = "graph.png"
 o.plot_live = true
 o.plot_freed = true
+o.plot_type = :both
 o.engine = :gruff
 
 parser = OptionParser.new do |opts|
@@ -36,6 +37,7 @@ parser = OptionParser.new do |opts|
 
   opts.on("-d", "--type TYPE", [:freed, :live, :both],
           "Select data points to plot: (live, freed, both)") do |dp|
+    o.plot_type = dp
     o.plot_freed = o.plot_live = false
     case dp
     when :live  then o.plot_live = true
@@ -192,12 +194,13 @@ class Plotter
         plot.style  "fill solid 1.0 noborder"
         plot.style  "data histogram"
         plot.style  "histogram rowstacked"
-        plot.xtics  "1,5"
-        plot.key    "outside"
+        plot.xtics  "out nomirror"
+        plot.xrange "[-1:#{o.gc_count_max*((o.plot_type == :both) ? 2 : 1)}]"
+        plot.key    "outside invert reverse"
         plot.boxwidth "0.8"
         plot.grid "nopolar"
         plot.grid "noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics"
-        plot.grid "layerdefault linetype 0 linewidth 0.7, linetype 0 linewidth 0.7"
+        plot.grid "back linetype 0 linewidth 0.7"
 
 
         o.object_types.each_with_index do |ot, i|
