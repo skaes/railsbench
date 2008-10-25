@@ -12,7 +12,7 @@ o = OpenStruct.new
 o.title = "GC Data Plot"
 o.graph_width = '1400x1050'
 o.font_size = 10
-o.ignored_object_types = %w(NODE STRING)
+o.ignored_object_types = []
 o.output_file = "graph.png"
 o.plot_live = true
 o.plot_freed = true
@@ -29,9 +29,9 @@ parser = OptionParser.new do |opts|
     o.title = t
   end
 
-  opts.on("-i", "--ignore [LIST]", Array,
+  opts.on("-i", "--ignore LIST", Array,
           "Specify the object types to ignore") do |i|
-    o.ignored_object_types = (i||[]).map{|t| t.upcase}
+    o.ignored_object_types = i.map{|t| t.upcase}
   end
 
   opts.on("-d", "--type TYPE", [:freed, :live, :both],
