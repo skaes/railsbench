@@ -1,97 +1,171 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+
+require 'optparse'
+require 'ostruct'
+
 require "gruff"
 
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'railsbench/perf_info'
 
-# extract options
+# parse options
+o = OpenStruct.new
+o.selection = []
+o.title = "Performance Graph"
+o.files = []
+o.names = []
+o.labels = []
+o.graph_type = Gruff::Line
+o.graph_width = '800x600'
+o.font_size = 14
+o.output_file = "graph.png"
+o.colors = nil
+o.theme = nil
 
-selection = []
-title = "Performance Graph"
-files = []
-names = []
-labels = []
-perf_data = []
-graph_type = Gruff::Line
-graph_width = '800x600'
-font_size = 14
-output_file = "graph.png"
-colors = nil
-theme = nil
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: perf_plot [options] file1 file2 ..."
 
-ARGV.each do |arg|
-  case arg
-  when /^-only=(.*)$/
-    selection = $1.split(',').map{|s| s.strip.to_i}
-  when /^-title=(.*)$/
-    title = $1 unless $1.strip.empty?
-  when '-line'
-    graph_type = Gruff::Line
-  when '-bar'
-    graph_type = Gruff::Bar
-  when /^-width=(\d+)$/
-    graph_width = $1.to_i
-  when /^-geometry=(\d+x\d+)$/
-    graph_width = $1
-  when /^-colors=(.*)$/
-    colors = $1.split(/ *,/)
-  when /^-theme=(.*)$/
-    theme = $1
-  when /^-names=(.+)$/
-    names = $1.split(',')
-  when /^-labels=(.+)$/
-    labels = $1.split(',')
-  when /^-font_size=(\d+)$/
-    font_size = $1.to_i
-  when /^-out=(.+)$/
-    output_file = $1
-  else
-    files << File.open_or_die(arg)
-    names[files.length-1] ||= File.basename(arg).sub(/\.txt$/, '').sub(/^\d\d-\d\d\.[^\.]+./, '')
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-t", "--title T",
+          "Specify the title for your plot") do |t|
+    o.title = t
+  end
+
+  opts.on("--only LIST", Array,
+          "Restrict plot to a subset of the benchmarks") do |t|
+    o.selection = t.map{|s| s.to_i}
+  end
+
+  opts.on("--line",
+          "Plot a line graph") do |t|
+    o.graph_type = Gruff::Line
+  end
+
+  opts.on("--bar",
+          "Plot a bar graph") do |t|
+    o.graph_type = Gruff::Bar
+  end
+
+  opts.on("-w", "--width W", Integer,
+          "Width of the plot (pixels)") do |w|
+    o.graph_width = w
+  end
+
+  opts.on("-g", "--geometry WxH", /\d+x\d+/,
+          "Specify plot dimensions (pixels)") do |d|
+    o.graph_width = d
+  end
+
+  opts.on("-c", "--colors LIST", Array,
+          "Use specified colors for lines/bars") do |t|
+    o.colors = t
+  end
+
+  opts.on("--theme NAME",
+          "Use specified theme") do |t|
+    o.theme = t
+  end
+
+  opts.on("-n", "--names LIST", Array,
+          "Use specified names for the legend") do |t|
+    o.names = t
+  end
+
+  opts.on("-l", "--labels LIST", Array,
+          "Use specified labels instead of benchmark names") do |t|
+    o.labels = t
+  end
+
+  opts.on("-o", "--out FILE",
+          "Specify output file") do |f|
+    o.output_file = f
+  end
+
+  opts.on("-f", "--font-size N", Integer,
+          "Overall font size to use in the plot (points)") do |n|
+    o.font_size = n
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
   end
 end
 
-files.length > 0 or die "usage: perf_plot [options] file1 file2 ..."
-
-pi = nil
-files.each do |file|
-  pi = PerfInfo.new(file)
-  iter = pi.iterations
-  urls = pi.requests_per_key
-  perf_data << pi.keys.map{ |key| iter*urls/pi.timings_mean(key) }
-  file.close
+# option compatibility with older versions
+args=[]
+ARGV.each do |arg|
+  arg = arg.sub("font_size", "font-size") if arg =~ /^-font_size/
+  arg = "-" + arg if arg =~ /^-(title|width|out|geometry|font-size|names|labels|colors|line|bar|only)/
+  args << arg
 end
 
-selection = (1..(perf_data.last.length)).to_a if selection.empty?
-if labels.empty?
-  labels = pi.keys.restrict_to(selection.map{|i| i-1})
+parser.parse!(args)
+
+args.each do |arg|
+  o.files << File.open_or_die(arg)
+  o.names[o.files.length-1] ||= File.basename(arg).sub(/\.txt$/, '').sub(/^\d\d-\d\d\.[^\.]+./, '')
 end
-perf_data = perf_data.map{|d| d.restrict_to(selection.map{|i| i-1})}
 
-# puts selection.inspect
-# puts labels.inspect
-# puts perf_data.inspect
+o.files.length > 0 or die(parser.banner)
 
-g = graph_type.new(graph_width)
+class Plotter
+  attr_reader :o
+  def initialize(options)
+    @o = options
+    setup
+  end
 
-# on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
-#g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
-g.font = 'Helvetica' if RUBY_PLATFORM =~ /darwin/
+  def setup
+    pi = nil
+    @perf_data = []
+    o.files.each do |file|
+      pi = PerfInfo.new(file)
+      iter = pi.iterations
+      urls = pi.requests_per_key
+      @perf_data << pi.keys.map{ |key| iter*urls/pi.timings_mean(key) }
+      file.close
+    end
+    o.selection = (1..(@perf_data.last.length)).to_a if o.selection.empty?
+    if o.labels.empty?
+      o.labels = pi.keys.restrict_to(o.selection.map{|i| i-1})
+    end
+    @perf_data = @perf_data.map{|d| d.restrict_to(o.selection.map{|i| i-1})}
+  end
 
-g.send "theme_#{theme}" if theme
-g.replace_colors(colors) if colors
-g.title = title
-g.sort = false
-g.legend_font_size = font_size
-g.legend_box_size = font_size
-g.marker_font_size = font_size
-g.minimum_value = 0
-g.maximum_value = perf_data.flatten.max.ceil
-g.labels = labels.index_map
-perf_data.each_with_index{|d,i| g.data(names[i], d)}
-g.write(output_file)
+  def plot_with_gruff
+    require 'gruff'
+
+    g = o.graph_type.new(o.graph_width)
+    g.send "theme_#{o.theme}" if o.theme
+
+    # on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
+    #g.font = 'Arial-Normal' if RUBY_PLATFORM =~ /darwin/
+    g.font = 'Helvetica' if RUBY_PLATFORM =~ /darwin/
+
+    g.replace_colors(o.colors) if o.colors
+    g.title = o.title
+    g.sort = false
+    g.legend_font_size = o.font_size
+    g.legend_box_size = o.font_size
+    g.marker_font_size = o.font_size
+    g.minimum_value = 0
+    g.maximum_value = @perf_data.flatten.max.ceil
+    g.labels = o.labels.index_map
+    @perf_data.each_with_index{|d,i| g.data(o.names[i], d)}
+    g.write(o.output_file)
+  end
+
+  def plot
+    plot_with_gruff
+  end
+end
+
+Plotter.new(o).plot
 
 
 __END__
