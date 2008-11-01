@@ -63,7 +63,6 @@ parser = OptionParser.new do |opts|
 
   opts.on("-g", "--geometry WxH", /\d+x\d+/,
           "Specify plot dimensions (pixels)") do |d|
-    puts d
     o.graph_width = d
   end
 
