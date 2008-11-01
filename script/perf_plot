@@ -5,8 +5,6 @@ require 'rubygems'
 require 'optparse'
 require 'ostruct'
 
-require "gruff"
-
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'railsbench/perf_info'
 
@@ -17,12 +15,13 @@ o.title = "Performance Graph"
 o.files = []
 o.names = []
 o.labels = []
-o.graph_type = Gruff::Line
+o.graph_type = :line
 o.graph_width = '800x600'
 o.font_size = 14
 o.output_file = "graph.png"
 o.colors = nil
 o.theme = nil
+o.engine = :gruff
 
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: perf_plot [options] file1 file2 ..."
@@ -42,12 +41,12 @@ parser = OptionParser.new do |opts|
 
   opts.on("--line",
           "Plot a line graph") do |t|
-    o.graph_type = Gruff::Line
+    o.graph_type = :line
   end
 
   opts.on("--bar",
           "Plot a bar graph") do |t|
-    o.graph_type = Gruff::Bar
+    o.graph_type = :bar
   end
 
   opts.on("-w", "--width W", Integer,
@@ -68,6 +67,11 @@ parser = OptionParser.new do |opts|
   opts.on("--theme NAME",
           "Use specified theme") do |t|
     o.theme = t
+  end
+
+  opts.on("-e", "--engine ENGINE", [:gruff, :gnuplot],
+          "Select plotting engine: (gruff, gnuplot)") do |e|
+    o.engine = e
   end
 
   opts.on("-n", "--names LIST", Array,
@@ -95,6 +99,7 @@ parser = OptionParser.new do |opts|
     exit
   end
 end
+
 
 # option compatibility with older versions
 args=[]
@@ -140,7 +145,7 @@ class Plotter
   def plot_with_gruff
     require 'gruff'
 
-    g = o.graph_type.new(o.graph_width)
+    g = o.graph_type == :line ? Gruff::Line.new(o.graph_width) : Gruff::Bar.new(o.graph_width)
     g.send "theme_#{o.theme}" if o.theme
 
     # on OS X, ImagMagick can't find it's default font (arial) sometimes, so specify some font
@@ -160,8 +165,40 @@ class Plotter
     g.write(o.output_file)
   end
 
+  def plot_with_gnuplot
+    require 'gnuplot'
+    Gnuplot.open(false) do |gnuplot|
+      Gnuplot::Plot.new(gnuplot) do |plot|
+        plot.terminal "pdf noenhanced color fname 'Helvetica' fsize 5"
+        plot.output "graph.pdf"
+        plot.xlabel "Benchmarks"
+        plot.ylabel "Requests per second"
+        plot.yrange "[0:*]"
+        plot.title  o.title
+        plot.style  "fill solid 1.0 noborder"
+        plot.style  "data #{o.graph_type == :line ? "linespoints" : "histogram"}"
+        plot.style  "histogram cluster gap 1"
+        plot.xtics  "nomirror rotate by -45"
+        label_specs = []
+        o.labels.each_with_index{ |l,i| label_specs << "\"#{l}\" #{i}" }
+        plot.xtics  "(#{label_specs.join(', ')})"
+        plot.key    "outside reverse"
+        #plot.boxwidth "0.95"
+        plot.grid "nopolar"
+        plot.grid "noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics"
+        plot.grid "back linetype 0 linewidth 0.7"
+
+        @perf_data.each_with_index do |d,i|
+          plot.data << Gnuplot::DataSet.new([o.names[i]] + d) do |ds|
+            ds.using = "1 title 1"
+          end
+        end
+      end
+    end
+  end
+
   def plot
-    plot_with_gruff
+    send "plot_with_#{o.engine}"
   end
 end
 
