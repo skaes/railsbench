@@ -13,7 +13,7 @@ o.title = "GC Data Plot"
 o.graph_width = '1400x1050'
 o.font_size = 10
 o.ignored_object_types = []
-o.output_file = "graph.png"
+o.output_file = nil
 o.plot_live = true
 o.plot_freed = true
 o.plot_type = :both
@@ -86,6 +86,8 @@ ARGV.each do |arg|
 end
 
 parser.parse!(args)
+
+o.output_file ||= o.engine == :gruff ? "graph.png" : "graph.pdf"
 
 o.files = []
 o.names = []
@@ -186,7 +188,7 @@ class Plotter
     Gnuplot.open(false) do |gnuplot|
       Gnuplot::Plot.new(gnuplot) do |plot|
         plot.terminal "pdf enhanced color fname 'Helvetica' fsize 4"
-        plot.output "graph.pdf"
+        plot.output o.output_file
         plot.xlabel "Collections"
         plot.ylabel "Objects"
         plot.title  o.title

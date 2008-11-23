@@ -18,7 +18,7 @@ o.labels = []
 o.graph_type = :line
 o.graph_width = '800x600'
 o.font_size = 14
-o.output_file = "graph.png"
+o.output_file = nil
 o.colors = nil
 o.theme = nil
 o.engine = :gruff
@@ -100,7 +100,6 @@ parser = OptionParser.new do |opts|
   end
 end
 
-
 # option compatibility with older versions
 args=[]
 ARGV.each do |arg|
@@ -110,6 +109,8 @@ ARGV.each do |arg|
 end
 
 parser.parse!(args)
+
+o.output_file ||= o.engine == :gruff ? "graph.png" : "graph.pdf"
 
 args.each do |arg|
   o.files << File.open_or_die(arg)
@@ -170,7 +171,7 @@ class Plotter
     Gnuplot.open(false) do |gnuplot|
       Gnuplot::Plot.new(gnuplot) do |plot|
         plot.terminal "pdf noenhanced color fname 'Helvetica' fsize 5"
-        plot.output "graph.pdf"
+        plot.output o.output_file
         plot.xlabel "Benchmarks"
         plot.ylabel "Requests per second"
         plot.yrange "[0:*]"
