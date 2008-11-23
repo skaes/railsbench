@@ -39,8 +39,15 @@ class RailsBenchmark
 
     ENV['RAILS_ENV'] = 'benchmarking'
 
-    require ENV['RAILS_ROOT'] + "/config/environment"
-    require 'dispatcher' # make edge rails happy
+    begin
+      require ENV['RAILS_ROOT'] + "/config/environment"
+      require 'dispatcher' # make edge rails happy
+    rescue => e
+      $stderr.puts "failed to load application environment"
+      e.backtrace.each{|line| $stderr.puts line}
+      $stderr.puts "benchmarking aborted"
+      exit(-1)
+    end
 
     # we don't want local error template output, which crashes anyway, when run under railsbench
     ActionController::Rescue.class_eval "def local_request?; false; end"
@@ -50,7 +57,10 @@ class RailsBenchmark
       def rescue_action_in_public(exception)
         $stderr.puts "benchmarking aborted due to application error: " + exception.message
         exception.backtrace.each{|line| $stderr.puts line}
-        ActiveRecord::Base.send :clear_all_cached_connections!
+        $stderr.print "clearing database connections ..."
+        ActiveRecord::Base.send :clear_all_cached_connections! if ActiveRecord::Base.respond_to?(:clear_all_cached_connections)
+        ActiveRecord::Base.clear_all_connections! if ActiveRecord::Base.respond_to?(:clear_all_connections)
+        $stderr.puts
         exit!(-1)
       end
     end_eval
@@ -89,10 +99,12 @@ class RailsBenchmark
       ActionController::Base.perform_caching = true if ARGV.include?('-cache')
     end
 
-    if options.has_key?(:cache_template_loading)
-      ActionView::Base.cache_template_loading = options[:cache_template_loading]
-    else
-      ActionView::Base.cache_template_loading = true
+    if ActionView::Base.respond_to?(:cache_template_loading)
+      if options.has_key?(:cache_template_loading)
+        ActionView::Base.cache_template_loading = options[:cache_template_loading]
+      else
+        ActionView::Base.cache_template_loading = true
+      end
     end
 
     self.relative_url_root = options[:relative_url_root] || ''

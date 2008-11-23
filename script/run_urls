@@ -20,8 +20,10 @@ require 'railsbench/railsbenchmark'
 require ENV['RAILS_ROOT'] + '/config/benchmarks'
 
 trap("INT") do
-  $stderr.puts "clearing database connections ..."
-  ActiveRecord::Base.send :clear_all_cached_connections!
+  $stderr.print "clearing database connections ..."
+  ActiveRecord::Base.send :clear_all_cached_connections! if ActiveRecord::Base.respond_to?(:clear_all_cached_connections)
+  ActiveRecord::Base.send :clear_all_connections! if ActiveRecord::Base.respond_to?(:clear_all_connections)
+  $stderr.puts
   $stderr.puts "benchmarking aborted!"
   exit!(-1)
 end
