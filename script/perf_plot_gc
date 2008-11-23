@@ -119,6 +119,9 @@ o.title << "live" if o.plot_live
 o.title << "]"
 o.title << " (ignoring #{o.ignored_object_types.join(', ')})" unless o.ignored_object_types.empty?
 
+# for very large logs, we need to ignore some entries
+N = o.gc_count_max < 100 ? 1 : o.gc_count_max / 99
+
 class Plotter
   attr_reader :o
   def initialize(options)
@@ -173,6 +176,7 @@ class Plotter
     return if o.ignored_object_types.include?(ot)
     data = []
     o.gc_count_max.times do |gc_index|
+      next unless 0 == gc_index.modulo(N)
       for gci in o.gcis
         map_at_this_gc = gci.freed_objects[gc_index]
         data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if o.plot_freed
@@ -196,7 +200,7 @@ class Plotter
         plot.style  "data histogram"
         plot.style  "histogram rowstacked"
         plot.xtics  "out nomirror"
-        plot.xrange "[-1:#{o.gc_count_max*((o.plot_type == :both) ? 2 : 1)}]"
+        plot.xrange "[-1:#{(o.gc_count_max/N)*((o.plot_type == :both) ? 2 : 1)}]"
         plot.key    "outside invert reverse"
         plot.boxwidth "0.8"
         plot.grid "nopolar"
