@@ -77,16 +77,25 @@ class RailsBenchmark
       exit
     end
 
-    log_level = options[:log]
-    log_level = Logger::DEBUG if ARGV.include?('-log')
-    ARGV.each{|arg| arg =~ /-log=([a-zA-Z]*)/ && (log_level = eval("Logger::#{$1.upcase}")) }
+    log_level = options[:log] || Logger::ERROR
+    ARGV.each do |arg|
+        case arg
+        when '-log'
+          log_level = Logger::ERROR
+        when '-log=(nil|none)'
+          log_level = nil
+        when /-log=([a-zA-Z]*)/
+          log_level = eval("Logger::#{$1.upcase}") rescue Logger::ERROR
+        end
+    end
 
     if log_level
       RAILS_DEFAULT_LOGGER.level = log_level
-      #ActiveRecord::Base.logger.level = log_level
-      #ActionController::Base.logger.level = log_level
-      #ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
+      ActiveRecord::Base.logger.level = log_level
+      ActionController::Base.logger.level = log_level
+      ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
     else
+      RAILS_DEFAULT_LOGGER.level = Logger::FATAL
       ActiveRecord::Base.logger = nil
       ActionController::Base.logger = nil
       ActionMailer::Base.logger = nil if defined?(ActionMailer)
