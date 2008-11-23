@@ -204,7 +204,7 @@ class Plotter
 
         o.object_types.each_with_index do |ot, i|
           next unless data = prepare_data(ot)
-          plot.data << Gnuplot::DataSet.new([ot.downcase] + data) do |ds|
+          plot.data << Gnuplot::DataSet.new([[ot.downcase] + data]) do |ds|
             ds.using = "1 title 1 lc rgb '#{o.colors[i]}'"
           end
         end
