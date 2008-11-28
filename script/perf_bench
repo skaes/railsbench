@@ -22,9 +22,8 @@ module Benchmark
   end
 end
 require "benchmark"
-include Benchmark
 
-bm(32) do |test|
+Benchmark.bm(32) do |test|
   test.report("loading environment") do
     require 'railsbench/railsbenchmark'
     require ENV['RAILS_ROOT'] + '/config/benchmarks'
