@@ -77,15 +77,20 @@ class RailsBenchmark
       exit
     end
 
-    log_level = options[:log] || Logger::ERROR
+    logger_module = Logger
+    if defined?(Log4r) && RAILS_DEFAULT_LOGGER.is_a?(Log4r::Logger)
+      logger_module = Logger
+    end
+    default_log_level = logger_module.const_get("ERROR")
+    log_level = options[:log] || default_log_level
     ARGV.each do |arg|
         case arg
         when '-log'
-          log_level = Logger::ERROR
+          log_level = default_log_level
         when '-log=(nil|none)'
           log_level = nil
         when /-log=([a-zA-Z]*)/
-          log_level = eval("Logger::#{$1.upcase}") rescue Logger::ERROR
+          log_level = logger_module.const_get($1.upcase) rescue default_log_level
         end
     end
 
@@ -95,7 +100,7 @@ class RailsBenchmark
       ActionController::Base.logger.level = log_level
       ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
     else
-      RAILS_DEFAULT_LOGGER.level = Logger::FATAL
+      RAILS_DEFAULT_LOGGER.level = logger_module.const_get "FATAL"
       ActiveRecord::Base.logger = nil
       ActionController::Base.logger = nil
       ActionMailer::Base.logger = nil if defined?(ActionMailer)
