@@ -102,6 +102,7 @@ class GCInfo
     @garbage_produced = @entries.map{|e| e.freed}.sum
     @live_objects = @entries.map{|e| e.live_objects}
     @freed_objects = @entries.map{|e| e.freed_objects}
+    @freelist = @entries.map{|e| e.freelist}
     @garbage_totals = @freed_objects.inject(Hash.new(0)) do |totals, freed|
       freed.each do |object_type, count|
         totals[object_type] += freed[object_type] || 0
@@ -123,7 +124,7 @@ class GCInfo
     end
   end
 
-  OBJECT_TYPES = %w(NODE STRING ARRAY HASH  SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
+  OBJECT_TYPES = %w(NODE STRING ARRAY HASH SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
 
   class << self
     def object_types(list_of_gc_infos)
