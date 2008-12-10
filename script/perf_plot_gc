@@ -87,8 +87,13 @@ end
 
 parser.parse!(args)
 
-o.output_file ||= o.engine == :gruff ? "graph.png" : "graph.pdf"
-
+o.output_file ||=  if o.engine == :gruff
+                     "graph.png"
+                   elsif RUBY_PLATFORM =~ /darwin/
+                     "graph.pdf"
+                   else
+                     "graph.ps"
+                   end
 o.files = []
 o.names = []
 args.each do |arg|
@@ -104,7 +109,7 @@ o.files.each do |file|
   file.close
 end
 
-o.object_types = %w(NODE STRING ARRAY HASH SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
+# o.object_types = %w(NODE STRING ARRAY HASH SCOPE VARMAP CLASS ICLASS REGEXP FLOAT MATCH FILE DATA MODULE OBJECT)
 o.colors = %w(ff0000 00c000 0080ff c000ff 00eeee c04000 ee0000 2020c0 ffc020 008040 a080ff 804000 ff80ff 00c060 006080 c06080 008000 40ff80 306080 806000).map{|c| "#" + c}
 o.object_types = GCInfo.object_types(o.gcis)
 o.gc_count_max = o.gcis.map{|gci| gci.collections}.max
@@ -163,7 +168,7 @@ class Plotter
     # puts object_types.inspect
     puts "ignoring #{o.ignored_object_types.join(', ')}" unless o.ignored_object_types.empty?
 
-    o.object_types.each do |ot|
+    (o.object_types + %w(FREELIST)).each do |ot|
       data = prepare_data(ot)
       # puts "#{ot}: #{data.inspect}"
       g.data(ot, data)
@@ -178,7 +183,7 @@ class Plotter
     o.gc_count_max.times do |gc_index|
       next unless 0 == gc_index.modulo(N)
       for gci in o.gcis
-        map_at_this_gc = gci.freed_objects[gc_index]
+        map_at_this_gc = gci.freed_objects[gc_index].merge('FREELIST' => gci.freelist[gc_index])
         data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if o.plot_freed
         map_at_this_gc = gci.live_objects[gc_index]
         data << ((map_at_this_gc && map_at_this_gc[ot]) || 0) if o.plot_live
@@ -189,33 +194,38 @@ class Plotter
 
   def plot_with_gnuplot
     require 'gnuplot'
-    Gnuplot.open(false) do |gnuplot|
-      Gnuplot::Plot.new(gnuplot) do |plot|
-        plot.terminal "pdf enhanced color fname 'Helvetica' fsize 4"
-        plot.output o.output_file
-        plot.xlabel "Collections"
-        plot.ylabel "Objects"
-        plot.title  o.title
-        plot.style  "fill solid 1.0 noborder"
-        plot.style  "data histogram"
-        plot.style  "histogram rowstacked"
-        plot.xtics  "out nomirror"
-        plot.xrange "[-1:#{(o.gc_count_max/N)*((o.plot_type == :both) ? 2 : 1)}]"
-        plot.key    "outside invert reverse"
-        plot.boxwidth "0.8"
-        plot.grid "nopolar"
-        plot.grid "noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics"
-        plot.grid "back linetype 0 linewidth 0.7"
+    # there's a separate gnuplot binary which can read from stdin, but the gem doesn't know this
+    ENV['RB_GNUPLOT'] ||= 'pgnuplot.exe'
+    plot = Gnuplot::Plot.new
+    if o.output_file =~ /\.pdf$/
+      plot.terminal "pdf enhanced color font 'Helvetica,4'"
+    else
+      plot.terminal "postscript enhanced color font 'Helvetica,4'"
+    end
+    plot.output     o.output_file
+    plot.xlabel     "Collections"
+    plot.ylabel     "Objects"
+    plot.title      o.title
+    plot.style      "fill solid 1.0 noborder"
+    plot.style      "data histogram"
+    plot.style      "histogram rowstacked"
+    plot.xtics      "out nomirror"
+    plot.xrange     "[-1:#{(o.gc_count_max/N)*((o.plot_type == :both) ? 2 : 1)}]"
+    plot.key        "outside invert reverse"
+    plot.boxwidth   "0.8"
+    plot.grid       "nopolar"
+    plot.grid       "noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics"
+    plot.grid       "back linetype 0 linewidth 0.7"
 
-
-        o.object_types.each_with_index do |ot, i|
-          next unless data = prepare_data(ot)
-          plot.data << Gnuplot::DataSet.new([[ot.downcase] + data]) do |ds|
-            ds.using = "1 title 1 lc rgb '#{o.colors[i]}'"
-          end
-        end
+    (o.object_types + %w(FREELIST)).each_with_index do |ot, i|
+      next unless data = prepare_data(ot)
+      plot.data << Gnuplot::DataSet.new([[ot.downcase] + data]) do |ds|
+        ds.using = "1 title 1 lc rgb '#{ot == 'FREELIST' ? '#666666' : o.colors[i]}'"
       end
     end
+
+    cmds = plot.to_gplot # puts cmds
+    Gnuplot.open(false){|gnuplot| gnuplot << cmds}
   end
 
   def plot
