@@ -195,7 +195,7 @@ class Plotter
   def plot_with_gnuplot
     require 'gnuplot'
     # there's a separate gnuplot binary which can read from stdin, but the gem doesn't know this
-    ENV['RB_GNUPLOT'] ||= 'pgnuplot.exe'
+    ENV['RB_GNUPLOT'] ||= 'pgnuplot.exe' if RUBY_PLATFORM =~ /mswin/
     plot = Gnuplot::Plot.new
     if o.output_file =~ /\.pdf$/
       plot.terminal "pdf enhanced color font 'Helvetica,4'"
