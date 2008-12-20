@@ -289,7 +289,9 @@ class RailsBenchmark
     svl.stopDataCollection if svl
 
     if defined? RubyProf
+      GC.disable #ruby-pof 0.7.x crash workaround
       result = RubyProf.stop
+      GC.enable  #ruby-pof 0.7.x crash workaround
       # Print a flat profile to text
       printer = RubyProf::GraphHtmlPrinter.new(result)
       printer.print($stderr, :min_percent => ruby_prof.to_f)
