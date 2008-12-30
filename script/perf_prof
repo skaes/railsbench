@@ -23,8 +23,14 @@ warmup="-warmup"
 
 warmup = "" if options =~ /-warmup/
 benchmark = $1 if options =~ /-bm=([^ ]+)/
-ruby_prof_opts = $1 if options =~ /(-ruby_prof=[^ ]+)/
-options = options.sub(ruby_prof_opts, '')
+if options =~ /(-ruby_prof=[^ ]+)/
+  ruby_prof_opts = $1
+  options = options.sub($1, '')
+end
+if options =~ /(-profile_type=[^ ]+)/
+  ruby_prof_opts << " " << $1
+  options = options.sub($1, '')
+end
 
 date = Time.now.strftime '%m-%d'
 

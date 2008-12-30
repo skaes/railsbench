@@ -159,6 +159,7 @@ class RailsBenchmark
   end
 
   def setup_test_urls(name)
+    @benchmark = name
     @urls = BenchmarkSpec.load(name)
   end
 
@@ -289,12 +290,23 @@ class RailsBenchmark
     svl.stopDataCollection if svl
 
     if defined? RubyProf
+      thread = Thread.new do
+        sleep(1)
+      end
+      thread.join
       GC.disable #ruby-pof 0.7.x crash workaround
       result = RubyProf.stop
       GC.enable  #ruby-pof 0.7.x crash workaround
-      # Print a flat profile to text
-      printer = RubyProf::GraphHtmlPrinter.new(result)
-      printer.print($stderr, :min_percent => ruby_prof.to_f)
+      min_percent = ruby_prof.split('/')[0].to_f rescue 1.0
+      threshold = ruby_prof.split('/')[1].to_f rescue 3.0
+      profile_type = nil
+      ARGV.each{|arg| profile_type=$1 if arg =~ /-profile_type=([^ ]*)/ }
+      if profile_type =~ /stack/
+        printer = RubyProf::CallStackPrinter.new(result)
+      else
+        printer = RubyProf::GraphHtmlPrinter.new(result)
+      end
+      printer.print($stderr, :min_percent => min_percent, :threshold => threshold, :title => "call tree for benchmark #{@benchmark}")
     end
 
     delete_test_session
