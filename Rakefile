@@ -12,13 +12,12 @@ include FileUtils
 require File.join(File.dirname(__FILE__), 'lib', 'railsbench', 'version')
 
 AUTHOR = "Stefan Kaes"  # can also be an array of Authors
-EMAIL = "skaes@gmx.net"
+EMAIL = "skaes@railsexpress.de"
 DESCRIPTION = "rails benchmarking tools"
 GEM_NAME = "railsbench" # what ppl will type to install your gem
 RUBYFORGE_PROJECT = "railsbench" # The unix name for your project
 HOMEPATH = "http://#{RUBYFORGE_PROJECT}.rubyforge.org"
 RELEASE_TYPES = %w(gem tar zip) # can use: gem, tar, zip
-
 
 NAME = "railsbench"
 REV = nil # UNCOMMENT IF REQUIRED: File.read(".svn/entries")[/committed-rev="(d+)"/, 1] rescue nil
