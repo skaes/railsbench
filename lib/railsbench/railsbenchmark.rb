@@ -65,6 +65,13 @@ class RailsBenchmark
       end
     end_eval
 
+    # override rails ActiveRecord::Base#inspect to make profiles more readable
+    ActiveRecord::Base.class_eval <<-"end_eval"
+      def self.inspect
+        super
+      end
+    end_eval
+
     # make sure Rails doesn't try to read post data from stdin
     CGI::QueryExtension.module_eval <<-end_eval
       def read_body(content_length)
@@ -290,10 +297,6 @@ class RailsBenchmark
     svl.stopDataCollection if svl
 
     if defined? RubyProf
-      thread = Thread.new do
-        sleep(1)
-      end
-      thread.join
       GC.disable #ruby-pof 0.7.x crash workaround
       result = RubyProf.stop
       GC.enable  #ruby-pof 0.7.x crash workaround
