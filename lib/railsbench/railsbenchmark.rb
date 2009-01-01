@@ -300,15 +300,18 @@ class RailsBenchmark
       GC.disable #ruby-pof 0.7.x crash workaround
       result = RubyProf.stop
       GC.enable  #ruby-pof 0.7.x crash workaround
-      min_percent = ruby_prof.split('/')[0].to_f rescue 1.0
-      threshold = ruby_prof.split('/')[1].to_f rescue 3.0
+      min_percent = ruby_prof.split('/')[0].to_f rescue 0.1
+      threshold = ruby_prof.split('/')[1].to_f rescue 1.0
       profile_type = nil
       ARGV.each{|arg| profile_type=$1 if arg =~ /-profile_type=([^ ]*)/ }
-      if profile_type =~ /stack/
-        printer = RubyProf::CallStackPrinter.new(result)
-      else
-        printer = RubyProf::GraphHtmlPrinter.new(result)
-      end
+      printer =
+        case profile_type
+        when 'stack' then RubyProf::CallStackPrinter
+        when 'grind' then RubyProf::CallTreePrinter
+        when 'flat'  then RubyProf::FlatPrinter
+        when 'graph' then RubyProf::GraphHtmlPrinter
+        else raise "unknown profile type: #{profile_type}"
+        end.new(result)
       printer.print($stderr, :min_percent => min_percent, :threshold => threshold, :title => "call tree for benchmark #{@benchmark}")
     end
 

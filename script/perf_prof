@@ -18,7 +18,7 @@ options = ARGV[1]
 config = ARGV[2]
 benchmark = ""
 
-ruby_prof_opts="-ruby_prof=1"
+ruby_prof_opts="-ruby_prof=0.1/1"
 warmup="-warmup"
 
 warmup = "" if options =~ /-warmup/
@@ -27,17 +27,23 @@ if options =~ /(-ruby_prof=[^ ]+)/
   ruby_prof_opts = $1
   options = options.sub($1, '')
 end
-if options =~ /(-profile_type=[^ ]+)/
+profile_type = 'graph'
+if options =~ /(-profile_type=([^ ]+))/
+  profile_type = $2
   ruby_prof_opts << " " << $1
   options = options.sub($1, '')
 end
-
+extension = case profile_type
+            when 'grind' then 'dat'
+            when 'flat'  then 'txt'
+            else 'html'
+            end
 date = Time.now.strftime '%m-%d'
 
 if config
-  benchmark_file="#{perf_data_dir}/#{date}.#{benchmark}.#{config}.html"
+  benchmark_file="#{perf_data_dir}/#{date}.#{benchmark}.#{config}.#{profile_type}.#{extension}"
 else
-  benchmark_file="#{perf_data_dir}/perf_run.#{benchmark}.html"
+  benchmark_file="#{perf_data_dir}/perf_run.#{benchmark}.#{profile_type}.#{extension}"
 end
 ENV['RAILS_BENCHMARK_FILE'] = benchmark_file
 
@@ -52,9 +58,13 @@ system(perf_cmd) || die("perf_prof: #{perf_cmd} returned #{$?}")
 
 puts "profile data written to #{benchmark_file}"
 
-case RUBY_PLATFORM
-when /win32/  then system("start #{benchmark_file.gsub(/\//, '\\')}")
-when /darwin/ then system("open #{benchmark_file}")
+if profile_type == 'grind'
+  system("kcachegrind #{benchmark_file} 2>/dev/null &") unless RUBY_PLATFORM =~ /win32/
+else
+  case RUBY_PLATFORM
+  when /win32/  then system("start #{benchmark_file.gsub(/\//, '\\')}")
+  when /darwin/ then system("open #{benchmark_file}")
+  end
 end
 
 __END__
