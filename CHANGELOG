@@ -1,767 +1,2124 @@
-2007-04-01 07:29  stkaes
+commit 762e05b3184acb196e04bb90421bd11cf2c46dca
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Wed Dec 31 10:44:38 2008 +0100
 
-	* latest_changes.txt, script/perf_html: -colorize option for
-	  perf_html
+    removed accidentally check in of test code and shorten class name display in profiles
 
-2007-04-01 07:29  stkaes
+M	lib/railsbench/railsbenchmark.rb
 
-	* script/perf_plot: added -theme option
+commit 7ff49d55df244d1a87a7f829b9ae717d91db4e41
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Wed Dec 31 09:27:21 2008 +0100
 
-2007-03-31 07:49  stkaes
+    let github build a bleeding edge version automatically
 
-	* script/perf_diff: options -narrow and -skip_urls are no longer
-	  necessary
+M	Rakefile
+A	railsbench.gemspec
 
-2007-03-31 07:48  stkaes
+commit 7337c80b11853a75f495adb3eb71153cd0ac69e6
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Tue Dec 30 20:20:55 2008 +0100
 
-	* script/perf_html: allow _ in benchmark names
+    preliminary support for html call trees
 
-2007-03-31 07:26  stkaes
+M	lib/railsbench/railsbenchmark.rb
+M	script/perf_prof
 
-	* CHANGELOG: updated CHANGELOG
+commit a28fe781f2066c8f098c58dc13b3a0923afba9ea
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Dec 20 11:59:42 2008 +0100
 
-2007-03-31 07:26  stkaes
+    work around a bug in ruby-prof 0.7
 
-	* Manifest.txt: include new scripts
+M	lib/railsbench/railsbenchmark.rb
 
-2007-03-31 07:25  stkaes
+commit 5e24c0b2d96584c2d176c074169e18860a39c4f3
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Dec 10 09:35:25 2008 +0100
 
-	* bin/railsbench: make new scripts callabe from railsbench
+    only set RB_GNUPLOT on windows
 
-2007-03-31 07:25  stkaes
+M	script/perf_plot_gc
 
-	* latest_changes.txt: still more changes
+commit 2371e41a936482fbc926a9d6a1dc597947739270
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Dec 10 09:28:39 2008 +0100
 
-2007-03-31 07:24  stkaes
+    forgotten checkin
 
-	* README: adapted README to latest changes
+M	lib/railsbench/gc_info.rb
 
-2007-03-31 06:56  stkaes
+commit fde16477d3bf036c72aa064cd7bf6d0c184d5fb3
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Dec 10 07:54:39 2008 +0100
 
-	* install.rb: copy all entries from the development database config
+    plot freelist size on top of freed objects
 
-2007-03-31 06:43  stkaes
+M	script/perf_plot_gc
 
-	* latest_changes.txt: lates changes description
+commit afe0fcf819717e6b6078615a0562e1d7598211da
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Nov 29 07:23:50 2008 +0100
 
-2007-03-30 10:49  stkaes
+    correctly set log levels when log4r is being used
 
-	* lib/railsbench/railsbenchmark.rb: merge benchmark session data
-	  with session data from session store
+M	lib/railsbench/railsbenchmark.rb
 
-2007-03-30 09:43  stkaes
+commit f9a934d3f7491be64b7900b3feee2fa365a7e8ca
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Nov 28 18:37:39 2008 +0100
 
-	* lib/railsbench/benchmark_specs.rb: load benchmark file using ERB
+    don't include module Benchmark to avoid namespace problems with a client's app
 
-2007-03-30 09:13  stkaes
+M	script/perf_bench
 
-	* lib/railsbench/benchmark_specs.rb,
-	  lib/railsbench/railsbenchmark.rb: make it possible to specify
-	  session data in benchmarks.yml
+commit fe66b0599414d14b258523744929b844f95346e4
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sun Nov 23 11:32:48 2008 +0100
 
-2007-03-30 05:45  stkaes
+    make it possible to plot very large gc logs by artificially reducing the data set size
 
-	* script/perf_table: script for generating a tabular overview
+M	script/perf_plot_gc
 
-2007-03-25 14:34  stkaes
+commit 6d55b182452dc2f4c4aeb549ab629c45e6b5176f
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sun Nov 23 11:12:23 2008 +0100
 
-	* script/perf_plot: allow specification of colors
+    respect output file option for gnuplot engine
 
-2007-03-25 11:37  stkaes
+M	script/perf_plot
+M	script/perf_plot_gc
 
-	* script/perf_plot: allow specification of output file
+commit f33f440cf1ad18c925eded6ae117d77a5e141e11
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sun Nov 23 10:55:12 2008 +0100
 
-2007-03-25 07:15  stkaes
+    stop gnuplot to_a warnings
 
-	* script/perf_plot: automatically remove date and benchmark names
-	  from config names
+M	script/perf_plot
+M	script/perf_plot_gc
 
-2007-03-20 06:23  stkaes
+commit dc051d595da44621e50b11c3fe4cfe651ccf048b
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sun Nov 23 09:36:43 2008 +0100
 
-	* lib/railsbench/benchmark_specs.rb: don't fuck with array
-	  extensions during running rails
+    changed logger handling to no longer set logger to nil as most apps don't test for logger being nil
 
-2007-03-18 19:02  stkaes
+M	lib/railsbench/railsbenchmark.rb
 
-	* Manifest.txt, lib/railsbench/benchmark_specs.rb,
-	  lib/railsbench/railsbenchmark.rb, script/convert_raw_data_files,
-	  script/perf_bench, script/perf_plot, script/run_urls: refactored
-	  benchmark loading; added script for converting benchmark data
-	  files to new format
+commit 9b4ef53f41ab1f607e69e45b3c508bf5559517a7
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sun Nov 23 08:22:53 2008 +0100
 
-2007-03-16 10:22  stkaes
+    changes to make railsbench rails 2.2 compatible
 
-	* lib/railsbench/railsbenchmark.rb: added post support; use
-	  benchmark names instead of urls for display
+M	lib/railsbench/railsbenchmark.rb
+M	script/perf_bench
+M	script/run_urls
 
-2007-03-09 07:57  stkaes
+commit ed70dec8899619a68ec6df9aaeadf3387fbf9b74
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Nov 1 12:55:58 2008 +0100
 
-	* README: it's query_string, not query_params
+    support for plotting performance charts (bars and lines) with gnuplot
 
-2007-03-09 07:54  stkaes
+M	script/perf_plot
 
-	* PROBLEMS: doc change
+commit 74cc67f62c109f7077314e6a59ff8d24d090a379
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Nov 1 11:52:17 2008 +0100
 
-2007-03-09 06:57  stkaes
+    use option parser for perf_plot
 
-	* latest_changes.txt, script/perf_plot, script/perf_plot_gc: use
-	  -geometry=1600x1200 to specify dimensions foer generated .png
-	  files
-	  use -font_size=12 to set font size for labels, markers etc
+M	script/perf_plot
 
-2007-02-13 08:30  stkaes
+commit 2fd4762c3416c133fa68553bcdadd1a52aa5e502
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Nov 1 11:51:38 2008 +0100
 
-	* script/perf_comp: use time instad of number of collections for gc
-	  change factor calculation
+    removed debug output
 
-2007-01-26 17:46  stkaes
+M	script/perf_plot_gc
 
-	* PROBLEMS: dos2unix
+commit 41c27676c16396fa2f9d620ad0972d8743275718
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Oct 25 10:53:07 2008 +0200
 
-2007-01-26 17:24  stkaes
+    layout improvements for gnuplot engine
 
-	* Manifest.txt, PROBLEMS: aded file PROBLEMS for things which are
-	  not really railsbench bugs
+M	script/perf_plot_gc
 
-2007-01-26 17:23  stkaes
+commit 2e3cee99df3540160fb7e2276b550a5f7f3e805b
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Oct 25 08:51:08 2008 +0200
 
-	* script/generate_benchmarks: added better version checking
+    don't ingore any object types per default in plot_gc
 
-2007-01-26 15:26  stkaes
+M	script/perf_plot_gc
 
-	* lib/railsbench/version.rb: prepare for 0.9.2 release
+commit b35268f82e489a9de7c467becbdfbf17d2ca0b21
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Sat Oct 25 08:45:34 2008 +0200
 
-2007-01-26 15:25  stkaes
+    fixed typo
 
-	* config/benchmarks.yml: changed default benchmarks.yml to contain
-	  only default benchmark
+M	README
 
-2007-01-14 09:07  stkaes
+commit e0e154d058980c2169c005e5338a2ee99bbf5754
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Tue Oct 14 12:51:12 2008 +0200
 
-	* CHANGELOG: updated CHANGELOG
+    explicit color assignment
 
-2007-01-14 09:02  stkaes
+M	script/perf_plot_gc
 
-	* test/test_helper.rb: dos2unix
+commit 59f67a88c8381091a494344dcc35ce7d7cd8766a
+Author: Stefan Kaes <skaes@railsexpress.de>
+Date:   Tue Oct 14 10:37:01 2008 +0200
 
-2007-01-14 09:01  stkaes
+    made --ignore work without argument
 
-	* latest_changes.txt: updated latest changes
+M	script/perf_plot_gc
 
-2007-01-14 08:59  stkaes
+commit af16949e01164c14d1a68db080073f233d340d54
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Oct 13 10:55:19 2008 +0200
 
-	* INSTALL: formatting
+    support for plotting GC data with gnuplot; experimental
 
-2007-01-14 08:56  stkaes
+M	script/perf_plot_gc
 
-	* install.rb: automatically detect RAILS_ROOT in railsbench install
+commit f8e5cf2cc7d4d8676786fa1cf605dd1ff3a78dbd
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Sep 30 16:16:31 2008 +0200
 
-2007-01-14 08:56  stkaes
+    allow post and query data to be stored in raw form in benchmarks file
 
-	* INSTALL: mention generate_benchmarks in file INSTALL
+M	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/railsbenchmark.rb
 
-2007-01-14 08:40  stkaes
+commit 6703aa9954028bb4c81ae0c92d7001522afe9046
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Sep 11 22:49:53 2008 +0200
 
-	* script/perf_diff, script/perf_diff_gc, script/perf_run,
-	  script/perf_run_gc, script/run_urls: display help when call with
-	  string 'help' as first argument
+    railsbench command completion: complete -W "`railsbench commands`" -o default railsbench
 
-2007-01-14 08:39  stkaes
+M	INSTALL
+M	bin/railsbench
 
-	* bin/railsbench: automatically set RAILS_ROOT when invoked from a
-	  Rails app's top level directory
+commit 71ede54dd7028969c0a7d5cc915e5b87438bc65d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Sep 11 21:14:48 2008 +0200
 
-2007-01-14 07:57  stkaes
+    individual scripts now try to autoconfigure RAILS_ROOT too
 
-	* README: updated README
+M	README
+M	bin/railsbench
+M	lib/railsbench/perf_utils.rb
+M	script/generate_benchmarks
+M	script/perf_bench
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_prof
+M	script/perf_run
+M	script/perf_run_gc
+M	script/run_urls
 
-2007-01-13 23:51  stkaes
+commit 40fedf99e2e876b0bb0ac2730ef155def7304690
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 28 18:11:51 2008 +0200
 
-	* script/generate_benchmarks: keep generated controller benchmarks
-	  sorted. output non generated benchmarks at the end of
-	  benchmarks.yml
+    make it possible to add cookie data
 
-2007-01-13 10:19  stkaes
+M	lib/railsbench/railsbenchmark.rb
 
-	* latest_changes.txt: updated latest changes
+commit e79e70524b25087c2cb176f2abb5ece00e34b979
+Merge: 5ab5c65... 5979630...
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Aug 29 12:36:07 2008 +0200
 
-2007-01-13 10:05  stkaes
+    Merge branch 'master' of git@github.com:skaes/railsbench
 
-	* script/generate_benchmarks: enable deletion of benchmarks for
-	  ignored controllers/actions
+commit 597963069aa983e6d4936e244eb4d6560a628118
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 23 10:13:01 2008 +0200
 
-2007-01-13 10:04  stkaes
+    don't try to instantiate SvlRubyMV. it's a module.
 
-	* bin/railsbench: support help
+M	lib/railsbench/railsbenchmark.rb
 
-2007-01-13 06:46  stkaes
+commit 5ab5c650dd9ff7354f7705eab542b5ef3c7e81bd
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 9 10:06:50 2008 +0200
 
-	* script/generate_benchmarks: improved benchmark generator
+    updated README
 
-2007-01-07 15:28  stkaes
+M	README
 
-	* Manifest.txt, latest_changes.txt, script/generate_benchmarks:
-	  added generate benchmarks command
+commit e03f860f07a76b685228f132a6763692b74545d4
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Aug 8 11:44:28 2008 +0200
 
-2007-01-07 15:27  stkaes
+    better support for leak log messages
 
-	* install.rb: fixed install problems
+M	lib/railsbench/gc_info.rb
+M	lib/railsbench/railsbenchmark.rb
+M	script/perf_times_gc
 
-2007-01-07 15:27  stkaes
+commit 12e0e809525b1725e353170cacc9a9ed0de71286
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Aug 4 17:06:48 2008 +0200
 
-	* lib/railsbench/perf_info.rb: fixed problems with unpatched GC
-	  -This line, and those below, will be ignored--
-	  
-	  M perf_info.rb
+    experimental support for memory leak checking under OS X
 
-2007-01-07 14:15  stkaes
+M	lib/railsbench/perf_utils.rb
+M	lib/railsbench/railsbenchmark.rb
 
-	* lib/railsbench/gc_info.rb, lib/railsbench/perf_info.rb,
-	  lib/railsbench/perf_utils.rb, lib/railsbench/railsbenchmark.rb,
-	  script/perf_bench, script/perf_comp, script/perf_comp_gc,
-	  script/perf_diff, script/perf_diff_gc, script/perf_html,
-	  script/perf_plot, script/perf_plot_gc, script/perf_prof,
-	  script/perf_run, script/perf_run_gc, script/perf_tex,
-	  script/perf_times, script/perf_times_gc, script/run_urls: updated
-	  copyright notice
+commit 5992078d04b3fcba7f2a24e3a04c1b48a8945e11
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 7 21:10:07 2008 +0200
 
-2007-01-07 14:06  stkaes
+    updated gc patch for ruby 19. warning: experimental
 
-	* install.rb: fix installation problems
+M	ruby19gc.patch
 
-2007-01-07 13:57  stkaes
+commit fefcc51f45967e91cb66ef3e4889129f242f0995
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 7 14:07:38 2008 +0200
 
-	* lib/railsbench/version.rb: incremented version number
+    shorten topology display for ruby 19
 
-2007-01-06 12:56  stkaes
+M	script/perf_times_gc
 
-	* Rakefile, bin/railsbench, script/generate_benchmarks: added
-	  generate_benchmarks
+commit 2ce0e6cae7c9025d25cc2def7128b849b1e4d68c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 7 14:06:20 2008 +0200
 
-2006-12-26 11:02  stkaes
+    ruby19 reqires ENV.delete instead of assigning nil
 
-	* CHANGELOG: updated changelog
+M	lib/railsbench/railsbenchmark.rb
 
-2006-12-26 10:31  stkaes
+commit 342436e03be8de4704cf0dd2ff25c21656a425c7
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Aug 6 12:25:10 2008 +0200
 
-	* INSTALL: dedription of railsbench path and railsbench postinstall
+    avoid checking $KCODE for ruby 1.9
 
-2006-12-26 10:15  stkaes
+M	lib/railsbench/perf_utils.rb
 
-	* bin/railsbench, latest_changes.txt: added 'railsbench' path
-	  command
+commit 804e3c331bd1041bd7338c7634765aa4923a99a1
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jul 25 17:36:22 2008 +0200
 
-2006-12-26 10:06  stkaes
+    Helvetica seems to work better with latest Mac Ports
 
-	* Manifest.txt, Rakefile, bin/railsbench, latest_changes.txt,
-	  postinstall.rb, setup.rb: added postinstall
+M	script/perf_plot
 
-2006-12-26 09:21  stkaes
+commit cb0ac63c09c2d0ce5cf3e0f2e3fc2738893bd906
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jul 24 10:50:19 2008 +0200
 
-	* latest_changes.txt: fixed typo
+    removed useless attempt to force gruff into drawing without antialiasing
 
-2006-12-26 09:18  stkaes
+M	script/perf_plot_gc
 
-	* bin/railsbench, latest_changes.txt, lib/railsbench/perf_utils.rb,
-	  script/perf_bench, script/perf_diff, script/perf_diff_gc,
-	  script/perf_run, script/perf_run_gc, script/run_urls: code
-	  refactoring; more error messages
+commit 9dd07559aca227c313a5c8da6c5d7f66bae68a90
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jul 24 10:37:34 2008 +0200
 
-2006-12-24 08:59  stkaes
+    allow plotting live and freed datasets in separation or as a combined graph
 
-	* CHANGELOG: updated changelog
+M	script/perf_plot_gc
 
-2006-12-24 07:05  stkaes
+commit 3eac0001868db73700406b112fa609a534841f80
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jul 24 09:37:13 2008 +0200
 
-	* Rakefile, latest_changes.txt: prepare 0.9.0 release
+    Makefile is no longer useful
 
-2006-12-24 06:43  stkaes
+D	Makefile
 
-	* install.rb: white space changes
+commit 794bd32bc41b53fcc2b45e5c6eaf9862752a6ba2
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jul 24 09:04:05 2008 +0200
 
-2006-12-24 06:24  stkaes
+    added files missing in Manifest.txt
 
-	* INSTALL, README, config/benchmarking.rb, script/perf_tex: updated
-	  environment format
+M	Manifest.txt
 
-2006-12-24 06:08  stkaes
+commit 6812fc11d905dc1995cb9a25302a0e2789078b5e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jul 23 20:26:33 2008 +0200
 
-	* lib/railsbench/perf_utils.rb, script/perf_bench,
-	  script/perf_comp, script/perf_comp_gc, script/perf_diff,
-	  script/perf_diff_gc, script/perf_html, script/perf_plot,
-	  script/perf_plot_gc, script/perf_prof, script/perf_run,
-	  script/perf_run_gc, script/perf_tex, script/perf_times,
-	  script/perf_times_gc, script/run_urls: added licence to scripts
+    ignore pkg directory
 
-2006-12-23 10:22  stkaes
+A	.gitignore
 
-	* Manifest.txt, bin/railsbench: removed file from manifest;
-	  dos2unix railsbench
+commit 83b379d03506a615d84dab836272eae1e291ad36
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jul 23 18:23:42 2008 +0200
 
-2006-12-23 09:44  stkaes
+    print detailed comparison of total garbage allocated per object type
 
-	* script/perf_prof: set ruby_prof_options correctly
+M	script/perf_comp_gc
 
-2006-12-23 09:24  stkaes
+commit 2a0c65bea23c1da63200d58d2fb8cc2b78d81ade
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jul 23 18:21:18 2008 +0200
 
-	* bin/railsbench, lib/railsbench/perf_utils.rb,
-	  lib/railsbench/railsbenchmark.rb, lib/railsbench/version.rb,
-	  script/perf_comp_gc, script/perf_diff, script/perf_diff_gc,
-	  script/perf_loop, script/perf_prof, script/perf_run,
-	  script/perf_run_gc, script/perf_times: scripts rewritten in ruby
+    move object type list to class GCInfo
 
-2006-12-23 08:13  stkaes
+M	lib/railsbench/gc_info.rb
+M	script/perf_plot_gc
 
-	* script/perf_loop: ruby version of obsoleted file
+commit 4b64bbf40e0341844a2ebde655144b086d1cccde
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jul 23 18:17:40 2008 +0200
 
-2006-12-03 09:46  stkaes
+    provide an interface to summed garbage per object type via :garbage_totals
 
-	* Rakefile: set ENV['VERSION'] if not supplied
+M	lib/railsbench/gc_info.rb
 
-2006-12-03 09:41  stkaes
+commit f962d0ff265d350b0c17a83eca30715e1bdb54fd
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jul 23 18:08:36 2008 +0200
 
-	* Manifest, Manifest.txt, test/test_helper.rb: ensure rake test is
-	  working
+    only ignore gc info for last collection for freelist averages
 
-2006-12-03 09:37  stkaes
+M	lib/railsbench/gc_info.rb
 
-	* BUGS, BUGS.txt, CHANGELOG, CHANGELOG.txt, GCPATCH, GCPATCH.txt,
-	  History.txt, Manifest, Manifest.txt, README, README.txt: files
-	  renamed
+commit d3a1ea9850e91d79721c6f97935c3f9d384a9583
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jul 18 16:48:19 2008 +0000
 
-2006-12-03 09:34  stkaes
+    stupid ImageMagick
 
-	* BUGS.txt:
+M	script/perf_plot
 
-2006-12-03 09:23  stkaes
+commit 8fb96c04bfcb145598ae99b4db498096cb3606c8
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jul 18 16:36:28 2008 +0000
 
-	* ., BUGS, BUGS.txt, CHANGELOG.txt, GCPATCH, GCPATCH.txt,
-	  History.txt, INSTALL, Manifest.txt, README, README.txt, Rakefile,
-	  VERSION, bin, bin/railsbench, examples, install.rb,
-	  lib/benchmark.rb, lib/gc_info.rb, lib/perf_info.rb,
-	  lib/perf_utils.rb, lib/railsbench, lib/railsbench.rb,
-	  lib/railsbench/benchmark.rb, lib/railsbench/gc_info.rb,
-	  lib/railsbench/perf_info.rb, lib/railsbench/perf_utils.rb,
-	  lib/railsbench/railsbenchmark.rb, lib/railsbench/version.rb,
-	  lib/railsbench/write_headers_only.rb, lib/write_headers_only.rb,
-	  script/perf_bench, script/perf_comp, script/perf_comp_gc,
-	  script/perf_plot, script/perf_plot_gc, script/perf_run_gc,
-	  script/perf_times, script/perf_times_gc, script/run_urls,
-	  setup.rb, site-ruby, test, test/railsbench_test.rb,
-	  test/test_helper.rb: gem support
+            stupid ImageMagick, I'll switch to gnuplot
 
-2006-12-02 09:00  stkaes
+M	script/perf_plot_gc
 
-	* site-ruby/benchmark.rb:
+commit 7e3520e0786895905c966fe26627e69633f7a88d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Jul 15 10:13:20 2008 +0000
 
-2006-11-12 12:34  stkaes
+            commented out debug output
 
-	* lib/railsbench.rb: fixed bogus error reports when logging is
-	  turned on
+M	lib/railsbench/railsbenchmark.rb
 
-2006-11-12 10:38  stkaes
+commit 11be77bcfef9002519129d11cf2c9413760c0737
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Jul 15 10:00:51 2008 +0000
 
-	* lib/gc_info.rb, script/perf_plot_gc: experimental feauture: gc
-	  data plot
+        put labels in the correct place when plotting more than one file
 
-2006-11-10 09:42  stkaes
+M	script/perf_plot_gc
 
-	* script/perf_plot: don't sort data when plotting
+commit af4f9b7d620e6f8dd2e4c4b292e4382cbdcb5e56
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 16 12:33:45 2008 +0000
 
-2006-11-08 06:27  stkaes
+        railsbench now requires ruby-prof version >= 0.6
 
-	* script/perf_plot: executable
+M	lib/railsbench/railsbenchmark.rb
 
-2006-11-07 12:51  stkaes
+commit 7d67242c671a4d99e37b20fe1130b434cdea2e2d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 16 07:58:11 2008 +0000
 
-	* README, script/perf_diff_gc, script/perf_loop,
-	  script/perf_run_gc: replaced -patched_gc by -gc=<name of shell
-	  source file under $RAILS_ROOT/config for setting gc variables>
+        use specified font for title and make legend font size 2 units smaller than specified font size
 
-2006-11-07 07:07  stkaes
+M	script/perf_plot_gc
 
-	* GCPATCH, README: updated docs
+commit ae8538eb711f5b97868220c46bf4cd3c845b1d95
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 15 15:02:22 2008 +0000
 
-2006-11-07 06:46  stkaes
+        dos2unix some files
 
-	* ruby184gc.patch, ruby185gc.patch, rubygc.patch: added GC patch
-	  for ruby1.8.5
+M	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/perf_utils.rb
+M	lib/railsbench/write_headers_only.rb
 
-2006-11-07 06:42  stkaes
+commit 611cea1f96080c06eb893e97cd007f0235b0be7d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 15 14:58:12 2008 +0000
 
-	* script/perf_plot: added plotting of perf data using gruff
+        support for XMLHttpRequest. patch by Vít Ondruch
 
-2006-11-07 06:41  stkaes
+M	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/railsbenchmark.rb
 
-	* lib/gc_info.rb, lib/perf_info.rb, lib/perf_utils.rb,
-	  script/perf_comp, script/perf_times, script/perf_times_gc:
-	  refactored perf data display
+commit 9a7d9014ca4be4d046b0ccc6193c65d81652d66a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 15 14:51:20 2008 +0000
 
-2006-11-06 06:38  stkaes
+        enable specification of session key. patch by Vít Ondruch
 
-	* GCPATCH: whitespace change
+M	config/benchmarks.rb
+M	lib/railsbench/railsbenchmark.rb
 
-2006-10-05 07:36  stkaes
+commit 2025a2d7c6fd232c5e90375752f0ec508c284144
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 11 10:02:39 2008 +0000
 
-	* lib/railsbench.rb: error_exit if uri is not specified for
-	  benchmark
+        exit benchmarking when an action raises an exception
 
-2006-08-20 19:11  stkaes
+M	lib/railsbench/railsbenchmark.rb
 
-	* VERSION: bump up version number for next release
+commit 15ad5b7c603355bca5e9cafce0af27588fec20e5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jan 10 08:57:25 2008 +0000
 
-2006-08-20 18:31  stkaes
+        updated copyright notices
 
-	* script/perf_bench: oops if RAIILS_ROOT is undefined
+M	install.rb
+M	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/gc_info.rb
+M	lib/railsbench/perf_info.rb
+M	lib/railsbench/perf_utils.rb
+M	lib/railsbench/railsbenchmark.rb
+M	script/convert_raw_data_files
+M	script/generate_benchmarks
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_comp_gc
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_html
+M	script/perf_plot
+M	script/perf_plot_gc
+M	script/perf_prof
+M	script/perf_run
+M	script/perf_run_gc
+M	script/perf_table
+M	script/perf_tex
+M	script/perf_times
+M	script/perf_times_gc
+M	script/run_urls
 
-2006-08-19 17:56  stkaes
+commit 68d27009961f947d8ea84e96142f85122ff32289
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jan 10 08:27:51 2008 +0000
 
-	* script/perf_run: allow running with only 1 argument
+        corrected sprintf format string (1.8.6 has stricter checks)
 
-2006-08-19 07:45  stkaes
+M	script/generate_benchmarks
 
-	* lib/railsbench.rb, lib/write_headers_only.rb: support writing
-	  only headers to avoid ENOMEM on windows
+commit 069caec858064ead58cb5b94d1190e26ba684788
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jan 10 08:16:57 2008 +0000
 
-2006-08-11 17:15  stkaes
+        enable generate_benchmarks for rails 2.x
 
-	* lib/railsbench.rb: require 'dispatcher' for edge rails
-	  compatibility
+M	script/generate_benchmarks
 
-2006-07-23 07:11  stkaes
+commit 7fe4f069c39ea1b727384d090ae2bd958477ebaa
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 23 12:30:18 2007 +0000
 
-	* README, script/perf_comp_gc, script/perf_diff_gc: minor changes
+        make req/sec and ms/req columns one character wider
 
-2006-07-16 12:49  stkaes
+M	script/perf_times
 
-	* GCPATCH, lib/railsbench.rb, rubygc.patch, script/perf_times_gc:
-	  added GC.log method
+commit 43c2ce7a882d464a83bda127bc27bc239f13ee3f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 25 07:47:01 2007 +0000
 
-2006-07-16 09:43  stkaes
+        new GC patches for 1.8.6 and 1.9
 
-	* lib/gc_info.rb, lib/railsbench.rb, rubygc.patch,
-	  script/perf_run_gc, script/perf_times_gc: support for GC.dump and
-	  RUBY_GC_STATS
+M	GCPATCH
+A	ruby186gc.patch
+A	ruby19gc.patch
 
-2006-07-16 07:54  stkaes
+commit 21af5de2c9fd0af8a3bf61c8352609af02a96f67
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun May 6 10:55:45 2007 +0000
 
-	* GCPATCH, INSTALL, install.rb: -- use /usr/bin/env ruby in
-	  install.rb
-	  -- updated docs
+        updated README for GCPATCH
 
-2006-07-09 11:07  stkaes
+M	GCPATCH
 
-	* script/perf_diff, script/perf_run, script/perf_run_gc: added dot
-	  before $BENCHMARK in file names
+commit 62ccc8a4cf2160f7e0cde0ab3acfb6f2c8da2a96
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun May 6 09:27:41 2007 +0000
 
-2006-06-28 14:46  stkaes
+        added more options to control gc behavior
 
-	* script/perf_prof: autostart support for OS X
+M	ruby185gc.patch
 
-2006-06-28 13:21  stkaes
+commit e6c02ec34a31d9ee38968d3e13b9960865bb882e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 8 18:33:28 2007 +0000
 
-	* Makefile: adapted export command to svn
+        small improvements to perf_plot_gc
 
-2006-06-28 13:08  stkaes
+M	script/perf_plot_gc
 
-	* Makefile: changed Makefile to support svn
+commit e719c2ca04fb8c22f383b303ff8df4d82c8614b5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Apr 6 05:02:31 2007 +0000
 
-2006-06-28 12:45  stkaes
+        prepare for 0.9.3 release
 
-	* VERSION: preparing for version 0.8.3
+M	lib/railsbench/version.rb
 
-2006-06-28 12:44  stkaes
+commit d7e96cf5ff93b9ad1bc69de48e4ec2efc2db5ddd
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 1 09:37:58 2007 +0000
 
-	* .cvsignore: removed .cvsignore
+        POST is supported now; don't list as a bug
 
-2006-06-28 09:05  stkaes
+M	BUGS
 
-	* script/perf_prof: removed set -x from perf_prof
+commit 5318c9c4c91c3b71fa7bbea3686c8a4ad3169594
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 1 09:32:16 2007 +0000
 
-2006-06-28 08:53  stkaes
+        updated CHANGELOG
 
-	* README, lib/railsbench.rb, script/perf_prof: new script perf_prof
-	  similar to perf_run, supporting ruby-prof
+M	CHANGELOG
 
-2006-06-28 06:41  stkaes
+commit 3413bef916ca763a0893a274eb153b97d2e32981
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 1 07:29:47 2007 +0000
 
-	* Makefile, VERSION: - clean out *~ files on make clean
-	  - prepare for 0.8.2 release
+        -colorize option for perf_html
 
-2006-06-27 02:12  stkaes
+M	latest_changes.txt
+M	script/perf_html
 
-	* README: doc change
+commit 076444146a4113780a96e566ebe7d580784cc9de
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 1 07:29:16 2007 +0000
 
-2006-06-20 03:13  stkaes
+        added -theme option
 
-	* script/perf_tex: perf_tex added
+M	script/perf_plot
 
-2006-06-20 03:11  stkaes
+commit add865a3a124fa9c0cd9c9bb5a8709fde9d17c4c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:49:23 2007 +0000
 
-	* lib/railsbench.rb: log level settings
+        options -narrow and -skip_urls are no longer necessary
 
-2006-06-01 19:28  stkaes
+M	script/perf_diff
 
-	* README, lib/railsbench.rb: support -log=level
+commit 15eb3c8ad8777efa2220dad50f2ba63be2983298
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:48:38 2007 +0000
 
-2006-05-28 13:32  stkaes
+        allow _ in benchmark names
 
-	* script/perf_comp_gc, script/perf_diff_gc, script/perf_times_gc:
-	  smaller numbers
+M	script/perf_html
 
-2006-05-26 03:38  stkaes
+commit 8c2e0909706f33994e66f21e805de50a8af8809b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:26:57 2007 +0000
 
-	* README, lib/railsbench.rb, script/perf_comp_gc,
-	  script/perf_diff_gc: added two new scripts for GC perf comparison
-	  fixed nocache setting
+        updated CHANGELOG
 
-2006-05-04 16:07  stkaes
+M	CHANGELOG
 
-	* script/perf_diff, script/perf_loop, script/perf_run,
-	  script/perf_run_gc: use /bin/sh instead of bash
+commit 071b9abb08569c13b8354f88c7c9aa9c2a65f5be
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:26:03 2007 +0000
 
-2006-04-25 13:09  stkaes
+        include new scripts
 
-	* lib/railsbench.rb: bugfix for relative_url_root
+M	Manifest.txt
 
-2006-04-08 11:58  stkaes
+commit 02383ea546a5f994f6e880e0bb859ad7c256ab95
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:25:34 2007 +0000
 
-	* GCPATCH, script/perf_diff, script/perf_loop, script/perf_run,
-	  script/perf_run_gc: support -patched_gc option
+        make new scripts callabe from railsbench
 
-2006-04-08 11:11  stkaes
+M	bin/railsbench
 
-	* README: update README
+commit 20bbb961e61169ec31fba9875b59a12d6f253905
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:25:03 2007 +0000
 
-2006-04-08 11:06  stkaes
+        still more changes
 
-	* script/perf_html, script/perf_times_gc: make perf_html recognize
-	  GC stats
+M	latest_changes.txt
 
-2006-04-08 09:56  stkaes
+commit 3e5993b560b91bd2f9b4894f780adff2c733f7f1
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 07:24:01 2007 +0000
 
-	* lib/gc_info.rb, script/perf_times_gc: perf_times_gc refatoring
+        adapted README to latest changes
 
-2006-04-07 21:21  stkaes
+M	README
 
-	* script/perf_bench, script/run_urls: clear database connections on
-	  aborting benchmarking
+commit a31ad51b8dbe1fb0ce719fc53cc0b483812bbbea
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 06:56:37 2007 +0000
 
-2006-04-07 20:40  stkaes
+        copy all entries from the development database config
 
-	* script/perf_bench, script/run_urls: make scripts abortable
+M	install.rb
 
-2006-04-06 16:11  stkaes
+commit 300871d59d6a10b30c345fb52a583530c6e2817d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Mar 31 06:43:51 2007 +0000
 
-	* script/perf_run_gc: removed leftover set -x
+        lates changes description
 
-2006-04-06 15:48  stkaes
+M	latest_changes.txt
 
-	* script/perf_run_gc, script/perf_times_gc: print min and max along
-	  avg and stddev%
-	  automatically add warmup for perf_run_gc
+commit 4ab7623da74c9ef1220484c930b2bb8dc9cfe47d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 30 10:49:41 2007 +0000
 
-2006-04-06 15:06  stkaes
+        merge benchmark session data with session data from session store
 
-	* script/perf_times_gc: also print min and max values for gc stats
+M	lib/railsbench/railsbenchmark.rb
 
-2006-04-06 08:29  stkaes
+commit 43841ed0ffc2d0c969d744d8f6d58ea677d3a87a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 30 09:43:55 2007 +0000
 
-	* script/perf_times_gc: removed ctrl-Ms
+        load benchmark file using ERB
 
-2006-04-06 08:07  stkaes
+M	lib/railsbench/benchmark_specs.rb
 
-	* Makefile: fixed Makefile bugs
+commit 2b03e62211df648cdd34852b0b186f47a3cc76ce
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 30 09:13:00 2007 +0000
 
-2006-04-06 08:01  stkaes
+        make it possible to specify session data in benchmarks.yml
 
-	* Makefile: make it easier to bundle railsbench
+M	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/railsbenchmark.rb
 
-2006-04-06 07:47  stkaes
+commit 9d330a7e647cf63916c111090b1a8f4f5f5640c7
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 30 05:45:40 2007 +0000
 
-	* ., .cvsignore: ignore archives
+        script for generating a tabular overview
 
-2006-04-06 07:44  stkaes
+A	script/perf_table
 
-	* script/perf_run_gc: added perf_run_gc
+commit 7490b01199b6c0155d50e21ceb4fc342d69149e2
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 25 14:34:42 2007 +0000
 
-2006-04-06 07:42  stkaes
+        allow specification of colors
 
-	* README: updated README
+M	script/perf_plot
 
-2006-04-06 07:35  stkaes
+commit 9838f417a1f8697d5f8201d39c08946572c93b6a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 25 11:37:25 2007 +0000
 
-	* README, script/perf_bench, script/perf_comp, script/perf_html,
-	  script/perf_times, script/perf_times_gc, script/run_urls: changed
-	  /usr/local/bin/ruby into /usr/bin/env ruby
+        allow specification of output file
 
-2006-04-03 11:42  stkaes
+M	script/perf_plot
 
-	* VERSION: *** empty log message ***
+commit 2c022ba14289f6006b223da51958dacdb0c48cea
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 25 07:15:05 2007 +0000
 
-2006-04-03 11:34  stkaes
+        automatically remove date and benchmark names from config names
 
-	* README: added description of perf_times_gc to README usage
-	  section
+M	script/perf_plot
 
-2006-04-03 11:27  stkaes
+commit 8f99e06e5389ef5d227a848a099e981e5fa872a5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Mar 20 06:23:01 2007 +0000
 
-	* script/perf_times_gc: stddev refactoring
+        don't fuck with array extensions during running rails
 
-2006-04-03 11:01  stkaes
+M	lib/railsbench/benchmark_specs.rb
 
-	* README: added description of new commands to README
+commit b4d898405a506d8e5b7de9e1e294c563cffe7560
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Mar 18 19:02:39 2007 +0000
 
-2006-04-03 10:43  stkaes
+        refactored benchmark loading; added script for converting benchmark data files to new format
 
-	* rubygc.patch, script/perf_gc_times, script/perf_times_gc: renamed
-	  perf_gc_times to perf_times_gc
-	  updated GC patch to include docs
+M	Manifest.txt
+A	lib/railsbench/benchmark_specs.rb
+M	lib/railsbench/railsbenchmark.rb
+A	script/convert_raw_data_files
+M	script/perf_bench
+M	script/perf_plot
+M	script/run_urls
 
-2006-04-02 19:32  stkaes
+commit 2fb65f8fdaf9a1ffbb9f4fae31150629740fc83f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 16 10:22:46 2007 +0000
 
-	* lib/railsbench.rb, script/perf_gc_times: support for GC time
-	  analysis
+        added post support; use benchmark names instead of urls for display
 
-2006-04-02 15:57  stkaes
+M	lib/railsbench/railsbenchmark.rb
 
-	* lib/railsbench.rb, rubygc.patch, script/run_urls: updated gc
-	  patch
-	  enable GC stats for run_urls
+commit b0f1e7f0bad0b2da447e91cac8ec52b44dd198aa
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 9 07:57:44 2007 +0000
 
-2006-04-01 11:17  stkaes
+        it's query_string, not query_params
 
-	* script/perf_comp, script/perf_times: small bug fixes in time
-	  display
+M	README
 
-2006-04-01 10:41  stkaes
+commit 1b43dee2051989897d9df3eb6ff3b9f8db5eac0d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 9 07:54:49 2007 +0000
 
-	* script/perf_comp, script/perf_diff, script/perf_loop,
-	  script/perf_run, script/perf_times: print more info
-	  unset RUBY_GC_STATS
+        doc change
 
-2006-03-31 17:18  stkaes
+M	PROBLEMS
 
-	* GCPATCH, lib/railsbench.rb, script/perf_comp: only compute GC
-	  stats if possible
+commit 081804e37972bfedb0c8e2442e7c5402bb4988c0
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 9 06:57:09 2007 +0000
 
-2006-03-31 15:52  stkaes
+        use -geometry=1600x1200 to specify dimensions foer generated .png files
+        use -font_size=12 to set font size for labels, markers etc
 
-	* install.rb, lib/railsbench.rb, script/perf_bench,
-	  script/perf_comp, script/perf_html, script/perf_times,
-	  script/run_urls: changes copyright notice
+M	latest_changes.txt
+M	script/perf_plot
+M	script/perf_plot_gc
 
-2006-03-31 11:20  stkaes
+commit 8be418688623f723d7b0ac2f3e7e75921dfd4b60
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Feb 13 08:30:27 2007 +0000
 
-	* lib/railsbench.rb, script/perf_comp, script/perf_times: support
-	  collecting GC stats
+        use time instad of number of collections for gc change factor calculation
 
-2006-03-31 11:18  stkaes
+M	script/perf_comp
 
-	* rubygc.patch: support collection of GC stats
+commit 30f77f154078d6cd7cadd7bc133593dd229685f6
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 26 17:46:40 2007 +0000
 
-2006-02-15 07:03  stkaes
+        dos2unix
 
-	* script/perf_bench, script/run_urls: allow digits in benchmark
-	  names
+M	PROBLEMS
 
-2006-02-14 11:50  stkaes
+commit 4a36af69e0c5eb2963d1a262bcff42377ba659a3
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 26 17:24:31 2007 +0000
 
-	* lib/railsbench.rb: small correction for SVL RPVL/RMVL
+        aded file PROBLEMS for things which are not really railsbench bugs
 
-2006-02-14 07:18  stkaes
+M	Manifest.txt
+A	PROBLEMS
 
-	* lib/railsbench.rb: added support for ruby memeory validator
+commit cdf45681d3a3991b48197ca3098979e6742575c3
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 26 17:23:45 2007 +0000
 
-2006-01-29 08:09  stkaes
+        added better version checking
 
-	* README: updated README
+M	script/generate_benchmarks
 
-2005-12-19 03:16  stkaes
+commit 361bef80ad56461e67df9447f7f8bca5531c3ebf
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 26 15:26:18 2007 +0000
 
-	* script/perf_html: fixed bug in perf_html: don't ignore urls
-	  containing get parameters
+        prepare for 0.9.2 release
 
-2005-12-14 07:34  stkaes
+M	lib/railsbench/version.rb
 
-	* script/perf_html: -- added perf_html to create html output for
-	  perf comparisons
+commit 21797baf7605693f0059ac64febef12d78add2de
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Jan 26 15:25:39 2007 +0000
 
-2005-12-14 06:15  stkaes
+        changed default benchmarks.yml to contain only default benchmark
 
-	* BUGS, VERSION, script/perf_comp, script/perf_diff,
-	  script/perf_loop, script/perf_times, script/run_urls: -- don't
-	  set GC params in perf_loop
-	  -- -warmup option for run_urls
-	  -- -narrow option for perf_comp
-	  -- call perf_times during perf_comp
+M	config/benchmarks.yml
 
-2005-09-25 06:32  stkaes
+commit b25e05de74ddb21116eedfb626eb425e4bc6692b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 09:07:21 2007 +0000
 
-	* VERSION: updated version number
+        updated CHANGELOG
 
-2005-09-21 04:12  stkaes
+M	CHANGELOG
 
-	* GCPATCH, INSTALL, README, config/benchmarks.rb: fixed some typos
+commit 499bf958862848a8a2fe0ad9fd091e01ebdf08e9
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 09:02:49 2007 +0000
 
-2005-09-13 10:04  stkaes
+        dos2unix
 
-	* config/benchmarks.rb, lib/railsbench.rb, script/perf_comp,
-	  script/perf_times: fixed bug in computing standard deviation
+M	test/test_helper.rb
 
-2005-09-03 04:42  stkaes
+commit e9ba5d2595f407d9299e3bc2e633d7937879b82f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 09:01:26 2007 +0000
 
-	* script/perf_comp, script/perf_times: fixed display of ms/r if
-	  number of iterations differs between compared data sets
+        updated latest changes
 
-2005-08-27 05:50  stkaes
+M	latest_changes.txt
 
-	* INSTALL: stylistic changes
+commit 95e7cc16e90ae4c1cb08cd91d5d5838f8ba08516
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 08:59:00 2007 +0000
 
-2005-08-27 05:48  stkaes
+        formatting
 
-	* INSTALL, install.rb, lib, lib/railsbench.rb, perf_bench,
-	  perf_comp, perf_diff, perf_loop, perf_run, perf_times,
-	  railsbench.rb, run_urls, script, script/perf_bench,
-	  script/perf_comp, script/perf_diff, script/perf_loop,
-	  script/perf_run, script/perf_times, script/run_urls: reorganized
-	  directory structure
+M	INSTALL
 
-2005-08-27 05:22  stkaes
+commit 40e71febb82d86627664ae3bce6a162468a85e55
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 08:56:48 2007 +0000
 
-	* install.rb: *** empty log message ***
+        automatically detect RAILS_ROOT in railsbench install
 
-2005-08-27 05:21  stkaes
+M	install.rb
 
-	* GCPATCH, INSTALL, README, VERSION, benchmarks.rb, benchmarks.yml,
-	  config, config/benchmarking.rb, config/benchmarks.rb,
-	  config/benchmarks.yml, perf_diff, perf_loop, perf_run,
-	  railsbench.rb: automatic install
+commit ab7d65ddcf1c6d39ff398541c9c21496bd0e1498
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 08:56:09 2007 +0000
 
-2005-08-26 08:47  stkaes
+        mention generate_benchmarks in file INSTALL
 
-	* INSTALL, benchmarks.rb, benchmarks.yml, railsbench.rb: now we can
-	  run out of the box!
+M	INSTALL
 
-2005-08-25 06:43  stkaes
+commit 07705b2d5d09e4f1c47bc4f7698f7edc3d6cf6ae
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 08:40:42 2007 +0000
 
-	* VERSION: updated version number
+        display help when call with string 'help' as first argument
 
-2005-08-25 06:40  stkaes
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_run
+M	script/perf_run_gc
+M	script/run_urls
 
-	* INSTALL, README, benchmark.rb, perf_comp, perf_loop, perf_times,
-	  site-ruby, site-ruby/benchmark.rb: moved benchmark.rb into a
-	  subdir
-	  fixed bug in perf_loop
+commit 2be3d2ea3acfca06aa9eb11ce0b4b0f2fefc5eab
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 08:39:53 2007 +0000
 
-2005-08-24 09:02  stkaes
+        automatically set RAILS_ROOT when invoked from a Rails app's top level directory
 
-	* benchmark.rb: added benchmark.rb
+M	bin/railsbench
 
-2005-08-23 03:59  stkaes
+commit b65abf63f15fae9ad21bdc4ac5d87b73c58ad229
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 14 07:57:03 2007 +0000
 
-	* ., BUGS, GCPATCH, INSTALL, LICENSE, README, VERSION,
-	  benchmarks.rb, benchmarks.yml, perf_bench, perf_comp, perf_diff,
-	  perf_loop, perf_run, perf_times, railsbench.rb, rubygc.patch,
-	  run_urls: Initial revision
+        updated README
 
+M	README
+
+commit 106d5344fdea124ee018270ba5d3a36eb7300c8d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 13 23:51:02 2007 +0000
+
+        keep generated controller benchmarks sorted. output non generated benchmarks at the end of benchmarks.yml
+
+M	script/generate_benchmarks
+
+commit 0c3abc149574087e2b5819d0c9593cb0d785e28e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 13 10:19:23 2007 +0000
+
+        updated latest changes
+
+M	latest_changes.txt
+
+commit 301c26df60e8015e0960e4a912f00cd3b8afc0c7
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 13 10:05:07 2007 +0000
+
+        enable deletion of benchmarks for ignored controllers/actions
+
+M	script/generate_benchmarks
+
+commit 234f050691c7a64ee8a98ff11799d4584aa37bbe
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 13 10:04:04 2007 +0000
+
+        support help
+
+M	bin/railsbench
+
+commit 6fc4cacf81ac6db3db9f22cc152a3c1a5b14955b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 13 06:46:29 2007 +0000
+
+        improved benchmark generator
+
+M	script/generate_benchmarks
+
+commit 4e8729cd95b5516ad826bafa94904520ce42dabe
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 15:28:05 2007 +0000
+
+        added generate benchmarks command
+
+M	Manifest.txt
+M	latest_changes.txt
+M	script/generate_benchmarks
+
+commit 70ad496df9299e57b83566ec9624231dda95a54f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 15:27:37 2007 +0000
+
+        fixed install problems
+
+M	install.rb
+
+commit 503a1d9ade85839a25c64323fda2e29c91d7e565
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 15:27:12 2007 +0000
+
+        fixed problems with unpatched GC
+        -This line, and those below, will be ignored--
+    
+        M    perf_info.rb
+
+M	lib/railsbench/perf_info.rb
+
+commit 75d5827c21228f8954f729403a0758ad3b5fffdc
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 14:15:46 2007 +0000
+
+        updated copyright notice
+
+M	lib/railsbench/gc_info.rb
+M	lib/railsbench/perf_info.rb
+M	lib/railsbench/perf_utils.rb
+M	lib/railsbench/railsbenchmark.rb
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_comp_gc
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_html
+M	script/perf_plot
+M	script/perf_plot_gc
+M	script/perf_prof
+M	script/perf_run
+M	script/perf_run_gc
+M	script/perf_tex
+M	script/perf_times
+M	script/perf_times_gc
+M	script/run_urls
+
+commit 4105a7ddf5d0113b9debeb3d29e6b85837afff0d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 14:06:15 2007 +0000
+
+        fix installation problems
+
+M	install.rb
+
+commit 99f35507109ac8452478da59a0d76c726b5f5178
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 7 13:57:36 2007 +0000
+
+        incremented version number
+
+M	lib/railsbench/version.rb
+
+commit 5aa9cbbefc9bafdb04dbedee1e60359f5b0fe318
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Jan 6 12:56:56 2007 +0000
+
+        added generate_benchmarks
+
+M	Rakefile
+M	bin/railsbench
+A	script/generate_benchmarks
+
+commit e59dc34408cda554b9e7e163e6a16df344926547
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 11:02:51 2006 +0000
+
+        updated changelog
+
+M	CHANGELOG
+
+commit 25fe6f86dac4ba3cb8ca5730837f6167b0f9a118
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 10:31:08 2006 +0000
+
+        dedription of railsbench path and railsbench postinstall
+
+M	INSTALL
+
+commit 3744bde44596a6f47c116cb711cff4fe7865a150
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 10:15:00 2006 +0000
+
+        added 'railsbench' path command
+
+M	bin/railsbench
+M	latest_changes.txt
+
+commit df62b9ee325303210b0f485d0e1ccce7d8e74b11
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 10:06:09 2006 +0000
+
+        added postinstall
+
+M	Manifest.txt
+M	Rakefile
+M	bin/railsbench
+M	latest_changes.txt
+A	postinstall.rb
+M	setup.rb
+
+commit 727daaa5e57b85ee7ce53c3630cdc22734c2770d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 09:21:24 2006 +0000
+
+        fixed typo
+
+M	latest_changes.txt
+
+commit adfe5f3275b1e1c95424482b7b7134d2104c532d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Dec 26 09:18:11 2006 +0000
+
+        code refactoring; more error messages
+
+M	bin/railsbench
+M	latest_changes.txt
+M	lib/railsbench/perf_utils.rb
+M	script/perf_bench
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_run
+M	script/perf_run_gc
+M	script/run_urls
+
+commit 694ba56fb7f1e5a0f4144b2a06cad900c4acc96f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 24 08:59:12 2006 +0000
+
+        updated changelog
+
+M	CHANGELOG
+
+commit 3649b1fb67d0b81745b12d945e56a68512a5afec
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 24 07:05:49 2006 +0000
+
+        prepare 0.9.0 release
+
+M	Rakefile
+A	latest_changes.txt
+
+commit 9abaa67cc75f76e93b824cd3f596370af0db2790
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 24 06:43:21 2006 +0000
+
+        white space changes
+
+M	install.rb
+
+commit 32ab59e2de8fd5b09cacf568180a87dcb106c365
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 24 06:24:04 2006 +0000
+
+        updated environment format
+
+M	INSTALL
+M	README
+M	config/benchmarking.rb
+M	script/perf_tex
+
+commit 41575c761574aec00359ad7ef3ae032f2babda89
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 24 06:08:06 2006 +0000
+
+        added licence to scripts
+
+M	lib/railsbench/perf_utils.rb
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_comp_gc
+M	script/perf_diff
+M	script/perf_diff_gc
+M	script/perf_html
+M	script/perf_plot
+M	script/perf_plot_gc
+M	script/perf_prof
+M	script/perf_run
+M	script/perf_run_gc
+M	script/perf_tex
+M	script/perf_times
+M	script/perf_times_gc
+M	script/run_urls
+
+commit fb1c12b44ff31b792102f9d402ae59235c44524c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Dec 23 10:22:25 2006 +0000
+
+        removed file from manifest; dos2unix railsbench
+
+M	Manifest.txt
+M	bin/railsbench
+
+commit d8bed6226467bf7fa9213996f87737e6731c01a9
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Dec 23 09:44:19 2006 +0000
+
+        set ruby_prof_options correctly
+
+M	script/perf_prof
+
+commit 968fa36b488274ab164a0a3b487e505fba6d1899
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Dec 23 09:24:23 2006 +0000
+
+        scripts rewritten in ruby
+
+M	bin/railsbench
+M	lib/railsbench/perf_utils.rb
+M	lib/railsbench/railsbenchmark.rb
+M	lib/railsbench/version.rb
+M	script/perf_comp_gc
+M	script/perf_diff
+M	script/perf_diff_gc
+D	script/perf_loop
+M	script/perf_prof
+M	script/perf_run
+M	script/perf_run_gc
+M	script/perf_times
+
+commit 239f08eae4307bd5556b6f798f3da785dc28b9d2
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Dec 23 08:13:56 2006 +0000
+
+        ruby version of obsoleted file
+
+M	script/perf_loop
+
+commit 9e4fa6cedd8ea834f910bf42ce744f7b690b7e75
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 3 09:46:52 2006 +0000
+
+        set ENV['VERSION'] if not supplied
+
+M	Rakefile
+
+commit 40613fbf23fcd389b34e9717719798609c861e0b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 3 09:41:02 2006 +0000
+
+        ensure rake test is working
+
+D	Manifest
+A	Manifest.txt
+M	test/test_helper.rb
+
+commit 9207bf30fbf56c93449604e3fa5a2d56f1d96635
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 3 09:37:13 2006 +0000
+
+        files renamed
+
+A	BUGS
+D	BUGS.txt
+A	CHANGELOG
+D	CHANGELOG.txt
+A	GCPATCH
+D	GCPATCH.txt
+D	History.txt
+A	Manifest
+D	Manifest.txt
+A	README
+D	README.txt
+
+commit de96b33addba73f6b4030cbaa4cc059007d23e47
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 3 09:34:53 2006 +0000
+
+    git-svn-id: svn+ssh://rubyforge.org/var/svn/railsbench/trunk/railsbench@132 686a0081-4717-0410-840f-d5e12b1d94be
+
+M	BUGS.txt
+
+commit 87086560d6ce2ce0c369800db43b3090db0a5d4e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Dec 3 09:23:28 2006 +0000
+
+        gem support
+
+D	BUGS
+A	BUGS.txt
+A	CHANGELOG.txt
+D	GCPATCH
+A	GCPATCH.txt
+A	History.txt
+M	INSTALL
+A	Manifest.txt
+D	README
+A	README.txt
+A	Rakefile
+D	VERSION
+A	bin/railsbench
+M	install.rb
+A	lib/benchmark.rb
+D	lib/gc_info.rb
+D	lib/perf_info.rb
+D	lib/perf_utils.rb
+D	lib/railsbench.rb
+A	lib/railsbench/benchmark.rb
+A	lib/railsbench/gc_info.rb
+A	lib/railsbench/perf_info.rb
+A	lib/railsbench/perf_utils.rb
+A	lib/railsbench/railsbenchmark.rb
+A	lib/railsbench/version.rb
+A	lib/railsbench/write_headers_only.rb
+D	lib/write_headers_only.rb
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_comp_gc
+M	script/perf_plot
+M	script/perf_plot_gc
+M	script/perf_run_gc
+M	script/perf_times
+M	script/perf_times_gc
+M	script/run_urls
+A	setup.rb
+A	test/railsbench_test.rb
+A	test/test_helper.rb
+
+commit a8240bce906cb6f428255251af582e939f7ffa27
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Dec 2 09:00:28 2006 +0000
+
+    git-svn-id: svn+ssh://rubyforge.org/var/svn/railsbench/trunk/railsbench@130 686a0081-4717-0410-840f-d5e12b1d94be
+
+D	site-ruby/benchmark.rb
+
+commit ef223c58b386fb769e1474163f4369150004b300
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Nov 12 12:34:25 2006 +0000
+
+        fixed bogus error reports when logging is turned on
+
+M	lib/railsbench.rb
+
+commit 5200875178421ec4cdca10b16556564f7b7a1f09
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Nov 12 10:38:11 2006 +0000
+
+        experimental feauture: gc data plot
+
+M	lib/gc_info.rb
+A	script/perf_plot_gc
+
+commit bd24acd1b06f0a3d3e2db7ba43d5360b8b940f85
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Nov 10 09:42:50 2006 +0000
+
+        don't sort data when plotting
+
+M	script/perf_plot
+
+commit 829a410465e23ad520045748cd57bd7c8f3b9cb5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Nov 8 06:27:47 2006 +0000
+
+        executable
+
+M	script/perf_plot
+
+commit 78a4e24abf5482320545e8577b740abafae630a5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Nov 7 12:51:19 2006 +0000
+
+        replaced -patched_gc by -gc=<name of shell source file under $RAILS_ROOT/config for setting gc variables>
+
+M	README
+M	script/perf_diff_gc
+M	script/perf_loop
+M	script/perf_run_gc
+
+commit f54100ad87948648d655eff1ebb715ff7ae9f4d6
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Nov 7 07:07:31 2006 +0000
+
+        updated docs
+
+M	GCPATCH
+M	README
+
+commit 261a5a8cc5bd421822012f203c00ed5a7afbd537
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Nov 7 06:46:29 2006 +0000
+
+        added GC patch for ruby1.8.5
+
+A	ruby184gc.patch
+A	ruby185gc.patch
+D	rubygc.patch
+
+commit 31d24ada882780b0e854e5e6bcad9f006122f79d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Nov 7 06:42:54 2006 +0000
+
+        added plotting of perf data using gruff
+
+A	script/perf_plot
+
+commit 3c5d1009be82c16d27ba435e5277d23a2bfb1c93
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Nov 7 06:41:58 2006 +0000
+
+        refactored perf data display
+
+M	lib/gc_info.rb
+A	lib/perf_info.rb
+A	lib/perf_utils.rb
+M	script/perf_comp
+M	script/perf_times
+M	script/perf_times_gc
+
+commit 5e118a5b2d617f53b7c1a0f61c19e9e16b02fa7d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Nov 6 06:38:30 2006 +0000
+
+        whitespace change
+
+M	GCPATCH
+
+commit acdbb0df3ccfcd589f32a8734c6f15a09d61057e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Oct 5 07:36:25 2006 +0000
+
+        error_exit if uri is not specified for benchmark
+
+M	lib/railsbench.rb
+
+commit ba1f319203446be42333a36d572670aa128e4297
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Aug 20 19:11:04 2006 +0000
+
+        bump up version number for next release
+
+M	VERSION
+
+commit fa8a352c30bcb527d89991515d381eba0d5af8a0
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Aug 20 18:31:01 2006 +0000
+
+        oops if RAIILS_ROOT is undefined
+
+M	script/perf_bench
+
+commit 95428ca122330a1642ba681917032f39d7bf35da
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 19 17:56:26 2006 +0000
+
+        allow running with only 1 argument
+
+M	script/perf_run
+
+commit 800302111bb1b3d5e2a9d7be3316351ce0fc05ca
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 19 07:45:23 2006 +0000
+
+        support writing only headers to avoid ENOMEM on windows
+
+M	lib/railsbench.rb
+A	lib/write_headers_only.rb
+
+commit d26d3611825cf7b8e3c814f2dc1adfc7570acc31
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Aug 11 17:15:40 2006 +0000
+
+        require 'dispatcher' for edge rails compatibility
+
+M	lib/railsbench.rb
+
+commit af5d42923e6d4a92a22c37e9960d449c5a3224a5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jul 23 07:11:49 2006 +0000
+
+        minor changes
+
+M	README
+M	script/perf_comp_gc
+M	script/perf_diff_gc
+
+commit 6cd300e5fc28da23343bfae072729bea900f8f0c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jul 16 12:49:44 2006 +0000
+
+        added GC.log method
+
+M	GCPATCH
+M	lib/railsbench.rb
+M	rubygc.patch
+M	script/perf_times_gc
+
+commit 3ceccae042bd1898560e74319721425ac315bc2a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jul 16 09:43:21 2006 +0000
+
+        support for GC.dump and RUBY_GC_STATS
+
+M	lib/gc_info.rb
+M	lib/railsbench.rb
+M	rubygc.patch
+M	script/perf_run_gc
+M	script/perf_times_gc
+
+commit 554f34683a239b14f1e913f36a5a14ddcda31d98
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jul 16 07:54:04 2006 +0000
+
+        use /usr/bin/env ruby in install.rb; updated docs
+
+M	GCPATCH
+M	INSTALL
+M	install.rb
+
+commit 15bdd4327d9a0494fe0533773b476f4c2f4f3a6e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jul 9 11:07:55 2006 +0000
+
+        added dot before $BENCHMARK in file names
+
+M	script/perf_diff
+M	script/perf_run
+M	script/perf_run_gc
+
+commit 2c885ccf7f6239fc9bcaf4f8b97adc290aa27f00
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 14:46:01 2006 +0000
+
+        autostart support for OS X
+
+M	script/perf_prof
+
+commit b5b5711b7cc00aac2d168e0c00812e48b2c0faba
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 13:21:46 2006 +0000
+
+        adapted export command to svn
+
+M	Makefile
+
+commit 3f8c783b17e0be929be1a7b4190791ae4e0b637a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 13:08:08 2006 +0000
+
+        changed Makefile to support svn
+
+M	Makefile
+
+commit 6d39d6c15c8befcf6512aca63b675326ad4a5955
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 12:45:30 2006 +0000
+
+        preparing for version 0.8.3
+
+M	VERSION
+
+commit 2a8f984bce1a49f7ae9c6fcbedb38be57776f1b6
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 12:44:14 2006 +0000
+
+        removed .cvsignore
+
+D	.cvsignore
+
+commit 9742fca99463484c4649a9446b218ffb81488527
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 09:05:08 2006 +0000
+
+        removed set -x from perf_prof
+
+M	script/perf_prof
+
+commit 4067edac11440f5f2307e7872bd9fc818d3fe678
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 08:53:19 2006 +0000
+
+        new script perf_prof similar to perf_run, supporting ruby-prof
+
+M	README
+M	lib/railsbench.rb
+A	script/perf_prof
+
+commit a088ce99a4ac0b5029d60e8bd0d55f7bb9797835
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Jun 28 06:41:04 2006 +0000
+
+        clean out *~ files on make clean and prepare for 0.8.2 release
+
+M	Makefile
+M	VERSION
+
+commit 5c015888c0bf8db1939755831b66e41c445ac428
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Jun 27 02:12:41 2006 +0000
+
+        doc change
+
+M	README
+
+commit ad8089166a382a4855a93a259b92f837c21fddee
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Jun 20 03:13:35 2006 +0000
+
+        perf_tex added
+
+A	script/perf_tex
+
+commit bfaf60aaa241aca917b744788a3fa72ab56b026d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Jun 20 03:11:08 2006 +0000
+
+        log level settings
+
+M	lib/railsbench.rb
+
+commit b48f8242d37833dbd77a380e1361da8793a8fcc1
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Jun 1 19:28:00 2006 +0000
+
+        support -log=level
+
+M	README
+M	lib/railsbench.rb
+
+commit 6faf00a49beaeb178b41468666c04a3e0ae3066d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun May 28 13:32:03 2006 +0000
+
+        smaller numbers
+
+M	script/perf_comp_gc
+M	script/perf_diff_gc
+M	script/perf_times_gc
+
+commit d020aba1362441f8e0d8bcadf5982a294717a65d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri May 26 03:38:10 2006 +0000
+
+        added two new scripts for GC perf comparison
+        fixed nocache setting
+
+M	README
+M	lib/railsbench.rb
+A	script/perf_comp_gc
+A	script/perf_diff_gc
+
+commit 9151d9867986258251f163cc32ffe7d0c0d62777
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu May 4 16:07:22 2006 +0000
+
+        use /bin/sh instead of bash
+
+M	script/perf_diff
+M	script/perf_loop
+M	script/perf_run
+M	script/perf_run_gc
+
+commit 6bcfa539014c139d7c7b26a44672c1014aa2d88e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Apr 25 13:09:49 2006 +0000
+
+        bugfix for relative_url_root
+
+M	lib/railsbench.rb
+
+commit e9de0c1bb6ab3eeb86bfff7552de67630737ee23
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 8 11:58:57 2006 +0000
+
+        support -patched_gc option
+
+M	GCPATCH
+M	script/perf_diff
+M	script/perf_loop
+M	script/perf_run
+M	script/perf_run_gc
+
+commit a01b8dd4d2186bbc3f069208c4adbf1dad38803e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 8 11:11:48 2006 +0000
+
+        update README
+
+M	README
+
+commit eb98ccae7ed02853b53b7c41c83989be8d132581
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 8 11:06:47 2006 +0000
+
+        make perf_html recognize GC stats
+
+M	script/perf_html
+M	script/perf_times_gc
+
+commit c999333a675d760185b47a646ee58acc64e71e9c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 8 09:56:02 2006 +0000
+
+        perf_times_gc refatoring
+
+A	lib/gc_info.rb
+M	script/perf_times_gc
+
+commit 7957d48ee64fd692f66e7626e0ec1642fcb7b5e1
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Apr 7 21:21:00 2006 +0000
+
+        clear database connections on aborting benchmarking
+
+M	script/perf_bench
+M	script/run_urls
+
+commit 4d283d05d1f8f68a163750485cde6f56d270e33b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Apr 7 20:40:40 2006 +0000
+
+        make scripts abortable
+
+M	script/perf_bench
+M	script/run_urls
+
+commit c1ac640f57cf275e17d524e4a6dad6565a52edb9
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 16:11:40 2006 +0000
+
+        removed leftover set -x
+
+M	script/perf_run_gc
+
+commit 15bf7de9322b741a6ecbab23c6192019dd6bb25f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 15:48:21 2006 +0000
+
+        print min and max along avg and stddev%
+        automatically add warmup for perf_run_gc
+
+M	script/perf_run_gc
+M	script/perf_times_gc
+
+commit a9980dc3b5ef12b57d96c1a4e6485e4f169f84fd
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 15:06:23 2006 +0000
+
+        also print min and max values for gc stats
+
+M	script/perf_times_gc
+
+commit f32112b5c81b8068af63e59732e538588f898fae
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 08:07:30 2006 +0000
+
+        fixed Makefile bugs
+
+M	Makefile
+
+commit 2340f050a773ffcb68043d2ead4f56481f6f9ee2
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 08:01:55 2006 +0000
+
+        make it easier to bundle railsbench
+
+A	Makefile
+
+commit 287db8963f76ba275229420d438d490d78489520
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 07:47:08 2006 +0000
+
+        ignore archives
+
+A	.cvsignore
+
+commit f5b793fd51aecd37f4d450e05c06c3e3a9181051
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 07:44:48 2006 +0000
+
+        added perf_run_gc
+
+A	script/perf_run_gc
+
+commit 78151840c7c236e67e65cdb62ad27fe159e36b05
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 07:42:58 2006 +0000
+
+        updated README
+
+M	README
+
+commit 22518fa0e244f8ea1d087fc301e27a9dc7d764ce
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Apr 6 07:35:55 2006 +0000
+
+        changed /usr/local/bin/ruby into /usr/bin/env ruby
+
+M	README
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_html
+M	script/perf_times
+M	script/perf_times_gc
+M	script/run_urls
+
+commit dc2cfa56c1654fd13020cba821d81d2fc4a55027
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Apr 3 11:42:45 2006 +0000
+
+        increased version number
+
+M	VERSION
+
+commit b660004df9639f90ed77957f37039d075e5ddfed
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Apr 3 11:34:46 2006 +0000
+
+        added description of perf_times_gc to README usage section
+
+M	README
+
+commit 9ea35aaedfd5d0611800554ff43d61eea3fe49c5
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Apr 3 11:27:01 2006 +0000
+
+        stddev refactoring
+
+M	script/perf_times_gc
+
+commit fef025b5d3d1c7a1249e09cf59719018ff8d1a7d
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Apr 3 11:01:39 2006 +0000
+
+        added description of new commands to README
+
+M	README
+
+commit ed4482a2b2b848ff1a2f0d6bce4c9981e6536749
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Apr 3 10:43:41 2006 +0000
+
+        renamed perf_gc_times to perf_times_gc
+        updated GC patch to include docs
+
+M	rubygc.patch
+D	script/perf_gc_times
+A	script/perf_times_gc
+
+commit 517008d30afc7b1d269abd9198f161e7c8e43d29
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 2 19:32:25 2006 +0000
+
+        support for GC time analysis
+
+M	lib/railsbench.rb
+A	script/perf_gc_times
+
+commit ebf10cacc0864fd8e31f07d060f6ff4e5e58d9f1
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Apr 2 15:57:06 2006 +0000
+
+        updated gc patch
+        enable GC stats for run_urls
+
+M	lib/railsbench.rb
+M	rubygc.patch
+M	script/run_urls
+
+commit af46528fa0f79541f57133843f5e58933272f98b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 1 11:17:01 2006 +0000
+
+        small bug fixes in time display
+
+M	script/perf_comp
+M	script/perf_times
+
+commit f69fbb8a9894dc48531e37a2d8ba9bfe863f054c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Apr 1 10:41:59 2006 +0000
+
+        print more info
+        unset RUBY_GC_STATS
+
+M	script/perf_comp
+M	script/perf_diff
+M	script/perf_loop
+M	script/perf_run
+M	script/perf_times
+
+commit 99ad1a3f98e50ea25497b3631e192284513ec0e9
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 31 17:18:22 2006 +0000
+
+        only compute GC stats if possible
+
+M	GCPATCH
+M	lib/railsbench.rb
+M	script/perf_comp
+
+commit a51d9a9a2dfbcb3f13929bd5590bfbdb3cb0cb0f
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 31 15:52:55 2006 +0000
+
+        changes copyright notice
+
+M	install.rb
+M	lib/railsbench.rb
+M	script/perf_bench
+M	script/perf_comp
+M	script/perf_html
+M	script/perf_times
+M	script/run_urls
+
+commit 34f9c3e686b54f49208ac32c4612dee101e6f4e4
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 31 11:20:10 2006 +0000
+
+        support collecting GC stats
+
+M	lib/railsbench.rb
+M	script/perf_comp
+M	script/perf_times
+
+commit 8a4595c84be80b0ab23005bff99189e8761cd483
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Mar 31 11:18:34 2006 +0000
+
+        support collection of GC stats
+
+M	rubygc.patch
+
+commit a66a979d5c7a341bf8bf4ea59d05dced3815f08a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Feb 15 07:03:28 2006 +0000
+
+        allow digits in benchmark names
+
+M	script/perf_bench
+M	script/run_urls
+
+commit cd361983df72a5ddc2248b0583ae5fac6b90a42b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Feb 14 11:50:27 2006 +0000
+
+        small correction for SVL RPVL/RMVL
+
+M	lib/railsbench.rb
+
+commit 4ce32c504361fc937f089f384da5d88bfbc1ac2c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Feb 14 07:18:16 2006 +0000
+
+        added support for ruby memeory validator
+
+M	lib/railsbench.rb
+
+commit 5821e4eac8796091abe6c0cefce82949dc7317bf
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Jan 29 08:09:51 2006 +0000
+
+        updated README
+
+M	README
+
+commit 690e94f0e5671d65043409c08ecdeff1626ff7a9
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Mon Dec 19 03:16:02 2005 +0000
+
+        fixed bug in perf_html: don't ignore urls containing get parameters
+
+M	script/perf_html
+
+commit b6bc2e9b6175868540f89d62d89e59dfaff32d94
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Dec 14 07:34:54 2005 +0000
+
+        added perf_html to create html output for perf comparisons
+
+A	script/perf_html
+
+commit a337e6e69ca72017efe5ea50e1fe7e6ff770e226
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Dec 14 06:15:05 2005 +0000
+
+        don't set GC params in perf_loop ; -warmup option for run_urls; -narrow option for perf_comp; call perf_times during perf_comp
+
+M	BUGS
+M	VERSION
+M	script/perf_comp
+M	script/perf_diff
+M	script/perf_loop
+M	script/perf_times
+M	script/run_urls
+
+commit 2ed04615d7730032a7ce51c1597a904aec089d63
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sun Sep 25 06:32:52 2005 +0000
+
+        updated version number
+
+M	VERSION
+
+commit 8aa0f40dab25109abd4659eddda547ae51a8f58e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Sep 21 04:12:52 2005 +0000
+
+        fixed some typos
+
+M	GCPATCH
+M	INSTALL
+M	README
+M	config/benchmarks.rb
+
+commit 7430995da1a71145906045ae0f207d4fab5b7d04
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Sep 13 10:04:57 2005 +0000
+
+        fixed bug in computing standard deviation
+
+M	config/benchmarks.rb
+M	lib/railsbench.rb
+M	script/perf_comp
+M	script/perf_times
+
+commit 7b45a434f177d9247d473c7521572b48bde2f9ec
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Sep 3 04:42:59 2005 +0000
+
+        fixed display of ms/r if number of iterations differs between compared data sets
+
+M	script/perf_comp
+M	script/perf_times
+
+commit fe5ea595b2a0b3b86692bc98a7df8746f089e66e
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 27 05:50:14 2005 +0000
+
+        stylistic changes
+
+M	INSTALL
+
+commit 5d9e6ad41191c164e68eafbb66d024e1e9ae92bf
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 27 05:48:24 2005 +0000
+
+        reorganized directory structure
+
+M	INSTALL
+M	install.rb
+A	lib/railsbench.rb
+D	perf_bench
+D	perf_comp
+D	perf_diff
+D	perf_loop
+D	perf_run
+D	perf_times
+D	railsbench.rb
+D	run_urls
+A	script/perf_bench
+A	script/perf_comp
+A	script/perf_diff
+A	script/perf_loop
+A	script/perf_run
+A	script/perf_times
+A	script/run_urls
+
+commit e6400b79565f3fd63253df538b9740343350fecc
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 27 05:22:25 2005 +0000
+
+        added installation script
+
+A	install.rb
+
+commit 640640d2cb674a906c140d386e810fd90dcc1d49
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Sat Aug 27 05:21:06 2005 +0000
+
+        automatic install
+
+M	GCPATCH
+M	INSTALL
+M	README
+M	VERSION
+D	benchmarks.rb
+D	benchmarks.yml
+A	config/benchmarking.rb
+A	config/benchmarks.rb
+A	config/benchmarks.yml
+M	perf_diff
+M	perf_loop
+M	perf_run
+M	railsbench.rb
+
+commit 4261b2dae6c763a31761924859c60db1e124364a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Fri Aug 26 08:47:29 2005 +0000
+
+            now we can run out of the box!
+
+M	INSTALL
+M	benchmarks.rb
+M	benchmarks.yml
+M	railsbench.rb
+
+commit 744d79507ae5175818a6740857ea423f7964ad9a
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 25 06:43:45 2005 +0000
+
+            updated version number
+
+M	VERSION
+
+commit e3beb3c0e43b6f282eabef56de6b9f321a178271
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Thu Aug 25 06:40:42 2005 +0000
+
+            moved benchmark.rb into a subdir
+            fixed bug in perf_loop
+
+M	INSTALL
+M	README
+D	benchmark.rb
+M	perf_comp
+M	perf_loop
+M	perf_times
+A	site-ruby/benchmark.rb
+
+commit 6b9f93166c6d06884c06f8996b5b6324f1f7161c
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Wed Aug 24 09:02:03 2005 +0000
+
+            added benchmark.rb
+
+A	benchmark.rb
+
+commit 2ab3ca8d32380b4c8f6ecda9679a32e2e5aace7b
+Author: Stefan Kaes <skaes@gmx.net>
+Date:   Tue Aug 23 03:59:56 2005 +0000
+
+            Initial revision
+
+A	BUGS
+A	GCPATCH
+A	INSTALL
+A	LICENSE
+A	README
+A	VERSION
+A	benchmarks.rb
+A	benchmarks.yml
+A	perf_bench
+A	perf_comp
+A	perf_diff
+A	perf_loop
+A	perf_run
+A	perf_times
+A	railsbench.rb
+A	rubygc.patch
+A	run_urls

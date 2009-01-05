@@ -10,7 +10,7 @@ from the various scripts (and some won't run at all without the
 patch).
 
 This software was written and conceived by Stefan Kaes. The author can
-be reached via email: <skaes@gmx.net>. Please send comments, bug
+be reached via email: <skaes@railsexpress.de>. Please send comments, bug
 reports, patches or feature requests to this address.
 
 
@@ -83,7 +83,7 @@ FILES
   perf_run_gc n [ option-string [ config-name ] ]
                 - run a given benchmark, store performance data in a file
                   in directory $RAILS_PERF_DATA and print results
-                - requires Ruby GC patch
+                - requires Ruby GC patch (or Ruby Enterprise Edition)
 
   perf_times_gc file
                 - analyse and print garbage collection statistics, which you
@@ -105,11 +105,11 @@ FILES
                   but has a .html extension instead of .txt
 
   perf_plot [ options ] file1 file2 ...
-                - plot performance data from raw performance files using gruff
+                - plot performance data from raw performance files using gruff or gnuplot
                   see source for options
 
   perf_plot_gc [ options ] file1 file2 ...
-                - plot data points from GC performance data stored in raw GC log files using gruff
+                - plot data points from GC performance data stored in raw GC log files using gruff or gnuplot
                   this basically shows object type distribution across garbage collections
                   see source for options
 
@@ -173,7 +173,7 @@ USAGE
 
   will store benchmark data in file
 
-     $RAILS_PERF_DATA/`current-date´.index.mail.txt.
+     $RAILS_PERF_DATA/<current-date>.index.mail.txt.
 
   You can get nicely formatted output of benchmark data by running
 
