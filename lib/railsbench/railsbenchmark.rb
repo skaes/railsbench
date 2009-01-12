@@ -237,7 +237,7 @@ class RailsBenchmark
     ARGV.each{|arg| ruby_prof=$1 if arg =~ /-ruby_prof=([^ ]*)/ }
     begin
       if ruby_prof
-        # redirect stderr
+        # redirect stderr (TODO: I can't remember why we don't do this later)
         if benchmark_file = ENV['RAILS_BENCHMARK_FILE']
           $stderr = File.open(benchmark_file, "w")
         end
@@ -310,9 +310,23 @@ class RailsBenchmark
         when 'grind' then RubyProf::CallTreePrinter
         when 'flat'  then RubyProf::FlatPrinter
         when 'graph' then RubyProf::GraphHtmlPrinter
+        when 'multi' then RubyProf::MultiPrinter
         else raise "unknown profile type: #{profile_type}"
         end.new(result)
-      printer.print($stderr, :min_percent => min_percent, :threshold => threshold, :title => "call tree for benchmark #{@benchmark}")
+      if profile_type == 'multi'
+        raise "you must specify a benchmark file when using multi printer" unless $stderr.is_a?(File)
+        $stderr.close
+        $stderr = STDERR
+        file_name = ENV['RAILS_BENCHMARK_FILE']
+        profile_name = File.basename(file_name).sub('.html','').sub(".#{profile_type}",'')
+        printer.print(:path => File.dirname(file_name),
+                      :profile => profile_name,
+                      :min_percent => min_percent, :threshold => threshold,
+                      :title => "call tree/graph for benchmark #{@benchmark}")
+      else
+        printer.print($stderr, :min_percent => min_percent, :threshold => threshold,
+                      :title => "call tree for benchmark #{@benchmark}")
+      end
     end
 
     delete_test_session

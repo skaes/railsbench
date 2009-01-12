@@ -56,6 +56,7 @@ perf_options="#{iterations} #{options} #{warmup} #{ruby_prof_opts}"
 perf_cmd = "ruby #{bindir}/run_urls #{perf_options} >#{null}"
 system(perf_cmd) || die("perf_prof: #{perf_cmd} returned #{$?}")
 
+benchmark_file.sub!('.multi.', '.stack.') if profile_type == 'multi'
 puts "profile data written to #{benchmark_file}"
 
 if profile_type == 'grind'
