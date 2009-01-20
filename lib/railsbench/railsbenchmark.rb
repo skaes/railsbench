@@ -304,6 +304,7 @@ class RailsBenchmark
       threshold = ruby_prof.split('/')[1].to_f rescue 1.0
       profile_type = nil
       ARGV.each{|arg| profile_type=$1 if arg =~ /-profile_type=([^ ]*)/ }
+      profile_type ||= 'stack'
       printer =
         case profile_type
         when 'stack' then RubyProf::CallStackPrinter
