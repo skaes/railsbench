@@ -198,6 +198,9 @@ class RailsBenchmark
     update_test_session_data(entry.session_data) unless entry.new_session
   end
 
+  def before_dispatch_hook(entry)
+  end
+
   def cookie
     "#{@session_key}=#{@session_id}#{cookie_data}"
   end
@@ -363,6 +366,7 @@ class RailsBenchmark
       GC.enable; GC.start; GC.disable
       request_count = 0
       n.times do
+        before_dispatch_hook(entry)
         Dispatcher.dispatch
         if (request_count += 1) == gc_frequency
           GC.enable; GC.start; GC.disable
@@ -376,6 +380,7 @@ class RailsBenchmark
     urls.each do |entry|
       setup_request_env(entry)
       n.times do
+        before_dispatch_hook(entry)
         Dispatcher.dispatch
       end
     end
@@ -392,6 +397,7 @@ class RailsBenchmark
         GC.enable; GC.start; GC.disable
         GC.enable_stats  if gc_stats
         n.times do
+          before_dispatch_hook(entry)
           Dispatcher.dispatch
           if (request_count += 1) == gc_freq
             GC.enable; GC.start; GC.disable
@@ -417,6 +423,7 @@ class RailsBenchmark
       GC.enable_stats  if gc_stats
       test.report(entry.name) do
         n.times do
+          before_dispatch_hook(entry)
           Dispatcher.dispatch
         end
       end
@@ -438,6 +445,7 @@ class RailsBenchmark
       n.times do
         urls.each do |entry|
           setup_request_env(entry)
+          before_dispatch_hook(entry)
           Dispatcher.dispatch
         end
       end
@@ -460,6 +468,7 @@ class RailsBenchmark
       n.times do
         urls.each do |entry|
           setup_request_env(entry)
+          before_dispatch_hook(entry)
           Dispatcher.dispatch
           if (request_count += 1) == gc_frequency
             GC.enable; GC.start; GC.disable
