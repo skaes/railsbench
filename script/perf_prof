@@ -64,7 +64,7 @@ if profile_type == 'grind'
 else
   case RUBY_PLATFORM
   when /win32/  then system("start #{benchmark_file.gsub(/\//, '\\')}")
-  when /darwin/ then system("open #{benchmark_file}")
+  when /darwin/ then system("osascript -e 'tell application \"Safari\" to open location \"#{benchmark_file}\"'")
   end
 end
 
