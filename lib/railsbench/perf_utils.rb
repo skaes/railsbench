@@ -123,6 +123,10 @@ def quote_arguments(argv)
   argv.map{|a| a.include?(' ') ? "'#{a}'" : a.to_s}.join(' ')
 end
 
+def ruby
+  ENV['RUBY'] || "ruby"
+end
+
 def perf_run(script, iterations, options, raw_data_file)
   perf_runs = (ENV['RAILS_PERF_RUNS'] ||= "3").to_i
 
@@ -132,8 +136,8 @@ def perf_run(script, iterations, options, raw_data_file)
   perf_options = "#{iterations} #{options}"
   null = (RUBY_PLATFORM =~ /win32/i) ? 'nul' : '/dev/null'
 
-  perf_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_bench #{perf_options}"
-  print_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_times #{raw_data_file}"
+  perf_cmd = "#{ruby} #{RAILSBENCH_BINDIR}/perf_bench #{perf_options}"
+  print_cmd = "#{ruby} #{RAILSBENCH_BINDIR}/perf_times #{raw_data_file}"
 
   puts "benchmarking #{perf_runs} runs with options #{perf_options}"
 
@@ -157,8 +161,8 @@ def perf_run_gc(script, iterations, options, raw_data_file)
   perf_options = "#{iterations} #{warmup} #{options}"
   null = (RUBY_PLATFORM =~ /win32/) ? 'nul' : '/dev/null'
 
-  perf_cmd = "ruby #{RAILSBENCH_BINDIR}/run_urls #{perf_options} >#{null}"
-  print_cmd = "ruby #{RAILSBENCH_BINDIR}/perf_times_gc #{raw_data_file}"
+  perf_cmd = "#{ruby} #{RAILSBENCH_BINDIR}/run_urls #{perf_options} >#{null}"
+  print_cmd = "#{ruby} #{RAILSBENCH_BINDIR}/perf_times_gc #{raw_data_file}"
 
   if options =~ /-leaks/
     if RUBY_PLATFORM =~ /darwin9/
