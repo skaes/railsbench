@@ -11,6 +11,9 @@ bin/railsbench
 config/benchmarking.rb
 config/benchmarks.rb
 config/benchmarks.yml
+images/empty.png
+images/minus.png
+images/plus.png
 install.rb
 latest_changes.txt
 lib/benchmark.rb

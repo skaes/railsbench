@@ -117,6 +117,9 @@ FILES
                 - produces a tabular overview of perf data from given raw data files
                   see source for options
 
+  analyze_heap_dump file
+                - produces a html representation of a ruby heap dump.
+                  useful for finding memory leaks.
 
 ENVIRONMENT
 
