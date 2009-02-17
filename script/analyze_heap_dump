@@ -3,30 +3,35 @@
 $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'erb'
 require 'fileutils'
+require 'optparse'
+require 'ostruct'
 
 $DEBUG = false
 
 class Node
-  attr_accessor :name, :count, :children
+  attr_accessor :name, :object_type, :count, :children
 
   class << self
     def create(filename)
-      root = new('')
+      root = new('', nil)
       File.open(filename).each_line do |line|
-        if line =~ /^([^:]*):(.*):(\d+)(:(.*))?$/
+        # ruby 1.9 throws ArgumentError: invalid utf-8 string
+        # TODO: figure out why some strings in the dump file are broken
+        if (line =~ /^([^:]*):(.*):(\d+)(:(.*))?$/ rescue false)
           $stderr.puts "adding node #{$1}" if $DEBUG
           root.add_node($1, $2, $3, $5)
         else
           $stderr.puts "rejected #{line}" if $DEBUG
         end
       end
-      root.shrink!
+      root.children.each {|k, n| n.shrink!}
       root
     end
   end
 
-  def initialize(name)
+  def initialize(name, object_type)
     self.name = name
+    self.object_type = object_type
     self.count = 0
     self.children = {}
   end
@@ -35,11 +40,11 @@ class Node
     segments = path.split('/').reject{|s| s.empty?}
     path = ''
     self.count += 1
-    node = (self.children[object_type] ||= Node.new(path))
+    node = (self.children[object_type] ||= Node.new(path, object_type))
     node.count += 1
     segments.each do |s|
       path = "#{path}/#{s}"
-      node = (node.children[s] ||= Node.new(path))
+      node = (node.children[s] ||= Node.new(path, object_type))
       node.count += 1
     end
   end
@@ -57,6 +62,19 @@ class Node
   def sorted_children
     children.keys.sort_by{|k| -children[k].count}.map{|k| [k, children[k]]}
   end
+
+  def hotspots
+    leaves.sort_by{|n| -n.count}
+  end
+
+  def leaves(result=[])
+    if children.size==0
+      result << self
+    else
+      children.each{|k, n| n.leaves(result)}
+    end
+    result
+  end
 end
 
 class HeapPrinter
@@ -72,7 +90,9 @@ class HeapPrinter
 
   def print(options = {})
     @options = options
+    @options[:filename] += ".html" unless @options[:filename] =~ /.html$/
     @output = File.open(@options[:filename], "w")
+    @hotspot_filename = @options[:filename].sub(/.html$/, ".txt")
 
     print_header
     # puts @result.inspect
@@ -89,6 +109,20 @@ class HeapPrinter
     copy_image_files
 
     @output.close
+    print_hotspots
+  end
+
+  def print_hotspots
+    File.open(@hotspot_filename, "w") do |f|
+      f.printf "%5s  %5s %9s %10s  %s\n", "Total", "Self", "Count", "Type", "File"
+      running_total = 0.0
+      @result.hotspots.each do |n|
+        percent = (n.count.to_f/@result.count)*100
+        running_total += percent
+        f.printf "%5.2f  %5.2f %9s %10s  %s\n",
+           running_total, percent, ths(n.count), n.object_type, n.name
+      end
+    end
   end
 
   def print_tree(node, parent_count)
@@ -298,6 +332,11 @@ li {
     border-left:1px solid #cccccc;
     border-bottom:none;
  }
+#hotspots {
+    border:1px solid #cccccc;
+    background:#9595a9;
+    padding: 3px;
+}
 input { margin-left:10px; }
 -->
 </style>
@@ -723,20 +762,22 @@ end_java_script
   def print_title_bar
     @output.puts <<-"end_title_bar"
 <div id="titlebar">
-Ruby heap analysis, generated on #{Time.now}<br/>
+Ruby heap analysis, generated on #{Time.now}.
+Live data set size:</b> #{ths(@result.count)}.
+<a id="hotspots" href="#{@hotspot_filename}">View Hotspots</a>
 </div>
 end_title_bar
   end
 
   def print_commands
     @output.puts <<-"end_commands"
-<div id=\"commands\">
-<span style=\"font-size: 11pt; font-weight: bold;\">Threshold:</span>
-<input value=\"#{h threshold}\" size=\"3\" id=\"threshold\" type=\"text\">
-<input value=\"Apply\" onclick=\"setThreshold();\" type=\"submit\">
-<input value=\"Expand All\" onclick=\"expandAll(event);\" type=\"submit\">
-<input value=\"Collapse All\" onclick=\"collapseAll(event);\" type=\"submit\">
-<input value=\"Show Help\" onclick=\"toggleHelp(this);\" type=\"submit\">
+<div id="commands">
+<span style="font-size: 11pt; font-weight: bold;">Threshold:</span>
+<input value="#{h threshold}" size="3" id="threshold" type="text">
+<input value="Apply" onclick="setThreshold();" type="submit">
+<input value="Expand All" onclick="expandAll(event);" type="submit">
+<input value="Collapse All" onclick="collapseAll(event);" type="submit">
+<input value="Show Help" onclick="toggleHelp(this);" type="submit">
 </div>
 end_commands
   end
@@ -752,7 +793,7 @@ to hide all nodes marked with time values lower than <i>d</i>.<br>
 <img src="empty.png"> Use f and b to navigate the tree in preorder forward and backwards.<br>
 <img src="empty.png"> Use x to toggle visibility of a subtree.<br>
 <img src="empty.png"> Use * to expand/collapse a whole subtree.<br>
-<img src="empty.png"> Use h to navigate to thread root.<br>
+<img src="empty.png"> Use h to navigate to object type root.<br>
 <img src="empty.png"> Use n and p to navigate between object types.<br>
 <img src="empty.png"> Click on background to move focus to a subtree.<br>
 </div>
@@ -760,9 +801,38 @@ end_help
   end
 end
 
+
+# parse options
+o = OpenStruct.new
+o.title = "Ruby Heap Dump"
+o.output = "heap_analysis.html"
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: analyze_heap_dump [options] file"
+
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-t", "--title T",
+          "Specify the title to be used in the generated html") do |t|
+    o.title = t
+  end
+
+  opts.on("-o", "--out FILE",
+          "Specify output file") do |f|
+    o.output = f
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end
+parser.parse!(ARGV)
+
 dump = Node.create(ARGV[0])
 printer = HeapPrinter.new(dump)
-printer.print(:filename => "heap_analysis.html")
+printer.print(:filename => o.output)
 
 __END__
 
