@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 RAILSBENCH_CMDS = %w(
+analyze_heap_dump
 base
 generate_benchmarks
 commands
@@ -52,6 +53,8 @@ when 'path'
   exit
 when 'install', 'postinstall'
   load "#{RAILSBENCH_BASE}/#{real_cmd}.rb"
+when 'analyze_heap_dump', /plot/
+  load "#{RAILSBENCH_BASE}/script/#{real_cmd}"
 else
   unless ENV['RAILS_ROOT']
     if File.exists? 'config/environment.rb'
