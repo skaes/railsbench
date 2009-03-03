@@ -9,7 +9,7 @@ require 'ostruct'
 $DEBUG = false
 
 class Node
-  attr_accessor :name, :object_type, :count, :children
+  attr_accessor :name, :object_type, :count, :children, :clazz
 
   class << self
     def create(filename)
@@ -47,6 +47,7 @@ class Node
       node = (node.children[s] ||= Node.new(path, object_type))
       node.count += 1
     end
+    node.clazz = clazz
   end
 
   def shrink!
@@ -55,16 +56,13 @@ class Node
       son = children[k]
       self.name = son.name
       self.children = son.children
+      self.clazz = son.clazz
     end
     children.each{|k,n| n.shrink!}
   end
 
   def sorted_children
     children.keys.sort_by{|k| -children[k].count}.map{|k| [k, children[k]]}
-  end
-
-  def hotspots
-    leaves.sort_by{|n| -n.count}
   end
 
   def leaves(result=[])
@@ -74,6 +72,14 @@ class Node
       children.each{|k, n| n.leaves(result)}
     end
     result
+  end
+
+  def hotspots_by_file
+    (@leaves ||= leaves).sort_by{|n| [-n.count, n.name]}
+  end
+
+  def hotspots_by_class
+    (@leaves ||= leaves).inject(Hash.new(0)){|h,n| h[n.clazz] += n.count ; h}.to_a.sort_by{|k,v| [-v, k]}
   end
 end
 
@@ -92,7 +98,8 @@ class HeapPrinter
     @options = options
     @options[:filename] += ".html" unless @options[:filename] =~ /.html$/
     @output = File.open(@options[:filename], "w")
-    @hotspot_filename = @options[:filename].sub(/.html$/, ".txt")
+    @hotspot_filename = @options[:filename].sub(/.html$/, ".hotspots_by_file.txt")
+    @clazz_hotspots_filename = @hotspot_filename.sub('by_file', 'by_class')
 
     print_header
     # puts @result.inspect
@@ -110,17 +117,31 @@ class HeapPrinter
 
     @output.close
     print_hotspots
+    print_class_hotspots
   end
 
   def print_hotspots
     File.open(@hotspot_filename, "w") do |f|
       f.printf "%5s  %5s %9s %10s  %s\n", "Total", "Self", "Count", "Type", "File"
       running_total = 0.0
-      @result.hotspots.each do |n|
+      @result.hotspots_by_file.each do |n|
         percent = (n.count.to_f/@result.count)*100
         running_total += percent
         f.printf "%5.2f  %5.2f %9s %10s  %s\n",
            running_total, percent, ths(n.count), n.object_type, n.name
+      end
+    end
+  end
+
+  def print_class_hotspots
+    File.open(@clazz_hotspots_filename, "w") do |f|
+      f.printf "%5s  %5s %9s %s\n", "Total", "Self", "Count", "Class"
+      running_total = 0.0
+      @result.hotspots_by_class.each do |clazz, count|
+        percent = (count.to_f/@result.count)*100
+        running_total += percent
+        f.printf "%5.2f  %5.2f %9s %s\n",
+           running_total, percent, ths(count), clazz
       end
     end
   end
@@ -324,6 +345,15 @@ li {
     border-left:1px solid #cccccc;
     border-bottom:none;
 }
+#hotspots_by_file, #hotspots_by_class {
+    font-size:10pt;
+    border:1px solid #cccccc;
+    background:#9595a9;
+    padding: 3px;
+}
+input {
+    margin-left:10px;
+}
 #sentinel {
     height: 400px;
     margin-left:11px;
@@ -332,12 +362,6 @@ li {
     border-left:1px solid #cccccc;
     border-bottom:none;
  }
-#hotspots {
-    border:1px solid #cccccc;
-    background:#9595a9;
-    padding: 3px;
-}
-input { margin-left:10px; }
 -->
 </style>
 end_css
@@ -764,7 +788,8 @@ end_java_script
 <div id="titlebar">
 Ruby heap analysis, generated on #{Time.now}.
 Live data set size:</b> #{ths(@result.count)}.
-<a id="hotspots" href="#{@hotspot_filename}">View Hotspots</a>
+<a id="hotspots_by_file" href="#{@hotspot_filename}">View Hotspots by File</a>
+<a id="hotspots_by_class" href="#{@clazz_hotspots_filename}">View Hotspots by Class</a>
 </div>
 end_title_bar
   end
