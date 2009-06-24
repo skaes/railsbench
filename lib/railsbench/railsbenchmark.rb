@@ -18,7 +18,13 @@ class RailsBenchmark
   end
 
   def relative_url_root=(value)
-    ActionController::AbstractRequest.relative_url_root = value
+    if ActionController::Base.respond_to?(:relative_url_root=)
+      # rails 2.3
+      ActionController::Base.relative_url_root = value
+    else
+      # earlier railses
+      ActionController::AbstractRequest.relative_url_root = value
+    end
     @relative_url_root = value
   end
 
@@ -42,6 +48,16 @@ class RailsBenchmark
     begin
       require ENV['RAILS_ROOT'] + "/config/environment"
       require 'dispatcher' # make edge rails happy
+
+      if Rails::VERSION::STRING >= "2.3"
+        require 'cgi/session'
+        CGI.class_eval <<-"end_eval"
+          def env_table
+            @env_table ||= ENV.to_hash
+          end
+        end_eval
+      end
+
     rescue => e
       $stderr.puts "failed to load application environment"
       e.backtrace.each{|line| $stderr.puts line}
@@ -139,25 +155,57 @@ class RailsBenchmark
   end
 
   def establish_test_session
-    session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
-    session_options = session_options.merge('new_session' => true)
-    @session = CGI::Session.new(Hash.new, session_options)
-    @session_data.each{ |k,v| @session[k] = v }
-    @session.update
-    @session_id = @session.session_id
+    if Rails::VERSION::STRING >= "2.3"
+      session_options = ActionController::Base.session_options
+      # puts "the options: #{session_options.inspect}"
+      @session_id = ActiveSupport::SecureRandom.hex(16)
+      do_not_do_much = lambda do |env|
+        env["rack.session"] = @session_data
+        env["rack.session.options"] = {:id => @session_id}
+        [200, {}, ""]
+      end
+      store = ActionController::Base.session_store.new(do_not_do_much, session_options)
+      env = {}
+      store.call(env)
+    else
+      session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
+      session_options = session_options.merge('new_session' => true)
+      @session = CGI::Session.new(Hash.new, session_options)
+      @session_data.each{ |k,v| @session[k] = v }
+      @session.update
+      @session_id = @session.session_id
+    end
   end
 
   def update_test_session_data(session_data)
+    # puts  ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.inspect
     dbman = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
-    old_session_data = dbman.new(@session).restore
-    # $stderr.puts old_session_data.inspect
-    new_session_data = old_session_data.merge(session_data || {})
-    new_session_data.each{ |k,v| @session[k] = v }
-    @session.update
+    if dbman # before rails 2.3
+      old_session_data = dbman.new(@session).restore
+      # $stderr.puts old_session_data.inspect
+      new_session_data = old_session_data.merge(session_data || {})
+      new_session_data.each{ |k,v| @session[k] = v }
+      @session.update
+    else
+      session_options = ActionController::Base.session_options
+      do_not_do_much = lambda do |env|
+        old_session_data = env["rack.session"]
+        # $stderr.puts "data in old session: #{old_session_data.inspect}"
+        new_session_data = old_session_data.merge(session_data || {})
+        # $stderr.puts "data in new session: #{new_session_data.inspect}"
+        env["rack.session"] = new_session_data
+        [200, {}, ""]
+      end
+      store = ActionController::Base.session_store.new(do_not_do_much, session_options)
+      env = {}
+      env["HTTP_COOKIE"] = cookie
+      # debugger
+      store.call(env)
+    end
   end
 
   def delete_test_session
-    @session.delete
+    # @session.delete
     @session = nil
   end
 
@@ -215,7 +263,7 @@ class RailsBenchmark
     @urls.each do |entry|
       error_exit "No uri given for benchmark entry: #{entry.inspect}" unless entry.uri
       setup_request_env(entry)
-      Dispatcher.dispatch
+      Dispatcher.dispatch(CGI.new)
     end
   end
 
@@ -367,7 +415,7 @@ class RailsBenchmark
       request_count = 0
       n.times do
         before_dispatch_hook(entry)
-        Dispatcher.dispatch
+        Dispatcher.dispatch(CGI.new)
         if (request_count += 1) == gc_frequency
           GC.enable; GC.start; GC.disable
           request_count = 0
@@ -381,7 +429,7 @@ class RailsBenchmark
       setup_request_env(entry)
       n.times do
         before_dispatch_hook(entry)
-        Dispatcher.dispatch
+        Dispatcher.dispatch(CGI.new)
       end
     end
   end
@@ -398,7 +446,7 @@ class RailsBenchmark
         GC.enable_stats  if gc_stats
         n.times do
           before_dispatch_hook(entry)
-          Dispatcher.dispatch
+          Dispatcher.dispatch(CGI.new)
           if (request_count += 1) == gc_freq
             GC.enable; GC.start; GC.disable
             request_count = 0
@@ -424,7 +472,7 @@ class RailsBenchmark
       test.report(entry.name) do
         n.times do
           before_dispatch_hook(entry)
-          Dispatcher.dispatch
+          Dispatcher.dispatch(CGI.new)
         end
       end
     end
@@ -446,7 +494,7 @@ class RailsBenchmark
         urls.each do |entry|
           setup_request_env(entry)
           before_dispatch_hook(entry)
-          Dispatcher.dispatch
+          Dispatcher.dispatch(CGI.new)
         end
       end
     end
@@ -469,7 +517,7 @@ class RailsBenchmark
         urls.each do |entry|
           setup_request_env(entry)
           before_dispatch_hook(entry)
-          Dispatcher.dispatch
+          Dispatcher.dispatch(CGI.new)
           if (request_count += 1) == gc_frequency
             GC.enable; GC.start; GC.disable
             request_count = 0
