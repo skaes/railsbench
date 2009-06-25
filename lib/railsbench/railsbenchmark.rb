@@ -164,9 +164,8 @@ class RailsBenchmark
         env["rack.session.options"] = {:id => @session_id}
         [200, {}, ""]
       end
-      store = ActionController::Base.session_store.new(do_not_do_much, session_options)
-      env = {}
-      store.call(env)
+      @session_store = ActionController::Base.session_store.new(do_not_do_much, session_options)
+      @session_store.call({})
     else
       session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
       session_options = session_options.merge('new_session' => true)
@@ -188,7 +187,7 @@ class RailsBenchmark
       @session.update
     else
       session_options = ActionController::Base.session_options
-      do_not_do_much = lambda do |env|
+      merge_url_specific_session_data = lambda do |env|
         old_session_data = env["rack.session"]
         # $stderr.puts "data in old session: #{old_session_data.inspect}"
         new_session_data = old_session_data.merge(session_data || {})
@@ -196,17 +195,20 @@ class RailsBenchmark
         env["rack.session"] = new_session_data
         [200, {}, ""]
       end
-      store = ActionController::Base.session_store.new(do_not_do_much, session_options)
+      @session_store.instance_eval { @app = merge_url_specific_session_data }
       env = {}
       env["HTTP_COOKIE"] = cookie
       # debugger
-      store.call(env)
+      @session_store.call(env)
     end
   end
 
   def delete_test_session
-    # @session.delete
-    @session = nil
+    # no way to delete a session by going through the session adpater in rails 2.3
+    if @session
+      @session.delete
+      @session = nil
+    end
   end
 
   # can be redefined in subclasses to clean out test sessions
