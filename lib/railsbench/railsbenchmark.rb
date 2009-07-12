@@ -50,12 +50,15 @@ class RailsBenchmark
       require 'dispatcher' # make edge rails happy
 
       if Rails::VERSION::STRING >= "2.3"
+        @rack_middleware = true
         require 'cgi/session'
         CGI.class_eval <<-"end_eval"
           def env_table
             @env_table ||= ENV.to_hash
           end
         end_eval
+      else
+         @rack_middleware = false
       end
 
     rescue => e
@@ -155,9 +158,8 @@ class RailsBenchmark
   end
 
   def establish_test_session
-    if Rails::VERSION::STRING >= "2.3"
+    if @rack_middleware
       session_options = ActionController::Base.session_options
-      # puts "the options: #{session_options.inspect}"
       @session_id = ActiveSupport::SecureRandom.hex(16)
       do_not_do_much = lambda do |env|
         env["rack.session"] = @session_data
@@ -177,15 +179,7 @@ class RailsBenchmark
   end
 
   def update_test_session_data(session_data)
-    # puts  ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.inspect
-    dbman = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
-    if dbman # before rails 2.3
-      old_session_data = dbman.new(@session).restore
-      # $stderr.puts old_session_data.inspect
-      new_session_data = old_session_data.merge(session_data || {})
-      new_session_data.each{ |k,v| @session[k] = v }
-      @session.update
-    else
+    if @rack_middleware
       session_options = ActionController::Base.session_options
       merge_url_specific_session_data = lambda do |env|
         old_session_data = env["rack.session"]
@@ -200,6 +194,13 @@ class RailsBenchmark
       env["HTTP_COOKIE"] = cookie
       # debugger
       @session_store.call(env)
+    else
+      dbman = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
+      old_session_data = dbman.new(@session).restore
+      # $stderr.puts old_session_data.inspect
+      new_session_data = old_session_data.merge(session_data || {})
+      new_session_data.each{ |k,v| @session[k] = v }
+      @session.update
     end
   end
 
@@ -540,7 +541,7 @@ class RailsBenchmarkWithActiveRecordStore < RailsBenchmark
 
   def initialize(options={})
     super(options)
-    @session_class = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager].session_class rescue CGI::Session::ActiveRecordStore
+    @session_class = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager].session_class rescue CGI::Session::ActiveRecordStore rescue ActiveRecord::SessionStore
   end
 
   def delete_new_test_sessions
