@@ -296,7 +296,16 @@ class RailsBenchmark
           $stderr = File.open(benchmark_file, "w")
         end
         require 'ruby-prof'
-        RubyProf.measure_mode = RubyProf::WALL_TIME
+        measure_mode = "WALL_TIME"
+        ARGV.each{|arg| measure_mode=$1.upcase if arg =~ /-measure_mode=([^ ]*)/ }
+        if %w(PROCESS_TIME WALL_TIME CPU_TIME ALLOCATIONS MEMORY).include?(measure_mode)
+          RubyProf.measure_mode = RubyProf.const_get measure_mode
+          GC.eanable_stats if measure_mode == "memory"
+        else
+          $stderr = STDERR
+          $stderr.puts "unsupported ruby_prof measure mode: #{measure_mode}"
+          exit(-1)
+        end
         RubyProf.start
       end
     rescue LoadError

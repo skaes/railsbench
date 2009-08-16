@@ -103,6 +103,13 @@ FILES
                   store profile data in a HTML file in directory $RAILS_PERF_DATA
                   file name is computed from date and benchmark name as described above
                   but has a .html extension instead of .txt
+                - a number of options to steer ruby-prof are available:
+                    -ruby_prof=number[/number]
+                      sets threshold and min_percent for ruby-prof (defaults to 0.1/1)
+                    -profile_type=stack|grind|flat|graph|multi
+                      selects the profile format (defaults to stack)
+                    -measure_mode=process_time|wall_time|cpu_time|allocations|memory
+                      selects what to measure (default to wall_time)
 
   perf_plot [ options ] file1 file2 ...
                 - plot performance data from raw performance files using gruff or gnuplot
