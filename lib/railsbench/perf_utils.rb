@@ -92,7 +92,7 @@ end
 
 def load_gc_variables(gc_spec)
   File.open_or_die("#{ENV['RAILS_ROOT']}/config/#{gc_spec}.gc").each_line do |line|
-    ENV[$1] = $2 if line =~ /^(.*)=(.*)$/
+    ENV[$1] = $2 if line =~ /^(?:export )?(.*)=(.*)$/
   end
 end
 
