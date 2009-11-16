@@ -83,6 +83,7 @@ class GCInfo
       when /^number of requests processed: (\d+)$/
         @num_requests = $1.to_i
       when /^HEAP\[\s*(\d+)\]: size=\s*(\d+)$/
+        @topology = [] if $1.to_i == 0
         @topology << $2.to_i
       when /^kept (\d+) \/ freed (\d+) objects of type ([a-zA-Z]+)/
         @object_types.add($3)

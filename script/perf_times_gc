@@ -59,7 +59,7 @@ files.each_with_index do |file, idx|
   printf "\nheap topology:\n"
   printf "%9s   %6s\n", "slot_size", "#heaps"
   heaps_count = {}
-  gci.topology.each{|size| heaps_count[size] = (heaps_count[size] ||0) + 1}
+  gci.topology.each{|size| heaps_count[size] = (heaps_count[size] || 0) + 1}
   heaps_count.keys.sort.each do |size|
     printf "%9d   %6d\n", size, heaps_count[size]
   end
