@@ -77,19 +77,23 @@ class RailsBenchmark
         $stderr.puts "benchmarking aborted due to application error: " + exception.message
         exception.backtrace.each{|line| $stderr.puts line}
         $stderr.print "clearing database connections ..."
-        ActiveRecord::Base.send :clear_all_cached_connections! if ActiveRecord::Base.respond_to?(:clear_all_cached_connections)
-        ActiveRecord::Base.clear_all_connections! if ActiveRecord::Base.respond_to?(:clear_all_connections)
+        if defined?(ActiveRecord)
+          ActiveRecord::Base.send :clear_all_cached_connections! if ActiveRecord::Base.respond_to?(:clear_all_cached_connections)
+          ActiveRecord::Base.clear_all_connections! if ActiveRecord::Base.respond_to?(:clear_all_connections)
+        end
         $stderr.puts
         exit!(-1)
       end
     end_eval
 
     # override rails ActiveRecord::Base#inspect to make profiles more readable
-    ActiveRecord::Base.class_eval <<-"end_eval"
-      def self.inspect
-        super
-      end
-    end_eval
+    if defined?(ActiveRecord)
+      ActiveRecord::Base.class_eval <<-"end_eval"
+        def self.inspect
+          super
+        end
+      end_eval
+    end
 
     # make sure Rails doesn't try to read post data from stdin
     CGI::QueryExtension.module_eval <<-end_eval
@@ -122,12 +126,12 @@ class RailsBenchmark
 
     if log_level
       RAILS_DEFAULT_LOGGER.level = log_level
-      ActiveRecord::Base.logger.level = log_level
+      ActiveRecord::Base.logger.level = log_level if defined?(ActiveRecord)
       ActionController::Base.logger.level = log_level
       ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
     else
       RAILS_DEFAULT_LOGGER.level = logger_module.const_get "FATAL"
-      ActiveRecord::Base.logger = nil
+      ActiveRecord::Base.logger = nil if defined?(ActiveRecord)
       ActionController::Base.logger = nil
       ActionMailer::Base.logger = nil if defined?(ActionMailer)
     end
