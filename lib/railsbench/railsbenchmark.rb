@@ -19,8 +19,12 @@ class RailsBenchmark
 
   def relative_url_root=(value)
     if ActionController::Base.respond_to?(:relative_url_root=)
-      # rails 2.3
-      ActionController::Base.relative_url_root = value
+      if @rails_version < "3"
+        # rails 2.3
+        ActionController::Base.relative_url_root = value
+      else
+        ::Rails.application.config.relative_url_root = value
+      end
     else
       # earlier railses
       ActionController::AbstractRequest.relative_url_root = value
@@ -47,18 +51,21 @@ class RailsBenchmark
 
     begin
       require ENV['RAILS_ROOT'] + "/config/environment"
-      require 'dispatcher' # make edge rails happy
+      @rails_version = Rails::VERSION::STRING
+      require 'dispatcher'  if @rails_version < "3" # make edge rails happy
 
-      if Rails::VERSION::STRING >= "2.3"
+      if @rails_version >= "2.3"
         @rack_middleware = true
-        require 'cgi/session'
-        CGI.class_eval <<-"end_eval"
-          def env_table
-            @env_table ||= ENV.to_hash
-          end
-        end_eval
+        if @rails_version < "3"
+          require 'cgi/session'
+          CGI.class_eval <<-"end_eval"
+            def env_table
+              @env_table ||= ENV.to_hash
+            end
+          end_eval
+        end
       else
-         @rack_middleware = false
+        @rack_middleware = false
       end
 
     rescue => e
@@ -69,10 +76,10 @@ class RailsBenchmark
     end
 
     # we don't want local error template output, which crashes anyway, when run under railsbench
-    ActionController::Rescue.class_eval "def local_request?; false; end"
+    ActionController::Rescue.class_eval "def local_request?; false; end"  if @rails_version < "3"
 
     # print backtrace and exit if action execution raises an exception
-    ActionController::Rescue.class_eval <<-"end_eval"
+    ActionController::Rescue.class_eval <<-"end_eval" if @rails_version < "3"
       def rescue_action_in_public(exception)
         $stderr.puts "benchmarking aborted due to application error: " + exception.message
         exception.backtrace.each{|line| $stderr.puts line}
@@ -96,7 +103,7 @@ class RailsBenchmark
     end
 
     # make sure Rails doesn't try to read post data from stdin
-    CGI::QueryExtension.module_eval <<-end_eval
+    CGI::QueryExtension.module_eval <<-end_eval if @rails_version < "3"
       def read_body(content_length)
         ENV['RAW_POST_DATA']
       end
@@ -107,8 +114,10 @@ class RailsBenchmark
       exit
     end
 
+    rails_logger = @rails_version > "3" ? Rails.logger : RAILS_DEFAULT_LOGGER
+
     logger_module = Logger
-    if defined?(Log4r) && RAILS_DEFAULT_LOGGER.is_a?(Log4r::Logger)
+    if defined?(Log4r) && rails_logger.is_a?(Log4r::Logger)
       logger_module = Logger
     end
     default_log_level = logger_module.const_get("ERROR")
@@ -125,12 +134,12 @@ class RailsBenchmark
     end
 
     if log_level
-      RAILS_DEFAULT_LOGGER.level = log_level
+      rails_logger.level = log_level
       ActiveRecord::Base.logger.level = log_level if defined?(ActiveRecord)
       ActionController::Base.logger.level = log_level
-      ActionMailer::Base.logger = level = log_level if defined?(ActionMailer)
+      ActionMailer::Base.logger.level = log_level if defined?(ActionMailer)
     else
-      RAILS_DEFAULT_LOGGER.level = logger_module.const_get "FATAL"
+      rails_logger.level = logger_module.const_get "FATAL"
       ActiveRecord::Base.logger = nil if defined?(ActiveRecord)
       ActionController::Base.logger = nil
       ActionMailer::Base.logger = nil if defined?(ActionMailer)
@@ -270,7 +279,7 @@ class RailsBenchmark
     @urls.each do |entry|
       error_exit "No uri given for benchmark entry: #{entry.inspect}" unless entry.uri
       setup_request_env(entry)
-      Dispatcher.dispatch(CGI.new)
+      dispatch(entry)
     end
   end
 
@@ -423,14 +432,68 @@ class RailsBenchmark
 
   private
 
+  def dispatch(entry)
+    before_dispatch_hook(entry)
+    if @rails_version < "3"
+      Dispatcher.dispatch(CGI.new)
+    else
+      status, headers, response = Rails.application.call(rack_request_env(entry))
+      body = response.body
+      begin
+        send_headers status, headers, $stdout
+        send_body body, $stdout
+      ensure
+        body.close if body.respond_to? :close
+      end
+    end
+  end
+
+  def rack_request_env(entry)
+    env = Rack::MockRequest.env_for(ENV['REQUEST_URI'], :method => ENV['REQUEST_METHOD'])
+    if qs = ENV['QUERY_STRING']
+      env['QUERY_STRING'] = qs
+      env['CONTENT_LENGTH'] = ENV['CONTENT_LENGTH']
+    end
+    if rp = ENV['RAW_POST_DATA']
+      env['rack.input'] = StringIO.new(rp)
+    end
+    if entry.xhr
+      env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+    end
+    if cs = ENV['HTTP_COOKIE']
+      env['HTTP_COOKIE'] = cs
+    end
+    env
+  end
+
+  def send_headers(status, headers, io)
+    io.print "Status: #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]}\r\n"
+    headers.each do |k, vs|
+      vs.split("\n").each { |v| io.print "#{k}: #{v}\r\n" }
+    end
+    io.print "\r\n"
+    io.flush
+  end
+
+  def send_body(body, io)
+    if body.is_a?(String)
+      io.print body
+      io.flush
+    else
+      body.each do |part|
+        io.print part
+        io.flush
+      end
+    end
+  end
+
   def run_urls_without_benchmark_but_with_gc_control(urls, n, gc_frequency)
     urls.each do |entry|
       setup_request_env(entry)
       GC.enable; GC.start; GC.disable
       request_count = 0
       n.times do
-        before_dispatch_hook(entry)
-        Dispatcher.dispatch(CGI.new)
+        dispatch(entry)
         if (request_count += 1) == gc_frequency
           GC.enable; GC.start; GC.disable
           request_count = 0
@@ -443,8 +506,7 @@ class RailsBenchmark
     urls.each do |entry|
       setup_request_env(entry)
       n.times do
-        before_dispatch_hook(entry)
-        Dispatcher.dispatch(CGI.new)
+        dispatch(entry)
       end
     end
   end
@@ -460,8 +522,7 @@ class RailsBenchmark
         GC.enable; GC.start; GC.disable
         GC.enable_stats  if gc_stats
         n.times do
-          before_dispatch_hook(entry)
-          Dispatcher.dispatch(CGI.new)
+          dispatch(entry)
           if (request_count += 1) == gc_freq
             GC.enable; GC.start; GC.disable
             request_count = 0
@@ -486,8 +547,7 @@ class RailsBenchmark
       GC.enable_stats  if gc_stats
       test.report(entry.name) do
         n.times do
-          before_dispatch_hook(entry)
-          Dispatcher.dispatch(CGI.new)
+          dispatch(entry)
         end
       end
     end
@@ -508,8 +568,7 @@ class RailsBenchmark
       n.times do
         urls.each do |entry|
           setup_request_env(entry)
-          before_dispatch_hook(entry)
-          Dispatcher.dispatch(CGI.new)
+          dispatch(entry)
         end
       end
     end
@@ -531,8 +590,7 @@ class RailsBenchmark
       n.times do
         urls.each do |entry|
           setup_request_env(entry)
-          before_dispatch_hook(entry)
-          Dispatcher.dispatch(CGI.new)
+          dispatch(entry)
           if (request_count += 1) == gc_frequency
             GC.enable; GC.start; GC.disable
             request_count = 0
