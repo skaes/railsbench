@@ -35,7 +35,7 @@ if options =~ /(-profile_type=([^ ]+))/
 end
 extension = case profile_type
             when 'grind' then 'dat'
-            when 'flat'  then 'txt'
+            when 'flat','dot'  then 'txt'
             else 'html'
             end
 date = Time.now.strftime '%m-%d'

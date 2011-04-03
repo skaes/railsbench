@@ -387,6 +387,7 @@ class RailsBenchmark
         when 'flat'  then RubyProf::FlatPrinter
         when 'graph' then RubyProf::GraphHtmlPrinter
         when 'multi' then RubyProf::MultiPrinter
+        when 'dot'   then RubyProf::DotPrinter
         else raise "unknown profile type: #{profile_type}"
         end.new(result)
       if profile_type == 'multi'
