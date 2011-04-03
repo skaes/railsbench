@@ -371,7 +371,7 @@ class RailsBenchmark
     # stop data collection if necessary
     svl.stopDataCollection if svl
 
-    if defined? RubyProf
+    if ruby_prof && defined?(RubyProf)
       GC.disable #ruby-pof 0.7.x crash workaround
       result = RubyProf.stop
       GC.enable  #ruby-pof 0.7.x crash workaround
