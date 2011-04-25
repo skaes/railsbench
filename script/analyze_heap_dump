@@ -9,19 +9,23 @@ require 'ostruct'
 $DEBUG = false
 
 class Node
-  attr_accessor :name, :object_type, :count, :children, :clazz
+  attr_accessor :name, :object_type, :count, :children, :clazz, :size
 
   class << self
     def create(filename)
       root = new('', nil)
       File.open(filename).each_line do |line|
-        # ruby 1.9 throws ArgumentError: invalid utf-8 string
-        # TODO: figure out why some strings in the dump file are broken
-        if (line =~ /^([^:]*):(.*):(\d+)(:(.*))?$/ rescue false)
-          $stderr.puts "adding node #{$1}" if $DEBUG
-          root.add_node($1, $2, $3, $5)
-        else
-          $stderr.puts "rejected #{line}" if $DEBUG
+        begin
+          if line =~ /^([^:]*):(.*?):(\d+)(:(.*?)(:(\d+))?)?$/
+            root.add_node($1, $2, $3, $5, $7)
+          else
+            $stderr.puts "rejected #{line}" if $DEBUG
+          end
+        rescue => e
+          # ruby 1.9 sometime throws ArgumentError: invalid utf-8 string
+          # TODO: figure out why some strings in the dump file are broken
+          $stderr.puts "exception during parsing: #{e}"
+          $stderr.puts "could not parse line: #{line}" rescue nil
         end
       end
       root.children.each {|k, n| n.shrink!}
@@ -33,10 +37,12 @@ class Node
     self.name = name
     self.object_type = object_type
     self.count = 0
+    self.size = 0
     self.children = {}
   end
 
-  def add_node(object_type, path, line, clazz)
+  def add_node(object_type, path, line, clazz, size)
+    $stderr.puts "adding node (#{object_type}, #{path}, #{line}, #{clazz}, #{size})" if $DEBUG
     segments = path.split('/').reject{|s| s.empty?}
     path = ''
     self.count += 1
@@ -48,6 +54,7 @@ class Node
       node.count += 1
     end
     node.clazz = clazz
+    node.size += size.to_i if size
   end
 
   def shrink!
@@ -57,6 +64,7 @@ class Node
       self.name = son.name
       self.children = son.children
       self.clazz = son.clazz
+      self.size = son.size
     end
     children.each{|k,n| n.shrink!}
   end
@@ -79,7 +87,14 @@ class Node
   end
 
   def hotspots_by_class
-    (@leaves ||= leaves).inject(Hash.new(0)){|h,n| h[n.clazz] += n.count ; h}.to_a.sort_by{|k,v| [-v, k]}
+    @leaves ||= leaves
+    spots = Hash.new{|h,k| h[k] = [0,0]}
+    @leaves.each do |n|
+      p = spots[n.clazz]
+      p[0] += n.count
+      p[1] += n.size
+    end
+    spots.to_a.sort_by{|k,(c,s)| [-c, k]}
   end
 end
 
@@ -122,26 +137,28 @@ class HeapPrinter
 
   def print_hotspots
     File.open(@hotspot_filename, "w") do |f|
-      f.printf "%5s  %5s %9s %10s  %s\n", "Total", "Self", "Count", "Type", "File"
+      f.printf "%5s  %5s %9s %9s %10s  %s\n", "Total", "Self", "Count", "Size", "Type", "File"
       running_total = 0.0
       @result.hotspots_by_file.each do |n|
         percent = (n.count.to_f/@result.count)*100
         running_total += percent
-        f.printf "%5.2f  %5.2f %9s %10s  %s\n",
-           running_total, percent, ths(n.count), n.object_type, n.name
+        size = ths(n.size) if n.size > 0
+        f.printf "%5.2f  %5.2f %9s %9s %10s  %s\n",
+           running_total, percent, ths(n.count), size, n.object_type, n.name
       end
     end
   end
 
   def print_class_hotspots
     File.open(@clazz_hotspots_filename, "w") do |f|
-      f.printf "%5s  %5s %9s %s\n", "Total", "Self", "Count", "Class"
+      f.printf "%5s  %5s %9s %9s %s\n", "Total", "Self", "Count", "Size", "Class"
       running_total = 0.0
-      @result.hotspots_by_class.each do |clazz, count|
+      @result.hotspots_by_class.each do |clazz, (count, size)|
         percent = (count.to_f/@result.count)*100
         running_total += percent
-        f.printf "%5.2f  %5.2f %9s %s\n",
-           running_total, percent, ths(count), clazz
+        nsize = ths(size) if size > 0
+        f.printf "%5.2f  %5.2f %9s %9s %s\n",
+           running_total, percent, ths(count), nsize, clazz
       end
     end
   end
