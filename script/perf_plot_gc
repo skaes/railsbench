@@ -219,8 +219,10 @@ class Plotter
 
     (o.object_types + %w(FREELIST)).each_with_index do |ot, i|
       next unless data = prepare_data(ot)
-      plot.data << Gnuplot::DataSet.new([[ot.downcase] + data]) do |ds|
-        ds.using = "1 title 1 lc rgb '#{ot == 'FREELIST' ? '#666666' : o.colors[i]}'"
+      title = ot.downcase
+      plot.data << Gnuplot::DataSet.new([[title] + data]) do |ds|
+        ds.title = title
+        ds.using = "1 lc rgb '#{ot == 'FREELIST' ? '#666666' : o.colors[i]}'"
       end
     end
 
