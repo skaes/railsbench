@@ -98,6 +98,9 @@ class GCInfo
       end
     end
 
+    # don't use the last entry if time info wasn't flushed correctly (GC patch bug)
+    @entries.pop if @entries[-1].time.nil?
+
     @time_total = @entries.map{|e| e.time}.sum
     @collections = @entries.length
     @garbage_produced = @entries.map{|e| e.freed}.sum
