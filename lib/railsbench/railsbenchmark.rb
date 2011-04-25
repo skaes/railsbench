@@ -258,6 +258,7 @@ class RailsBenchmark
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
     ENV['HTTP_COOKIE'] = entry.new_session ? '' : cookie
     ENV['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest' if entry.xhr
+    ENV['HTTP_VERSION'] = "HTTP/1.1"
     # $stderr.puts entry.session_data.inspect
     update_test_session_data(entry.session_data) unless entry.new_session
   end
