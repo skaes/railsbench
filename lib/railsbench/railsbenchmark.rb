@@ -45,14 +45,13 @@ class RailsBenchmark
     @server_port = options[:server_port] || '80'
 
     @session_data = options[:session_data] || {}
-    @session_key = options[:session_key] || '_session_id'
 
     ENV['RAILS_ENV'] = 'benchmarking'
 
     begin
       require ENV['RAILS_ROOT'] + "/config/environment"
       @rails_version = Rails::VERSION::STRING
-      require 'dispatcher'  if @rails_version < "3" # make edge rails happy
+      require 'dispatcher' if @rails_version < "3"
 
       if @rails_version >= "2.3"
         @rack_middleware = true
@@ -171,7 +170,19 @@ class RailsBenchmark
   end
 
   def establish_test_session
-    if @rack_middleware
+    if @rails_version < "3"
+      @session_key = options[:session_key] || '_session_id'
+      @secret = ActionController::Base.session_options[:secret] if @rails_version >= "2.3"
+      @cookie_store = ActionController::Base.session_options[:cookie_only]
+    else
+      @session_key = Rails.application.config.session_options[:key]
+      @secret = Rails.application.config.secret_token
+      @cookie_store = Rails.application.config.session_options[:cookie_only]
+    end
+
+    if @cookie_store
+      @session_id = ActiveSupport::SecureRandom.hex(16)
+    elsif @rack_middleware
       session_options = ActionController::Base.session_options
       @session_id = ActiveSupport::SecureRandom.hex(16)
       do_not_do_much = lambda do |env|
@@ -192,6 +203,7 @@ class RailsBenchmark
   end
 
   def update_test_session_data(session_data)
+    return if @cookie_store
     if @rack_middleware
       session_options = ActionController::Base.session_options
       merge_url_specific_session_data = lambda do |env|
@@ -218,6 +230,7 @@ class RailsBenchmark
   end
 
   def delete_test_session
+    return if @cookie_store
     # no way to delete a session by going through the session adpater in rails 2.3
     if @session
       @session.delete
@@ -256,7 +269,7 @@ class RailsBenchmark
       ENV['RAW_POST_DATA'] = query_data
     end
     ENV['CONTENT_LENGTH'] = query_data.length.to_s
-    ENV['HTTP_COOKIE'] = entry.new_session ? '' : cookie
+    ENV['HTTP_COOKIE'] = cookie(entry)
     ENV['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest' if entry.xhr
     ENV['HTTP_VERSION'] = "HTTP/1.1"
     # $stderr.puts entry.session_data.inspect
@@ -266,8 +279,20 @@ class RailsBenchmark
   def before_dispatch_hook(entry)
   end
 
-  def cookie
-    "#{@session_key}=#{@session_id}#{cookie_data}"
+  def cookie(entry)
+    [cookie_data,  session_cookie(entry)].compact.join("; ")
+  end
+
+  def session_cookie(entry)
+    if entry.new_session
+      ""
+    elsif @cookie_store
+      session_data = {"session_id" => @session_id}.merge!(@session_data).merge!(entry.session_data||{})
+      encoded_session_data = ActiveSupport::MessageVerifier.new(@secret).generate(session_data)
+      "#{@session_key}=#{encoded_session_data}"
+    else
+      "#{@session_key}=#{@session_id}"
+    end
   end
 
   def escape_data(str)
