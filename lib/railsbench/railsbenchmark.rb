@@ -440,7 +440,7 @@ class RailsBenchmark
       Dispatcher.dispatch(CGI.new)
     else
       status, headers, response = Rails.application.call(rack_request_env(entry))
-      body = response.body
+      body = response.respond_to?(:body) ? response.body : response
       begin
         send_headers status, headers, $stdout
         send_body body, $stdout
