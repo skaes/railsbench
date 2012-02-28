@@ -1,0 +1,19 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    gemcutter (0.7.1)
+    hoe (2.5.0)
+      gemcutter (>= 0.2.1)
+      rake (>= 0.8.7)
+      rubyforge (>= 2.0.3)
+    json_pure (1.6.5)
+    rake (0.8.7)
+    rubyforge (2.0.4)
+      json_pure (>= 1.1.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hoe (= 2.5.0)
+  rake (= 0.8.7)
