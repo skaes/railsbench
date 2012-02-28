@@ -32,7 +32,10 @@ class RailsBenchmark
     @relative_url_root = value
   end
 
+  attr_reader :options
+
   def initialize(options={})
+    @options = options
     unless @gc_frequency = options[:gc_frequency]
       @gc_frequency = 0
       ARGV.each{|arg| @gc_frequency = $1.to_i if arg =~ /-gc(\d+)/ }
@@ -183,14 +186,14 @@ class RailsBenchmark
     if @cookie_store
       @session_id = ActiveSupport::SecureRandom.hex(16)
     elsif @rack_middleware
-      session_options = ActionController::Base.session_options
+      session_options =  @rails_version < "3" ? ActionController::Base.session_options : Rails.application.config.session_options
       @session_id = ActiveSupport::SecureRandom.hex(16)
       do_not_do_much = lambda do |env|
         env["rack.session"] = @session_data
         env["rack.session.options"] = {:id => @session_id}
         [200, {}, ""]
       end
-      @session_store = ActionController::Base.session_store.new(do_not_do_much, session_options)
+      @session_store = @rails_version < "3" ? ActionController::Base.session_store.new(do_not_do_much, session_options) : Rails.application.config.session_store.new(do_not_do_much, session_options)
       @session_store.call({})
     else
       session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.stringify_keys
@@ -202,10 +205,11 @@ class RailsBenchmark
     end
   end
 
-  def update_test_session_data(session_data)
+  def update_test_session_data(entry)
     return if @cookie_store
+    session_data = entry.session_data
     if @rack_middleware
-      session_options = ActionController::Base.session_options
+      session_options = @rails_version < "3" ? ActionController::Base.session_options : Rails.application.config.session_options
       merge_url_specific_session_data = lambda do |env|
         old_session_data = env["rack.session"]
         # $stderr.puts "data in old session: #{old_session_data.inspect}"
@@ -216,7 +220,7 @@ class RailsBenchmark
       end
       @session_store.instance_eval { @app = merge_url_specific_session_data }
       env = {}
-      env["HTTP_COOKIE"] = cookie
+      env["HTTP_COOKIE"] = cookie(entry)
       # debugger
       @session_store.call(env)
     else
@@ -273,7 +277,7 @@ class RailsBenchmark
     ENV['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest' if entry.xhr
     ENV['HTTP_VERSION'] = "HTTP/1.1"
     # $stderr.puts entry.session_data.inspect
-    update_test_session_data(entry.session_data) unless entry.new_session
+    update_test_session_data(entry) unless entry.new_session
   end
 
   def before_dispatch_hook(entry)
