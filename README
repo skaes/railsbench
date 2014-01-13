@@ -24,7 +24,7 @@ FILES
                   -nocache      : turn off rails caching
                   -path         : print $: after loading rails and exit
 
-  config/bechmarks.yml
+  config/benchmarks.yml
                 - specification of urls to benchmark
                   install into $RAILS_ROOT/config using `railsbench install'
                   (use railsbench install)
